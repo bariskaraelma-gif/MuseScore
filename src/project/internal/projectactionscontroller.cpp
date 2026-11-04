@@ -42,6 +42,7 @@
 #include "engraving/dom/part.h"
 #include "engraving/dom/staff.h"
 #include "engraving/dom/stafftype.h"
+#include "engraving/style/style.h"
 
 #include "projecterrors.h"
 #include "projectextensionpoints.h"
@@ -797,7 +798,6 @@ Ret ProjectActionsController::createBlankProject(BlankScoreKind kind)
     // Usul staff: its two lines 4 spaces apart, like the outer lines of a five-line staff, so the
     // time signature fits between them (an instrument template cannot set the line distance)
     mu::engraving::MasterScore* score = project->masterNotation()->masterScore();
-    bool hasUsul = false;
     for (mu::engraving::Part* part : score->parts()) {
         if (part->instrument()->id() != u"usul") {
             continue;
@@ -806,13 +806,15 @@ Ret ProjectActionsController::createBlankProject(BlankScoreKind kind)
             mu::engraving::StaffType* staffType = staff->staffType(mu::engraving::Fraction(0, 1));
             if (staffType) {
                 staffType->setLineDistance(mu::engraving::Spatium(4.0));
-                hasUsul = true;
             }
         }
     }
-    if (hasUsul) {
-        score->doLayout();
-    }
+
+    // Makam: every system starts at the left margin, also the first one. Set on the score,
+    // not as a style default, so it is saved and kept when opened in MuseScore
+    score->style().set(mu::engraving::Sid::enableIndentationOnFirstSystem, false);
+
+    score->doLayout();
 
     globalContext()->setCurrentProject(project);
     return make_ret(Ret::Code::Ok);
