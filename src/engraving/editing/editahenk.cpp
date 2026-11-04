@@ -33,7 +33,7 @@
 #include "../dom/segment.h"
 #include "../dom/staff.h"
 
-using namespace mu::engraving;
+
 
 namespace mu::engraving::makam {
 const std::vector<Ahenk>& ahenkler()

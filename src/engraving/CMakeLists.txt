@@ -360,6 +360,8 @@ set_source_files_properties(
     #api/vi/score.cpp
     dom/transpose.cpp
     editing/transpose.cpp
+    # Makam: outside the unity batches, so that the upstream batches stay as they are
+    editing/editahenk.cpp
     style/style.cpp
     #${CMAKE_CURRENT_LIST_DIR}/api/vi/style.cpp
 
