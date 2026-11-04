@@ -30,6 +30,8 @@
 
 #include "translation.h"
 
+#include "makamtuner.h"
+
 #include "infrastructure/messagebox.h"
 #include "style/style.h"
 
@@ -421,6 +423,9 @@ void Score::endCmd(bool rollback, bool layoutAllParts)
 
     if (rollback) {
         undoStack()->activeCommand()->unwind();
+    } else {
+        // Makam: tune the notes in the same undo step, so the note-entry preview plays them tuned
+        makam::tuneScore(masterScore());
     }
 
     update(false, layoutAllParts);
