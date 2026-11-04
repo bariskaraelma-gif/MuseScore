@@ -742,7 +742,7 @@ void ProjectActionsController::newProject(BlankScoreKind kind)
     }
 }
 
-//! Makam: a blank page, 4/4, no key signature, 32 measures, no title frame, with
+//! Makam: a blank page, 4/4, no key signature, 32 measures, title frame, with
 //! - Single:   one "Türk Müziği" staff
 //! - WithUsul: a "Türk Müziği" staff and an "Usul" staff (two parts, no bracket)
 //! - UsulOnly: one "Usul" staff
@@ -756,7 +756,14 @@ Ret ProjectActionsController::createBlankProject(BlankScoreKind kind)
         instrumentIds.push_back(u"usul");
     }
 
+    // Title frame with the same placeholder texts as the New Score dialog fields,
+    // so they can be clicked and replaced (MuseScore adds the frame only for non-empty texts)
     ProjectCreateOptions options;
+    options.title = muse::qtrc("project", "Untitled score");
+    options.subtitle = muse::qtrc("project", "Subtitle");
+    options.composer = muse::qtrc("project", "Composer / arranger");
+    options.lyricist = muse::qtrc("project", "Lyricist");
+
     ScoreCreateOptions& scoreOptions = options.scoreOptions;
     scoreOptions.globalTimesig = mu::engraving::Fraction(4, 4);
     scoreOptions.timesigType = mu::engraving::TimeSigType::NORMAL;
