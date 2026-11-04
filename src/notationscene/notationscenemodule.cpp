@@ -93,6 +93,8 @@ void NotationSceneModule::resolveImports()
         ir->registerQmlUri(Uri("musescore://notation/editgridsize"), "MuseScore.NotationScene", "EditGridSizeDialog");
         ir->registerQmlUri(Uri("musescore://notation/percussionpanelpadswap"), "MuseScore.NotationScene", "PercussionPanelPadSwapDialog");
         ir->registerQmlUri(Uri("musescore://notation/editpercussionshortcut"), "MuseScore.NotationScene", "EditPercussionShortcutDialog");
+        // Makam: calibration of the makam tuning
+        ir->registerQmlUri(Uri("musescore://notation/makamtuning"), "MuseScore.NotationScene", "MakamTuningDialog");
     }
 }
 

@@ -42,6 +42,8 @@ qt_add_qml_module(notationscene_qml
         editgridsizedialogmodel.h
         editpercussionshortcutmodel.cpp
         editpercussionshortcutmodel.h
+        makamtuningmodel.cpp
+        makamtuningmodel.h
         elementpopups/caposettingsmodel.cpp
         elementpopups/caposettingsmodel.h
         elementpopups/dynamicpopupmodel.cpp
@@ -163,6 +165,7 @@ qt_add_qml_module(notationscene_qml
         ConcertPitchControl.qml
         EditGridSizeDialog.qml
         EditPercussionShortcutDialog.qml
+        MakamTuningDialog.qml
         elementpopups/CapoPopup.qml
         elementpopups/DynamicPopup.qml
         elementpopups/ElementPopupLoader.qml
@@ -298,6 +301,9 @@ target_include_directories(notationscene_qml PRIVATE
     selectionfilter
     styledialog
 )
+
+# Makam: outside the unity batches, so that the upstream batches stay as they are
+set_source_files_properties(makamtuningmodel.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 
 target_link_libraries(notationscene_qml PRIVATE
     muse::uicomponents_qml

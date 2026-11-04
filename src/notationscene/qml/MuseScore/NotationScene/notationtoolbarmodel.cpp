@@ -37,7 +37,8 @@ void NotationToolBarModel::load()
     muse::actions::ActionCodeList itemsCodes = {
         "parts",
         "toggle-mixer",
-        "image-capture" // Makam: Image Capture button, as in MuseScore 3
+        "image-capture", // Makam: Image Capture button, as in MuseScore 3
+        "makam-tuning"   // Makam: calibration window
     };
 
     ToolBarItemList items;

@@ -77,6 +77,7 @@ void ProjectActionsController::init()
     dispatcher()->reg(this, "file-new-with-usul", [this]() { newProject(BlankScoreKind::WithUsul); });
     dispatcher()->reg(this, "file-new-usul", [this]() { newProject(BlankScoreKind::UsulOnly); });
     dispatcher()->reg(this, "image-capture", this, &ProjectActionsController::openImageCapture);
+    dispatcher()->reg(this, "makam-tuning", this, &ProjectActionsController::openMakamTuning);
     dispatcher()->reg(this, "file-open", this, &ProjectActionsController::openProject);
 
     dispatcher()->reg(this, "file-close", [this]() {
@@ -822,6 +823,16 @@ Ret ProjectActionsController::createBlankProject(BlankScoreKind kind)
 
     globalContext()->setCurrentProject(project);
     return make_ret(Ret::Code::Ok);
+}
+
+//! Makam: the "Makam akordu" window (calibration of the makam tuning), one at a time
+void ProjectActionsController::openMakamTuning()
+{
+    static const Uri MAKAM_TUNING_URI("musescore://notation/makamtuning");
+    if (!currentNotationProject() || interactive()->isOpened(MAKAM_TUNING_URI).val) {
+        return;
+    }
+    interactive()->open(MAKAM_TUNING_URI);
 }
 
 //! Makam: the Image Capture tool is a built-in plugin (share/plugins/imagecapture),

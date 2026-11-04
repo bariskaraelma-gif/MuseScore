@@ -61,6 +61,14 @@ const UiActionList ProjectUiActions::m_actions = {
              TranslatableString("action", "Yeni nota: yalnız usul dizeği"),
              IconCode::Code::NEW_FILE
              ),
+    // Makam: calibration of the makam tuning (toolbar button)
+    UiAction("makam-tuning",
+             mu::context::UiCtxAny,
+             mu::context::CTX_ANY,
+             TranslatableString("action", "Makam akordu"),
+             TranslatableString("action", "Makam akordu: perdelerin çıkış, iniş ve durak değerleri"),
+             IconCode::Code::TUNING_FORK
+             ),
     // Makam: built-in Image Capture tool (toolbar button)
     UiAction("image-capture",
              mu::context::UiCtxAny,

@@ -398,6 +398,7 @@ MenuItem* AppMenuModel::makeToolsMenu()
     };
 
     MenuItemList toolsItems {
+        makeMenuItem("makam-tuning"),   // Makam
         makeMenuItem("transpose"),
         makeSeparator(),
         makeMenuItem("explode"),

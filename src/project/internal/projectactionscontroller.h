@@ -129,6 +129,7 @@ private:
     void newProject(BlankScoreKind kind = BlankScoreKind::Single);
     muse::Ret createBlankProject(BlankScoreKind kind);
     void openImageCapture();
+    void openMakamTuning();
 
     void openProject(const muse::actions::ActionData& args);
     muse::Ret openProject(const muse::io::path_t& path, const QString& displayNameOverride = QString());

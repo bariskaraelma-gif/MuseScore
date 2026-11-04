@@ -38,8 +38,12 @@
 #include <utility>
 #include <vector>
 
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QRegularExpression>
 #include <QString>
+
+#include "settings.h"
 
 #include "../dom/accidental.h"
 #include "../dom/chord.h"
@@ -64,7 +68,8 @@ struct Calib {
 
 struct MakamDef {
     const char* id = "";
-    std::vector<const char*> keys;                          // names in the score text (normalized)
+    const char* name = "";                                  // UTF-8
+    std::vector<const char*> keys;                         // names in the score text (normalized)
     std::vector<std::pair<const char*, Calib> > calib;      // perde -> cents from the written ET note
     std::vector<std::vector<const char*> > ksLists;         // donanıms the makam is written with
     const char* karar = "";                                 // final perde
@@ -74,137 +79,137 @@ struct MakamDef {
 const std::vector<MakamDef>& makamlar()
 {
     static const std::vector<MakamDef> list {
-        { "ussak",
+        { "ussak", "Uşşak",
           { "ussak" },
           { { "B-1", { -50.0, -66.67, -50.0 } } },
           { { "B-1" } },
           "A0", 71.9 },
-        { "rast",
+        { "rast", "Rast",
           { "rast" },
           { { "B-1", { -16.67, -16.67, -16.67 } }, { "F4", { -16.67, -33.33, -16.67 } } },
           { { "B-1", "F4" } },
           "G0", 70.6 },
-        { "huzzam",
+        { "huzzam", "Hüzzam",
           { "huzzam" },
-          { { "B-1", { -16.67, -33.33, -16.67 } }, { "E-4", { -50.0, -66.67, -50.0 } }, { "F4", { -33.33, -33.33, -33.33 } } },
+          { { "B-1", { -16.67, -16.67, -16.67 } }, { "E-4", { -50.0, -66.67, -16.67 } }, { "F4", { -33.33, -33.33, -16.67 } }, { "E4", { -33.33, -33.33, -33.33 } }, { "E-1", { -16.67, -16.67, -16.67 } } },
           { { "B-1", "E-4", "F4" } },
           "B-1", 74.9 },
-        { "hicaz",
+        { "hicaz", "Hicaz",
           { "hicaz" },
           { { "B-4", { -83.33, -83.33, -83.33 } }, { "C4", { -16.67, -16.67, -16.67 } }, { "F4", { -33.33, -50.0, -33.33 } } },
           { { "B-4", "C4" }, { "B-4", "C4", "F4" } },
           "A0", 74.1 },
-        { "huseyni",
+        { "huseyni", "Hüseyni",
           { "huseyni" },
           { { "B-1", { -33.33, -50.0, -33.33 } }, { "F4", { -33.33, -50.0, -33.33 } } },
           { { "B-1", "F4" } },
           "A0", 75.5 },
-        { "segah",
+        { "segah", "Segah",
           { "segah" },
-          { { "B-1", { -16.67, -16.67, -16.67 } }, { "E-1", { 0.0, -16.67, 0.0 } }, { "F4", { -16.67, -50.0, -16.67 } } },
+          { { "B-1", { -16.67, -16.67, -16.67 } }, { "E-1", { 0.0, -16.67, 0.0 } }, { "F4", { -16.67, -50.0, -16.67 } }, { "E4", { -33.33, -33.33, -33.33 } } },
           { { "B-1", "E-1", "F4" } },
           "B-1", 73.3 },
-        { "saba",
+        { "saba", "Saba",
           { "saba" },
           { { "B-1", { -33.33, -50.0, -33.33 } }, { "D-4", { -66.67, -66.67, -66.67 } } },
           { { "B-1", "D-4" } },
           "A0", 71.9 },
-        { "nihavend",
+        { "nihavend", "Nihavend",
           { "nihavend", "nihavent" },
           {  },
           { { "B-5", "E-5" } },
           "G0", 72.5 },
-        { "kurdi",
+        { "kurdi", "Kürdi",
           { "kurdi" },
           {  },
           { { "B-5" } },
           "A0", 74.0 },
-        { "muhayyerkurdi",
+        { "muhayyerkurdi", "Muhayyerkürdi",
           { "muhayyerkurdi", "muhayyer kurdi" },
           {  },
           { { "B-5" } },
           "A0", 78.9 },
-        { "muhayyer",
+        { "muhayyer", "Muhayyer",
           { "muhayyer" },
           { { "B-1", { -33.33, -50.0, -33.33 } }, { "F4", { -33.33, -50.0, -33.33 } } },
           { { "B-1", "F4" } },
           "A0", 78.5 },
-        { "acemkurdi",
+        { "acemkurdi", "Acemkürdi",
           { "acemkurdi", "acem kurdi" },
           {  },
           { { "B-5" } },
           "A0", 76.5 },
-        { "bayati",
+        { "bayati", "Bayati",
           { "bayati", "beyati" },
           { { "B-1", { -50.0, -66.67, -50.0 } } },
           { { "B-1" } },
           "A0", 73.8 },
-        { "evic",
+        { "evic", "Eviç",
           { "evic" },
           { { "B-1", { -16.67, -16.67, -16.67 } }, { "F4", { -16.67, -33.33, -16.67 } } },
           { { "B-1", "F4" } },
           "F4", 77.2 },
-        { "kurdilihicazkar",
+        { "kurdilihicazkar", "Kürdilihicazkâr",
           { "kurdilihicazkar", "kurdili hicazkar" },
           {  },
           { { "A-5", "B-5", "E-5" } },
           "G0", 77.0 },
-        { "hicazuzzal",
+        { "hicazuzzal", "Hicaz Uzzal",
           { "hicaz uzzal", "hicazuzzal", "uzzal hicaz", "uzzal" },
           { { "B-4", { -83.33, -83.33, -83.33 } }, { "C4", { -16.67, -16.67, -16.67 } }, { "F4", { -33.33, -50.0, -33.33 } } },
           { { "B-4", "C4" } },
           "A0", 75.3 },
-        { "zirgulelihicaz",
+        { "zirgulelihicaz", "Zirgüleli Hicaz",
           { "zirguleli hicaz", "zirgulelihicaz", "hicaz zirgule" },
           { { "B-4", { -83.33, -83.33, -83.33 } }, { "C4", { -16.67, -16.67, -16.67 } }, { "G4", { -16.67, -16.67, -16.67 } } },
           { { "B-4", "C4", "G4" } },
           "A0", 72.6 },
-        { "sedaraban",
+        { "sedaraban", "Şedaraban",
           { "sedaraban", "sedd-i araban", "seddi araban", "sed araban", "sedd araban" },
           { { "E-4", { -83.33, -83.33, -83.33 } }, { "F4", { -16.67, -16.67, -16.67 } }, { "B-4", { -83.33, -83.33, -83.33 } }, { "C4", { -16.67, -16.67, -16.67 } } },
           { { "B-4", "E-4", "F4", "C4" } },
           "D0", 74.5 },
-        { "buselik",
+        { "buselik", "Buselik",
           { "buselik" },
           {  },
           { {  } },
           "A0", 72.7 },
-        { "cargah",
+        { "cargah", "Çargah",
           { "cargah", "yeni cargah" },
           {  },
           { {  } },
           "C0", 73.1 },
-        { "mahur",
+        { "mahur", "Mahur",
           { "mahur" },
           { { "F5", { 116.67, 116.67, 116.67 } } },
           { { "F5" } },
           "G0", 78.2 },
-        { "acemasiran",
+        { "acemasiran", "Acemaşiran",
           { "acemasiran", "acem asiran" },
           {  },
           { { "B-5" } },
           "F0", 76.4 },
-        { "evcara",
+        { "evcara", "Evcârâ",
           { "evcara", "evc ara", "evc-ara", "evara" },
           { { "B-1", { -16.67, -16.67, -16.67 } }, { "F4", { -16.67, -33.33, -16.67 } }, { "C4", { -16.67, -16.67, -16.67 } }, { "E4", { -16.67, -16.67, -16.67 } } },
           { { "B-1", "F4", "C4", "E4", "A4" } },
           "F4", 78.0 },
-        { "suzidil",
+        { "suzidil", "Suzidil",
           { "suzidil", "suzi dil" },
           { { "F1", { 16.67, 16.67, 16.67 } }, { "G4", { -16.67, -16.67, -16.67 } }, { "D4", { -16.67, -16.67, -16.67 } } },
           { { "F1", "G4", "D4" } },
           "E0", 76.0 },
-        { "karcigar",
+        { "karcigar", "Karcığar",
           { "karcigar" },
           { { "B-1", { -33.33, -66.67, -33.33 } }, { "E-4", { -50.0, -66.67, -50.0 } }, { "F4", { -33.33, -33.33, -33.33 } } },
           { { "B-1", "E-4", "F4" } },
           "A0", 74.5 },
-        { "suzinak",
+        { "suzinak", "Suzinak",
           { "suzinak" },
           { { "A-4", { -83.33, -83.33, -83.33 } }, { "B-1", { -16.67, -16.67, -16.67 } }, { "E-4", { -83.33, -83.33, -83.33 } }, { "F4", { -16.67, -16.67, -16.67 } } },
           { { "B-1", "E-4", "F4" } },
           "G0", 73.3 },
-        { "hicazkar",
+        { "hicazkar", "Hicazkâr",
           { "hicazkar" },
           { { "A-4", { -83.33, -83.33, -83.33 } }, { "B-1", { 0.0, -16.67, 0.0 } }, { "E-4", { -83.33, -66.67, -83.33 } }, { "F4", { 0.0, -16.67, 0.0 } } },
           { { "A-4", "B-1", "E-4", "F4" } },
@@ -214,8 +219,11 @@ const std::vector<MakamDef>& makamlar()
 }
 
 constexpr double KOMA = 1200.0 / 53.0;
-constexpr double YEDEN_SEGAH = -16.67;    // Segah while La♯ (yeden) is active, cents from Si
+constexpr double DEFAULT_YEDEN_SEGAH = -16.67;    // Segah while La♯ (yeden) is active, cents from Si
 const char* const FALLBACK_MAKAM = "ussak";
+
+const muse::Settings::Key CALIBRATION_KEY("makam", "makam/calibration");
+const muse::Settings::Key YEDEN_KEY("makam", "makam/yedenSegah");
 
 const MakamDef* makamById(const std::string& id)
 {
@@ -227,17 +235,97 @@ const MakamDef* makamById(const std::string& id)
     return nullptr;
 }
 
-const Calib* calibOf(const MakamDef* makam, const std::string& perde)
+//---------------------------------------------------------
+//   user calibration (app settings), same JSON as the Makam plugin:
+//   { makamId: { perde: { "up": cents, "down": cents, "stop": cents } } }
+//---------------------------------------------------------
+
+using UserCalib = std::map<std::string, std::map<std::string, Calib> >;
+
+QString savedCalibrationJson()
 {
-    if (!makam) {
-        return nullptr;
+    return muse::settings()->value(CALIBRATION_KEY).toQString();
+}
+
+const UserCalib& userCalib()
+{
+    static QString cachedJson;
+    static UserCalib cached;
+    static bool loaded = false;
+    const QString json = savedCalibrationJson();
+    if (loaded && json == cachedJson) {
+        return cached;
     }
-    for (const auto& [p, c] : makam->calib) {
-        if (perde == p) {
-            return &c;
+    loaded = true;
+    cachedJson = json;
+    cached.clear();
+    const QJsonObject root = QJsonDocument::fromJson(json.toUtf8()).object();
+    for (auto mit = root.begin(); mit != root.end(); ++mit) {
+        const QJsonObject perdes = mit.value().toObject();
+        for (auto pit = perdes.begin(); pit != perdes.end(); ++pit) {
+            const QJsonObject v = pit.value().toObject();
+            Calib c;
+            c.up = v.value("up").toDouble();
+            c.down = v.value("down").toDouble();
+            c.stop = v.value("stop").toDouble(c.up);
+            cached[mit.key().toStdString()][pit.key().toStdString()] = c;
         }
     }
-    return nullptr;
+    return cached;
+}
+
+void saveUserCalib(const UserCalib& calib)
+{
+    QJsonObject root;
+    for (const auto& [makamId, perdes] : calib) {
+        QJsonObject obj;
+        for (const auto& [perde, c] : perdes) {
+            QJsonObject v;
+            v.insert("up", c.up);
+            v.insert("down", c.down);
+            v.insert("stop", c.stop);
+            obj.insert(QString::fromStdString(perde), v);
+        }
+        if (!obj.isEmpty()) {
+            root.insert(QString::fromStdString(makamId), obj);
+        }
+    }
+    const QString json = QString::fromUtf8(QJsonDocument(root).toJson(QJsonDocument::Compact));
+    muse::settings()->setSharedValue(CALIBRATION_KEY, muse::Val(json));
+}
+
+double currentYedenSegah()
+{
+    const muse::Val v = muse::settings()->value(YEDEN_KEY);
+    return v.isNull() ? DEFAULT_YEDEN_SEGAH : v.toDouble();
+}
+
+// The value of a calibrated perde: the user's value, else the default; nullptr when not calibrated
+bool calibOf(const MakamDef* makam, const std::string& perde, Calib& result)
+{
+    if (!makam) {
+        return false;
+    }
+    bool found = false;
+    for (const auto& [p, c] : makam->calib) {
+        if (perde == p) {
+            result = c;
+            found = true;
+            break;
+        }
+    }
+    if (!found) {
+        return false;
+    }
+    const UserCalib& user = userCalib();
+    auto mit = user.find(makam->id);
+    if (mit != user.end()) {
+        auto pit = mit->second.find(perde);
+        if (pit != mit->second.end()) {
+            result = pit->second;
+        }
+    }
+    return true;
 }
 
 //---------------------------------------------------------
@@ -375,9 +463,6 @@ bool symKoma(SymId sym, int& koma)
 std::vector<int> keyKomas(const KeySigEvent& ke)
 {
     std::vector<int> komas(7, 0);
-    if (!ke.isValid()) {
-        return komas;
-    }
     const int fifths = static_cast<int>(ke.key());
     static const char* const ORDER = "FCGDAEB";
     static const char* const LETTERS = "CDEFGAB";
@@ -554,16 +639,16 @@ int writtenPitch(const Note* note)
 struct Marker {
     Fraction tick;
     const MakamDef* makam = nullptr;
+    QString source;
 };
 
 // The makam from the melody: the key signature narrows the candidates, then the region where the
 // melody starts (seyir) and the last note (karar) decide
-const MakamDef* guessFromMelody(MasterScore* score, const std::vector<std::vector<Event> >& firstVoice)
+const MakamDef* guessFromMelody(MasterScore* score, const std::vector<Event>& events)
 {
-    if (firstVoice.empty() || firstVoice.front().empty()) {
+    if (events.empty()) {
         return nullptr;
     }
-    const std::vector<Event>& events = firstVoice.front();
 
     // donanım of the first staff at the start
     std::vector<std::string> sig;
@@ -643,7 +728,7 @@ std::vector<Marker> findMarkers(MasterScore* score)
     for (const QString& t : titles) {
         const std::string id = findMakam(t, true);
         if (!id.empty()) {
-            markers.push_back({ Fraction(0, 1), makamById(id) });
+            markers.push_back({ Fraction(0, 1), makamById(id), QString::fromUtf8("başlık") });
             break;
         }
     }
@@ -657,7 +742,8 @@ std::vector<Marker> findMarkers(MasterScore* score)
                 }
                 const std::string id = findMakam(toTextBase(e)->plainText().toQString(), false);
                 if (!id.empty()) {
-                    markers.push_back({ s->tick(), makamById(id) });
+                    const char* source = e->isStaffText() ? "dizek metni" : e->isSystemText() ? "sistem metni" : "prova işareti";
+                    markers.push_back({ s->tick(), makamById(id), QString::fromUtf8(source) });
                 }
             }
         }
@@ -676,20 +762,13 @@ const MakamDef* makamAt(const std::vector<Marker>& markers, const Fraction& tick
     }
     return makam;
 }
-}
 
-//---------------------------------------------------------
-//   tuneScore
-//---------------------------------------------------------
+using Voices = std::map<track_idx_t, std::vector<Event> >;
 
-void tuneScore(MasterScore* score)
+// The chords of every pitched voice in order (grace notes before their chord), read in AEU terms
+Voices readVoices(MasterScore* score)
 {
-    if (!score) {
-        return;
-    }
-
-    // the chords of every pitched voice, in order (grace notes before their chord)
-    std::map<track_idx_t, std::vector<Event> > voices;
+    Voices voices;
     int measureIndex = -1;
     for (Measure* m = score->firstMeasure(); m; m = m->nextMeasure()) {
         ++measureIndex;
@@ -711,11 +790,7 @@ void tuneScore(MasterScore* score)
             }
         }
     }
-    if (voices.empty()) {
-        return;
-    }
 
-    // read the notes
     for (auto& [track, events] : voices) {
         ReadState state;
         int carryMeasure = -1;
@@ -733,16 +808,44 @@ void tuneScore(MasterScore* score)
             }
         }
     }
+    return voices;
+}
 
-    // the makam of every event
+// The makam markers, with a guessed (or the fallback) makam at the start when no text names one
+std::vector<Marker> scoreMarkers(MasterScore* score, const Voices& voices)
+{
     std::vector<Marker> markers = findMarkers(score);
     if (markers.empty() || markers.front().tick > Fraction(0, 1)) {
-        std::vector<std::vector<Event> > firstVoice { voices.begin()->second };
-        const MakamDef* guess = guessFromMelody(score, firstVoice);
-        markers.insert(markers.begin(), { Fraction(0, 1), guess ? guess : makamById(FALLBACK_MAKAM) });
+        const MakamDef* guess = voices.empty() ? nullptr : guessFromMelody(score, voices.begin()->second);
+        if (guess) {
+            markers.insert(markers.begin(), { Fraction(0, 1), guess, QString::fromUtf8("ezgiden tahmin") });
+        } else {
+            markers.insert(markers.begin(), { Fraction(0, 1), makamById(FALLBACK_MAKAM), QString::fromUtf8("varsayılan") });
+        }
+    }
+    return markers;
+}
+
+const char* const LETTER_NAMES[] = { "Do", "Re", "Mi", "Fa", "Sol", "La", "Si" };
+}
+
+//---------------------------------------------------------
+//   tuneScore
+//---------------------------------------------------------
+
+void tuneScore(MasterScore* score)
+{
+    if (!score) {
+        return;
     }
 
-    // tune
+    Voices voices = readVoices(score);
+    if (voices.empty()) {
+        return;
+    }
+    const std::vector<Marker> markers = scoreMarkers(score, voices);
+    const double yedenSegah = currentYedenSegah();
+
     for (auto& [track, events] : voices) {
         const std::vector<bool> yeden = yedenRegions(events);
         for (size_t i = 0; i < events.size(); ++i) {
@@ -753,12 +856,14 @@ void tuneScore(MasterScore* score)
             for (size_t n = 0; n < notes.size() && n < ev.infos.size(); ++n) {
                 const NoteInfo& info = ev.infos[n];
                 double cents = 0.0;
-                const Calib* segah = info.known ? calibOf(makam, "B-1") : nullptr;
-                const Calib* c = info.known ? calibOf(makam, info.perde) : nullptr;
-                if (segah && (info.perde == "A4" || (info.perde == "B-1" && yeden[i]))) {
-                    cents = YEDEN_SEGAH - info.builtin;            // yedenli Segah, La♯ 6 mandal below it
-                } else if (c) {
-                    const double v = dir == Dir::Up ? c->up : dir == Dir::Down ? c->down : c->stop;
+                Calib segah;
+                Calib c;
+                const bool hasSegah = info.known && calibOf(makam, "B-1", segah);
+                const bool hasCalib = info.known && calibOf(makam, info.perde, c);
+                if (hasSegah && (info.perde == "A4" || (info.perde == "B-1" && yeden[i]))) {
+                    cents = yedenSegah - info.builtin;             // yedenli Segah, La♯ 6 mandal below it
+                } else if (hasCalib) {
+                    const double v = dir == Dir::Up ? c.up : dir == Dir::Down ? c.down : c.stop;
                     cents = v - info.builtin;
                 } else if (info.known && info.micro) {
                     cents = info.aeu - info.builtin;               // microtonal perde without calibration
@@ -771,5 +876,123 @@ void tuneScore(MasterScore* score)
             }
         }
     }
+}
+
+//---------------------------------------------------------
+//   calibration (for the Makam window)
+//---------------------------------------------------------
+
+std::vector<MakamName> allMakams()
+{
+    std::vector<MakamName> list;
+    for (const MakamDef& m : makamlar()) {
+        list.push_back({ m.id, QString::fromUtf8(m.name) });
+    }
+    return list;
+}
+
+std::vector<PerdeValues> calibration(const std::string& makamId, bool defaults)
+{
+    std::vector<PerdeValues> list;
+    const MakamDef* makam = makamById(makamId);
+    if (!makam) {
+        return list;
+    }
+    for (const auto& [perde, def] : makam->calib) {
+        Calib c = def;
+        if (!defaults) {
+            calibOf(makam, perde, c);
+        }
+        list.push_back({ perde, c.up, c.down, c.stop });
+    }
+    return list;
+}
+
+void setCalibration(const std::string& makamId, const PerdeValues& values)
+{
+    UserCalib user = userCalib();
+    user[makamId][values.perde] = Calib { values.up, values.down, values.stop };
+    saveUserCalib(user);
+}
+
+void resetCalibration(const std::string& makamId)
+{
+    UserCalib user = userCalib();
+    if (makamId.empty()) {
+        user.clear();
+    } else {
+        user.erase(makamId);
+    }
+    saveUserCalib(user);
+}
+
+double yedenSegah()
+{
+    return currentYedenSegah();
+}
+
+void setYedenSegah(double cents)
+{
+    muse::settings()->setSharedValue(YEDEN_KEY, muse::Val(cents));
+}
+
+double defaultYedenSegah()
+{
+    return DEFAULT_YEDEN_SEGAH;
+}
+
+QString perdeLabel(const std::string& perde)
+{
+    if (perde.size() < 2) {
+        return QString::fromStdString(perde);
+    }
+    static const std::string LETTERS = "CDEFGAB";
+    const size_t degree = LETTERS.find(perde[0]);
+    const int koma = std::atoi(perde.c_str() + 1);
+    const char* word = "";
+    switch (koma) {
+    case -1: word = "koma bemol";
+        break;
+    case -4: word = "bakiye bemol";
+        break;
+    case -5: word = "bemol";
+        break;
+    case -8: word = "büyük mücennep bemol";
+        break;
+    case 1: word = "koma diyez";
+        break;
+    case 4: word = "diyez";
+        break;
+    case 5: word = "küçük mücennep diyez";
+        break;
+    case 8: word = "büyük mücennep diyez";
+        break;
+    default: break;
+    }
+    const QString name = degree == std::string::npos ? QString::fromLatin1(perde.c_str(), 1) : QString::fromUtf8(LETTER_NAMES[degree]);
+    return *word ? name + " " + QString::fromUtf8(word) : name;
+}
+
+int perdeAlter(const std::string& perde)
+{
+    const int koma = perde.size() > 1 ? std::atoi(perde.c_str() + 1) : 0;
+    return koma == 4 ? 1 : koma == -5 ? -1 : 0;
+}
+
+std::vector<ScoreMakam> scoreMakams(MasterScore* score)
+{
+    std::vector<ScoreMakam> list;
+    if (!score) {
+        return list;
+    }
+    const Voices voices = readVoices(score);
+    for (const Marker& m : scoreMarkers(score, voices)) {
+        if (!m.makam) {
+            continue;
+        }
+        const Measure* measure = score->tick2measure(m.tick);
+        list.push_back({ m.makam->id, QString::fromUtf8(m.makam->name), measure ? measure->no() + 1 : 1, m.source });
+    }
+    return list;
 }
 }
