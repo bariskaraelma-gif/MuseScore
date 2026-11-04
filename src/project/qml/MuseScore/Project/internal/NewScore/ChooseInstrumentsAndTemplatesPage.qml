@@ -79,6 +79,10 @@ Item {
 
     Component.onCompleted: {
         theInstrumentsOnScoreModel.load()
+        // Makam: a new score starts with the Türk Müziği staff (G clef, guitar sound)
+        if (theInstrumentsOnScoreModel.count === 0) {
+            theInstrumentsOnScoreModel.addInstruments(["turk-muzigi"])
+        }
     }
 
     InstrumentsOnScoreListModel {

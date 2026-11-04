@@ -145,16 +145,16 @@ PaletteTreePtr PaletteCreator::newMasterPaletteTree()
 {
     PaletteTreePtr tree = std::make_shared<PaletteTree>();
 
-    tree->append(newClefsPalette());
+    // Makam: no clefs palette (Turkish music is written in the G clef)
     tree->append(newKeySigPalette());
     tree->append(newTimePalette());
     tree->append(newTempoPalette());
-    tree->append(newPitchPalette());
+    // Makam: no pitch palette (ottavas, ambitus)
     tree->append(newAccidentalsPalette());
     tree->append(newDynamicsPalette());
     tree->append(newArticulationsPalette());
     tree->append(newTextPalette());
-    tree->append(newKeyboardPalette());
+    // Makam: no keyboard palette (pedals)
     tree->append(newRepeatsPalette());
     tree->append(newBarLinePalette());
     tree->append(newLayoutPalette());
@@ -182,16 +182,13 @@ PaletteTreePtr PaletteCreator::newDefaultPaletteTree()
 {
     PaletteTreePtr defaultPalette = std::make_shared<PaletteTree>();
 
-    defaultPalette->append(newClefsPalette(true));
     defaultPalette->append(newKeySigPalette());
     defaultPalette->append(newTimePalette(true));
     defaultPalette->append(newTempoPalette(true));
-    defaultPalette->append(newPitchPalette(true));
     defaultPalette->append(newAccidentalsPalette(true));
     defaultPalette->append(newDynamicsPalette(true));
     defaultPalette->append(newArticulationsPalette(true));
     defaultPalette->append(newTextPalette(true));
-    defaultPalette->append(newKeyboardPalette());
     defaultPalette->append(newRepeatsPalette(true));
     defaultPalette->append(newBarLinePalette(true));
     defaultPalette->append(newLayoutPalette(true));
@@ -220,7 +217,7 @@ PalettePtr PaletteCreator::newBeamPalette()
     sp->setName(QT_TRANSLATE_NOOP("palette", "Beam properties"));
     sp->setGridSize(35, 33);
     sp->setDrawGrid(true);
-    sp->setVisible(false);
+    // Makam: shown by default
 
     sp->appendActionIcon(ActionIconType::BEAM_AUTO, "beam-auto")->mag = 1.4;
     sp->appendActionIcon(ActionIconType::BEAM_NONE, "beam-none")->mag = 1.4;
@@ -324,19 +321,23 @@ PalettePtr PaletteCreator::newAccidentalsPalette(bool defaultPalette)
     sp->setGridSize(33, 36);
     sp->setDrawGrid(true);
 
-    int end = 0;
-    if (defaultPalette) {
-        end = int(AccidentalType::SHARP3);
-    } else {
-        end = int(AccidentalType::END);
-    }
+    // Makam: the AEU (Arel-Ezgi-Uzdilek) accidentals, from the smallest flat to the largest sharp
+    static const std::vector<std::pair<AccidentalType, const char*> > aeuAccidentals {
+        { AccidentalType::MIRRORED_FLAT, "Koma bemol" },
+        { AccidentalType::FLAT_SLASH,    "Bakiye bemol" },
+        { AccidentalType::FLAT,          "Küçük mücennep bemol" },
+        { AccidentalType::FLAT_SLASH2,   "Büyük mücennep bemol" },
+        { AccidentalType::NATURAL,       "Naturel" },
+        { AccidentalType::SHARP_SLASH,   "Koma diyez" },
+        { AccidentalType::SHARP,         "Bakiye diyez" },
+        { AccidentalType::SHARP_SLASH3,  "Küçük mücennep diyez" },
+        { AccidentalType::SHARP_SLASH2,  "Büyük mücennep diyez" },
+    };
 
-    for (int i = int(AccidentalType::FLAT); i < end; ++i) {
+    for (const auto& a : aeuAccidentals) {
         auto ac = Factory::makeAccidental(gpaletteScore->dummy());
-        ac->setAccidentalType(AccidentalType(i));
-        if (ac->symId() != SymId::noSym) {
-            sp->appendElement(ac, ac->subtypeUserName());
-        }
+        ac->setAccidentalType(a.first);
+        sp->appendElement(ac, QString::fromUtf8(a.second));
     }
 
     if (!defaultPalette) {
@@ -1419,6 +1420,9 @@ PalettePtr PaletteCreator::newTempoPalette(bool defaultPalette)
     };
 
     for (TempoPattern tp : tps) {
+        if (tp.italian) {
+            continue;   // Makam: no Italian tempo terms
+        }
         auto tt = makeElement<TempoText>(gpaletteScore);
         tt->setFollowText(tp.followText);
         tt->setXmlText(tp.pattern);

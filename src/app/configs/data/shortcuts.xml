@@ -1194,4 +1194,21 @@
     <key>grace-note-bend</key>
     <seq>Ctrl+Alt+B</seq>
     </SC>
-  </Shortcuts>
+  <!-- Makam: beam shortcuts on the Turkish Q keyboard -->
+  <SC>
+    <key>beam-break-left</key>
+    <seq>Ö</seq>
+    </SC>
+  <SC>
+    <key>beam-break-inner-8th</key>
+    <seq>Ş</seq>
+    </SC>
+  <SC>
+    <key>beam-break-inner-16th</key>
+    <seq>Ğ</seq>
+    </SC>
+  <SC>
+    <key>beam-join</key>
+    <seq>Ç</seq>
+    </SC>
+</Shortcuts>
