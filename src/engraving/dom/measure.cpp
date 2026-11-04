@@ -27,6 +27,8 @@
 
 #include "measure.h"
 
+#include "../editing/editahenk.h"
+
 #include "../editing/mscoreview.h"
 #include "../editing/editmeasures.h"
 #include "../editing/editstaff.h"
@@ -1589,13 +1591,14 @@ EngravingItem* Measure::drop(EditData& data)
         KeySigEvent k = toKeySig(e)->keySigEvent();
         delete e;
 
+        // Makam: the dropped donanım is the written key (see editahenk.h)
         if (data.modifiers & ControlModifier) {
             // apply only to this stave
-            score()->undoChangeKeySig(staff, tick(), k);
+            score()->undoChangeKeySig(staff, tick(), makam::writtenKeySigEvent(k, staff, tick()));
         } else {
             // apply to all staves:
             for (Staff* s : score()->staves()) {
-                score()->undoChangeKeySig(s, tick(), k);
+                score()->undoChangeKeySig(s, tick(), makam::writtenKeySigEvent(k, s, tick()));
             }
         }
 

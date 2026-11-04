@@ -166,6 +166,7 @@ private:
 
     void toggleScoreConfig(ScoreConfigType configType);
     void toggleConcertPitch();
+    void setAhenk(size_t index);   // Makam
 
     void seekAndPlaySelectedElement(bool playChord = true);
     void seekSelectedElement();

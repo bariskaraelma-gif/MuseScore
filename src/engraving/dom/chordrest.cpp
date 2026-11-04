@@ -22,6 +22,8 @@
 
 #include "chordrest.h"
 
+#include "../editing/editahenk.h"
+
 #include "translation.h"
 
 #include "types/typesconv.h"
@@ -410,7 +412,7 @@ EngravingItem* ChordRest::drop(EditData& data)
         if (data.modifiers & ControlModifier) {
             // apply only to this stave
             KeySigEvent k = toKeySig(e)->keySigEvent();
-            score()->undoChangeKeySig(staff(), tick(), k);
+            score()->undoChangeKeySig(staff(), tick(), makam::writtenKeySigEvent(k, staff(), tick()));   // Makam
             delete e;
             return nullptr;
         }

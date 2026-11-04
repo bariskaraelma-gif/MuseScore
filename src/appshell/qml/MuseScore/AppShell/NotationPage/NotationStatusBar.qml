@@ -154,22 +154,37 @@ Item {
 
         SeparatorLine { orientation: Qt.Vertical; visible: concertPitchControl.visible }
 
-        ConcertPitchControl {
+        // Makam: ahenk menu in place of the concert pitch button; its last item shows the
+        // sounding pitch (concert pitch)
+        FlatButton {
             id: concertPitchControl
             Layout.alignment: Qt.AlignVCenter
             Layout.preferredHeight: 28
 
-            text: model.concertPitchItem.title
-            icon: model.concertPitchItem.icon
-            checked: model.concertPitchItem.checked
+            text: model.ahenkTitle
+            icon: IconCode.TUNING_FORK
+            orientation: Qt.Horizontal
+
+            transparent: !ahenkMenuLoader.isMenuOpened
+            accentButton: ahenkMenuLoader.isMenuOpened || model.concertPitchItem.checked
             enabled: model.concertPitchItem.enabled && !root.viewOnly
-            visible: statusBarRow.remainingSpace > width
+            visible: model.ahenkAvailable && statusBarRow.remainingSpace > width
 
             navigation.panel: navPanel
             navigation.order: 3
 
-            onToggleConcertPitchRequested: {
-                model.toggleConcertPitch()
+            onClicked: {
+                ahenkMenuLoader.toggleOpened(model.ahenkMenu)
+            }
+
+            StyledMenuLoader {
+                id: ahenkMenuLoader
+
+                menuAnchorItem: ui.rootItem
+
+                onHandleMenuItem: function(itemId) {
+                    Qt.callLater(model.handleAhenkMenuItem, itemId)
+                }
             }
         }
 

@@ -24,6 +24,7 @@
 #include "io/file.h"
 
 #include "engraving/dom/masterscore.h"
+#include "engraving/editing/editahenk.h"
 #include "engraving/dom/note.h"
 #include "engraving/dom/text.h"
 #include "engraving/dom/sig.h"
@@ -382,6 +383,11 @@ void NotationActionController::init()
     registerAction("show-irregular", [this]() { toggleScoreConfig(ScoreConfigType::MarkIrregularMeasures); });
 
     registerAction("concert-pitch", &Controller::toggleConcertPitch);
+
+    // Makam: ahenk of the score (status bar menu)
+    for (size_t i = 0; i < mu::engraving::makam::ahenkler().size(); ++i) {
+        registerAction("makam-ahenk-" + std::to_string(i), [this, i]() { setAhenk(i); });
+    }
 
     registerAction("explode", &Interaction::explodeSelectedStaff);
     registerAction("implode", &Interaction::implodeSelectedStaff);
@@ -2189,6 +2195,24 @@ void NotationActionController::toggleConcertPitch()
     currentNotationUndoStack()->prepareChanges(actionName);
     style->setStyleValue(StyleId::concertPitch, toggle);
     currentNotationUndoStack()->commitChanges();
+}
+
+//! Makam: sets the ahenk of the score: the written notes stay, the sounding pitch moves
+void NotationActionController::setAhenk(size_t index)
+{
+    TRACEFUNC;
+    IMasterNotationPtr master = currentMasterNotation();
+    if (!master || index >= mu::engraving::makam::ahenkler().size()) {
+        return;
+    }
+    if (mu::engraving::makam::ahenkIndex(master->masterScore()) == static_cast<int>(index)) {
+        return;
+    }
+
+    INotationUndoStackPtr undoStack = master->notation()->undoStack();
+    undoStack->prepareChanges(TranslatableString("undoableAction", "Ahenk"));
+    mu::engraving::makam::setAhenk(master->masterScore(), mu::engraving::makam::ahenkler().at(index));
+    undoStack->commitChanges();
 }
 
 void NotationActionController::seekAndPlaySelectedElement(bool playChord)

@@ -22,6 +22,8 @@
 
 #include "keysig.h"
 
+#include "../editing/editahenk.h"
+
 #include "types/typesconv.h"
 
 #include "masterscore.h"
@@ -91,12 +93,12 @@ EngravingItem* KeySig::drop(EditData& data)
     if (data.modifiers & ControlModifier) {
         // apply only to this stave
         if (!(k == keySigEvent())) {
-            score()->undoChangeKeySig(staff(), tick(), k);
+            score()->undoChangeKeySig(staff(), tick(), makam::writtenKeySigEvent(k, staff(), tick()));
         }
     } else {
         // apply to all staves:
         for (Staff* s : score()->masterScore()->staves()) {
-            score()->undoChangeKeySig(s, tick(), k);
+            score()->undoChangeKeySig(s, tick(), makam::writtenKeySigEvent(k, s, tick()));   // Makam
         }
     }
     return this;

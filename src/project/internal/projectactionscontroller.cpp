@@ -43,6 +43,7 @@
 #include "engraving/dom/staff.h"
 #include "engraving/dom/stafftype.h"
 #include "engraving/style/style.h"
+#include "engraving/editing/editahenk.h"
 
 #include "projecterrors.h"
 #include "projectextensionpoints.h"
@@ -813,6 +814,9 @@ Ret ProjectActionsController::createBlankProject(BlankScoreKind kind)
     // Makam: every system starts at the left margin, also the first one. Set on the score,
     // not as a style default, so it is saved and kept when opened in MuseScore
     score->style().set(mu::engraving::Sid::enableIndentationOnFirstSystem, false);
+
+    // Makam: ahenk 4 ses (written La sounds Si3); outside a command, so not in the undo history
+    mu::engraving::makam::setAhenk(score, mu::engraving::makam::ahenkler().at(mu::engraving::makam::DEFAULT_AHENK));
 
     score->doLayout();
 

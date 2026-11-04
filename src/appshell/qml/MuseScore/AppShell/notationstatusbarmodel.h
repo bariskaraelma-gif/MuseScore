@@ -53,6 +53,10 @@ class NotationStatusBarModel : public QObject, public QQmlParserStatus, public m
     Q_PROPERTY(QString accessibilityInfo READ accessibilityInfo NOTIFY accessibilityInfoChanged)
     Q_PROPERTY(muse::uicomponents::MenuItem * currentWorkspaceItem READ currentWorkspaceItem CONSTANT)
     Q_PROPERTY(muse::uicomponents::MenuItem * concertPitchItem READ concertPitchItem CONSTANT)
+    // Makam: ahenk menu in place of the concert pitch button
+    Q_PROPERTY(QString ahenkTitle READ ahenkTitle NOTIFY ahenkChanged)
+    Q_PROPERTY(bool ahenkAvailable READ ahenkAvailable NOTIFY ahenkChanged)
+    Q_PROPERTY(QVariantList ahenkMenu READ ahenkMenu NOTIFY ahenkChanged)
     Q_PROPERTY(muse::uicomponents::MenuItem * currentViewMode READ currentViewMode NOTIFY currentViewModeChanged)
     Q_PROPERTY(bool zoomEnabled READ zoomEnabled NOTIFY zoomEnabledChanged)
     Q_PROPERTY(QVariantList availableViewModeList READ availableViewModeList_property NOTIFY availableViewModeListChanged)
@@ -79,6 +83,12 @@ public:
     int currentZoomPercentage() const;
 
     Q_INVOKABLE void toggleConcertPitch();
+
+    QString ahenkTitle() const;
+    bool ahenkAvailable() const;
+    QVariantList ahenkMenu() const;
+    Q_INVOKABLE void handleAhenkMenuItem(const QString& itemId);
+
     Q_INVOKABLE void setCurrentViewMode(const QString& modeCode);
 
     Q_INVOKABLE int minZoomPercentage() const;
@@ -97,6 +107,7 @@ signals:
     void accessibilityInfoChanged();
     void currentWorkspaceActionChanged();
     void concertPitchActionChanged();
+    void ahenkChanged();
     void currentViewModeChanged();
     void availableViewModeListChanged();
     void zoomEnabledChanged();

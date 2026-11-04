@@ -30,6 +30,9 @@
 #include "workspace/qml/Muse/Workspace/workspacesmenumodel.h"
 #endif
 
+#include "engraving/dom/masterscore.h"
+#include "engraving/editing/editahenk.h"
+
 #include "defer.h"
 #include "log.h"
 
@@ -263,6 +266,7 @@ void NotationStatusBarModel::setNotation(const INotationPtr& notation)
 
     emit zoomEnabledChanged();
     updateConcertPitchItem();
+    emit ahenkChanged();
 
     initAvailableViewModeList();
     initAvailableZoomList();
@@ -275,6 +279,7 @@ void NotationStatusBarModel::setNotation(const INotationPtr& notation)
         if (muse::contains(changes.changedStyleIdSet, mu::engraving::Sid::concertPitch)) {
             updateConcertPitchItem();
         }
+        emit ahenkChanged();   // Makam: the ahenk may have changed (or been undone)
     });
 
     notation->viewModeChanged().onNotify(this, [this]() {
@@ -299,6 +304,69 @@ void NotationStatusBarModel::setNotation(const INotationPtr& notation)
 void NotationStatusBarModel::toggleConcertPitch()
 {
     dispatch(TOGGLE_CONCERT_PITCH_CODE);
+}
+
+//! Makam: index of the score's ahenk in makam::ahenkler(), -1 if none
+static int currentAhenkIndex(mu::context::IGlobalContext* ctx)
+{
+    const IMasterNotationPtr master = ctx ? ctx->currentMasterNotation() : nullptr;
+    const mu::engraving::MasterScore* score = master ? master->masterScore() : nullptr;
+    return score ? mu::engraving::makam::ahenkIndex(score) : -1;
+}
+
+QString NotationStatusBarModel::ahenkTitle() const
+{
+    const int index = currentAhenkIndex(context().get());
+    if (index < 0) {
+        return QString::fromUtf8("Ahenk: —");
+    }
+    return QString::fromUtf8("Ahenk: ") + QString::fromUtf8(mu::engraving::makam::ahenkler().at(index).name);
+}
+
+bool NotationStatusBarModel::ahenkAvailable() const
+{
+    const IMasterNotationPtr master = context()->currentMasterNotation();
+    const mu::engraving::MasterScore* score = master ? master->masterScore() : nullptr;
+    if (!score) {
+        return false;
+    }
+    for (const mu::engraving::Part* part : score->parts()) {
+        if (mu::engraving::makam::isAhenkPart(part)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+QVariantList NotationStatusBarModel::ahenkMenu() const
+{
+    QVariantList result;
+    const int current = currentAhenkIndex(context().get());
+    const std::vector<mu::engraving::makam::Ahenk>& list = mu::engraving::makam::ahenkler();
+    for (size_t i = 0; i < list.size(); ++i) {
+        QVariantMap item;
+        item[ID_KEY] = QString("makam-ahenk-%1").arg(i);
+        item["title"] = QString::fromUtf8(list[i].name);
+        item["checkable"] = true;
+        item["checked"] = static_cast<int>(i) == current;
+        result << item;
+    }
+
+    result << QVariantMap();   // separator
+
+    QVariantMap concertPitch;
+    concertPitch[ID_KEY] = QString::fromStdString(TOGGLE_CONCERT_PITCH_CODE);
+    concertPitch["title"] = QString::fromUtf8("Duyulan sesle göster (konser perdesi)");
+    concertPitch["checkable"] = true;
+    concertPitch["checked"] = m_notation ? m_notation->style()->styleValue(StyleId::concertPitch).toBool() : false;
+    result << concertPitch;
+
+    return result;
+}
+
+void NotationStatusBarModel::handleAhenkMenuItem(const QString& itemId)
+{
+    dispatch(codeFromQString(itemId));
 }
 
 void NotationStatusBarModel::setCurrentViewMode(const QString& modeCode)

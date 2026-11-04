@@ -117,6 +117,8 @@ target_sources(engraving PRIVATE
     editing/editharppedaldiagram.h
     editing/editinstrumentchange.cpp
     editing/editinstrumentchange.h
+    editing/editahenk.cpp
+    editing/editahenk.h
     editing/editdata.cpp
     editing/editdata.h
     editing/editexcerpt.cpp
