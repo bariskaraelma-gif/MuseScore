@@ -48,7 +48,7 @@ static StartupModeType modeTypeTromString(const std::string& str)
         return StartupModeType::ContinueLastSession;
     }
 
-    if ("start-with-new" == str || "start-with-new-double" == str) { // Makam: -double = two staves
+    if ("start-with-new" == str || "start-with-new-with-usul" == str || "start-with-new-usul" == str) { // Makam
         return StartupModeType::StartWithNewScore;
     }
 
@@ -202,7 +202,16 @@ void StartupScenario::onStartupPageOpened(StartupModeType modeType)
     case StartupModeType::StartEmpty:
         break;
     case StartupModeType::StartWithNewScore:
-        dispatcher()->dispatch(m_startupTypeStr == "start-with-new-double" ? "file-new-double" : "file-new");
+    {
+        // Makam: start-with-new[-with-usul|-usul] -> file-new[-with-usul|-usul]
+        // (the type string is empty when the mode comes from the preferences)
+        static const std::string NEW_PREFIX("start-with-new");
+        std::string action = "file-new";
+        if (m_startupTypeStr.size() > NEW_PREFIX.size() && m_startupTypeStr.rfind(NEW_PREFIX, 0) == 0) {
+            action += m_startupTypeStr.substr(NEW_PREFIX.size());
+        }
+        dispatcher()->dispatch(action);
+    }
         break;
     case StartupModeType::ContinueLastSession:
         dispatcher()->dispatch("continue-last-session");

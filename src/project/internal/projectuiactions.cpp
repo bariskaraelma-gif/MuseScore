@@ -45,12 +45,20 @@ const UiActionList ProjectUiActions::m_actions = {
              TranslatableString("action", "New"),
              IconCode::Code::NEW_FILE
              ),
-    // Makam: blank score with two staves
-    UiAction("file-new-double",
+    // Makam: blank score with a Türk Müziği staff and an usul staff
+    UiAction("file-new-with-usul",
              mu::context::UiCtxAny,
              mu::context::CTX_ANY,
-             TranslatableString("action", "Yeni (çift dizek)"),
-             TranslatableString("action", "Yeni nota, çift dizek"),
+             TranslatableString("action", "Yeni (çalgı + usul)"),
+             TranslatableString("action", "Yeni nota: çalgı dizeği ve usul dizeği"),
+             IconCode::Code::NEW_FILE
+             ),
+    // Makam: blank score with an usul staff only
+    UiAction("file-new-usul",
+             mu::context::UiCtxAny,
+             mu::context::CTX_ANY,
+             TranslatableString("action", "Yeni (yalnız usul)"),
+             TranslatableString("action", "Yeni nota: yalnız usul dizeği"),
              IconCode::Code::NEW_FILE
              ),
     // Makam: built-in Image Capture tool (toolbar button)

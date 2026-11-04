@@ -198,7 +198,8 @@ MenuItem* AppMenuModel::makeFileMenu()
 
     MenuItemList fileItems {
         makeMenuItem("file-new"),
-        makeMenuItem("file-new-double"),
+        makeMenuItem("file-new-with-usul"),
+        makeMenuItem("file-new-usul"),
         makeMenuItem("file-open"),
         makeMenu(TranslatableString("appshell/menu/file", "Open &recent"), recentScoresList, "menu-file-open", openRecentEnabled),
         makeMenuItem("file-close"),

@@ -399,16 +399,29 @@ FocusScope {
                 }
             }
 
-            // Makam: blank score with two staves
+            // Makam: blank score with a Türk Müziği staff and an usul staff
             FlatButton {
-                navigation.name: "NewDoubleStaffScore"
+                navigation.name: "NewScoreWithUsul"
                 navigation.panel: navBottomPanel
                 navigation.column: 5
 
-                text: qsTrc("project", "Yeni (çift dizek)")
+                text: qsTrc("project", "Çalgı + usul")
 
                 onClicked: {
-                    scoresPageModel.createNewDoubleScore()
+                    scoresPageModel.createNewScoreWithUsul()
+                }
+            }
+
+            // Makam: blank score with an usul staff only
+            FlatButton {
+                navigation.name: "NewUsulScore"
+                navigation.panel: navBottomPanel
+                navigation.column: 6
+
+                text: qsTrc("project", "Yalnız usul")
+
+                onClicked: {
+                    scoresPageModel.createNewUsulScore()
                 }
             }
 

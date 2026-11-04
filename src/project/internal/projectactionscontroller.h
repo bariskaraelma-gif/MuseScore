@@ -120,8 +120,14 @@ private:
     notation::INotationInteractionPtr currentInteraction() const;
     notation::INotationSelectionPtr currentNotationSelection() const;
 
-    void newProject(bool doubleStaff = false);
-    muse::Ret createBlankProject(bool doubleStaff);
+    // Makam: kinds of blank score created by "New"
+    enum class BlankScoreKind {
+        Single,     // one Türk Müziği staff
+        WithUsul,   // Türk Müziği + usul staff
+        UsulOnly    // usul staff only
+    };
+    void newProject(BlankScoreKind kind = BlankScoreKind::Single);
+    muse::Ret createBlankProject(BlankScoreKind kind);
     void openImageCapture();
 
     void openProject(const muse::actions::ActionData& args);

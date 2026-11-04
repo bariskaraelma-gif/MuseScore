@@ -37,6 +37,11 @@
 #include "cloud/qml/Muse/Cloud/enums.h"
 #include "engraving/infrastructure/mscio.h"
 #include "engraving/engravingerrors.h"
+#include "engraving/dom/instrument.h"
+#include "engraving/dom/masterscore.h"
+#include "engraving/dom/part.h"
+#include "engraving/dom/staff.h"
+#include "engraving/dom/stafftype.h"
 
 #include "projecterrors.h"
 #include "projectextensionpoints.h"
@@ -66,8 +71,9 @@ static constexpr int SAVE_AS_BTN_ID    = RETRY_SAVE_BTN_ID + 1;
 
 void ProjectActionsController::init()
 {
-    dispatcher()->reg(this, "file-new", [this]() { newProject(false); });
-    dispatcher()->reg(this, "file-new-double", [this]() { newProject(true); });
+    dispatcher()->reg(this, "file-new", [this]() { newProject(BlankScoreKind::Single); });
+    dispatcher()->reg(this, "file-new-with-usul", [this]() { newProject(BlankScoreKind::WithUsul); });
+    dispatcher()->reg(this, "file-new-usul", [this]() { newProject(BlankScoreKind::UsulOnly); });
     dispatcher()->reg(this, "image-capture", this, &ProjectActionsController::openImageCapture);
     dispatcher()->reg(this, "file-open", this, &ProjectActionsController::openProject);
 
@@ -135,7 +141,8 @@ bool ProjectActionsController::canReceiveAction(const ActionCode& code) const
     if (!currentNotationProject()) {
         static const std::unordered_set<ActionCode> DONT_REQUIRE_OPEN_PROJECT {
             "file-new",
-            "file-new-double",
+            "file-new-with-usul",
+            "file-new-usul",
             "file-open",
             "file-convert-to-score",
             "continue-last-session",
@@ -680,7 +687,7 @@ bool ProjectActionsController::isAnyProjectOpened() const
     return false;
 }
 
-void ProjectActionsController::newProject(bool doubleStaff)
+void ProjectActionsController::newProject(BlankScoreKind kind)
 {
     //! NOTE This method is synchronous,
     //! but inside `multiwindowsProvider` there can be an event loop
@@ -697,18 +704,31 @@ void ProjectActionsController::newProject(bool doubleStaff)
         m_isProjectProcessing = false;
     };
 
+    // Makam: action code and startup session type of each kind of blank score
+    QString suffix;
+    switch (kind) {
+    case BlankScoreKind::Single:
+        break;
+    case BlankScoreKind::WithUsul:
+        suffix = "-with-usul";
+        break;
+    case BlankScoreKind::UsulOnly:
+        suffix = "-usul";
+        break;
+    }
+
     if (globalContext()->currentProject()) {
         if (multiwindowsProvider()->isHasWindowWithoutProject()) {
-            multiwindowsProvider()->activateWindowWithoutProject({ doubleStaff ? "file-new-double" : "file-new" });
+            multiwindowsProvider()->activateWindowWithoutProject({ QString("file-new") + suffix });
             return;
         }
         QStringList args;
-        args << "--session-type" << (doubleStaff ? "start-with-new-double" : "start-with-new");
+        args << "--session-type" << QString("start-with-new") + suffix;
         multiwindowsProvider()->openNewWindow(args);
         return;
     }
 
-    Ret ret = createBlankProject(doubleStaff);
+    Ret ret = createBlankProject(kind);
     if (!ret) {
         LOGE() << ret.toString();
         return;
@@ -722,14 +742,18 @@ void ProjectActionsController::newProject(bool doubleStaff)
     }
 }
 
-//! Makam: a blank page with one "Türk Müziği" staff (or one part with two staves),
-//! 4/4, no key signature, 32 measures, no title frame
-Ret ProjectActionsController::createBlankProject(bool doubleStaff)
+//! Makam: a blank page, 4/4, no key signature, 32 measures, no title frame, with
+//! - Single:   one "Türk Müziği" staff
+//! - WithUsul: a "Türk Müziği" staff and an "Usul" staff (two parts, no bracket)
+//! - UsulOnly: one "Usul" staff
+Ret ProjectActionsController::createBlankProject(BlankScoreKind kind)
 {
-    const muse::String instrumentId = doubleStaff ? u"turk-muzigi-cift" : u"turk-muzigi";
-    const InstrumentTemplate& templ = instrumentsRepository()->instrumentTemplate(instrumentId);
-    IF_ASSERT_FAILED(templ.isValid()) {
-        return make_ret(Ret::Code::InternalError);
+    std::vector<muse::String> instrumentIds;
+    if (kind != BlankScoreKind::UsulOnly) {
+        instrumentIds.push_back(u"turk-muzigi");
+    }
+    if (kind != BlankScoreKind::Single) {
+        instrumentIds.push_back(u"usul");
     }
 
     ProjectCreateOptions options;
@@ -739,12 +763,19 @@ Ret ProjectActionsController::createBlankProject(bool doubleStaff)
     scoreOptions.key = mu::engraving::Key::C;
     scoreOptions.totalMeasures = 32;
 
-    PartInstrument pi;
-    pi.instrumentTemplate = templ;
-    scoreOptions.parts << pi;
+    for (const muse::String& instrumentId : instrumentIds) {
+        const InstrumentTemplate& templ = instrumentsRepository()->instrumentTemplate(instrumentId);
+        IF_ASSERT_FAILED(templ.isValid()) {
+            return make_ret(Ret::Code::InternalError);
+        }
 
-    const ScoreOrderList& orders = instrumentsRepository()->orders();
-    scoreOptions.order = orders.empty() ? customOrder() : orders.front();
+        PartInstrument pi;
+        pi.instrumentTemplate = templ;
+        scoreOptions.parts << pi;
+    }
+
+    // the custom order has no instrument sections, so no bracket joins the staves
+    scoreOptions.order = customOrder();
 
     INotationProjectPtr project = projectCreator()->newProject(iocContext());
     IF_ASSERT_FAILED(project) {
@@ -754,6 +785,26 @@ Ret ProjectActionsController::createBlankProject(bool doubleStaff)
     Ret ret = project->createNew(options);
     if (!ret) {
         return ret;
+    }
+
+    // Usul staff: its two lines 4 spaces apart, like the outer lines of a five-line staff, so the
+    // time signature fits between them (an instrument template cannot set the line distance)
+    mu::engraving::MasterScore* score = project->masterNotation()->masterScore();
+    bool hasUsul = false;
+    for (mu::engraving::Part* part : score->parts()) {
+        if (part->instrument()->id() != u"usul") {
+            continue;
+        }
+        for (mu::engraving::Staff* staff : part->staves()) {
+            mu::engraving::StaffType* staffType = staff->staffType(mu::engraving::Fraction(0, 1));
+            if (staffType) {
+                staffType->setLineDistance(mu::engraving::Spatium(4.0));
+                hasUsul = true;
+            }
+        }
+    }
+    if (hasUsul) {
+        score->doLayout();
     }
 
     globalContext()->setCurrentProject(project);

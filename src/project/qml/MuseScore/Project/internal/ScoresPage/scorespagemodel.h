@@ -65,7 +65,8 @@ public:
     void setViewType(ViewType type);
 
     Q_INVOKABLE void createNewScore();
-    Q_INVOKABLE void createNewDoubleScore();
+    Q_INVOKABLE void createNewScoreWithUsul();
+    Q_INVOKABLE void createNewUsulScore();
     Q_INVOKABLE void convertFileToScore();
     Q_INVOKABLE void openOther();
     Q_INVOKABLE void openScore(const QString& scorePath, const QString& displayNameOverride);

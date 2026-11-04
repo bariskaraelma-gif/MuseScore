@@ -40,9 +40,14 @@ void ScoresPageModel::createNewScore()
     dispatcher()->dispatch("file-new");
 }
 
-void ScoresPageModel::createNewDoubleScore()
+void ScoresPageModel::createNewScoreWithUsul()
 {
-    dispatcher()->dispatch("file-new-double");
+    dispatcher()->dispatch("file-new-with-usul");
+}
+
+void ScoresPageModel::createNewUsulScore()
+{
+    dispatcher()->dispatch("file-new-usul");
 }
 
 void ScoresPageModel::convertFileToScore()
