@@ -52,6 +52,7 @@
 #include "../dom/hook.h"
 #include "../dom/instrchange.h"
 #include "../dom/instrumentname.h"
+#include "../dom/instrument.h"
 #include "../dom/key.h"
 #include "../dom/keylist.h"
 #include "../dom/keysig.h"
@@ -61,6 +62,7 @@
 #include "../dom/lyrics.h"
 #include "../dom/marker.h"
 #include "../dom/masterscore.h"
+#include "../dom/makamdata.h"
 #include "../dom/measure.h"
 #include "../dom/measurerepeat.h"
 #include "../dom/navigate.h"
@@ -1429,6 +1431,57 @@ bool Score::rewriteMeasures(Measure* fm, const Fraction& ns, staff_idx_t staffId
 }
 
 //---------------------------------------------------------
+//   makamFillUsulStaves
+//    Makam: write the düm and tek strokes of an usul on every usul staff (voice 1),
+//    from the measure at tick up to the next time signature. Measures of another
+//    length (pickup, irregular measures) are left as they are.
+//---------------------------------------------------------
+
+static void makamFillUsulStaves(MasterScore* ms, const Fraction& tick, const makam::Usul& usul)
+{
+    Measure* first = ms->tick2measure(tick);
+    if (!first) {
+        return;
+    }
+
+    const Fraction measureLen(usul.n, usul.d);
+    for (Staff* staff : ms->staves()) {
+        Part* part = staff->part();
+        if (!part || part->instrument(tick)->id() != makam::USUL_INSTRUMENT_ID) {
+            continue;
+        }
+
+        const track_idx_t track = staff->idx() * VOICES;
+        for (Measure* m = first; m; m = m->nextMeasure()) {
+            if (m != first) {
+                Segment* tsSeg = m->findSegment(SegmentType::TimeSig, m->tick());
+                if (tsSeg && tsSeg->element(track)) {
+                    break;   // the next time signature
+                }
+            }
+            if (m->ticks() != measureLen) {
+                continue;
+            }
+
+            Fraction t = m->tick();
+            for (const makam::Darb& darb : usul.darb) {
+                Segment* seg = m->findSegment(SegmentType::ChordRest, t);
+                if (!seg) {
+                    break;
+                }
+                const Fraction len(darb.len, usul.d);
+                NoteVal nval(darb.dum ? makam::USUL_DUM_PITCH : makam::USUL_TEK_PITCH);
+                ms->setNoteRest(seg, track, nval, len, darb.dum ? DirectionV::DOWN : DirectionV::UP);
+                t += len;
+            }
+        }
+    }
+
+    // setNoteRest asks for the last note to be played; dropping an usul should stay silent
+    ms->setPlayNote(false);
+}
+
+//---------------------------------------------------------
 //   cmdAddTimeSig
 //
 //    Add or change time signature at measure in response
@@ -1445,6 +1498,9 @@ void Score::cmdAddTimeSig(Measure* fm, staff_idx_t staffIdx, TimeSig* ts, bool l
 
     Fraction ns   = ts->sig();
     Fraction tick = fm->tick();
+
+    // Makam: an usul from the time signature palette also fills the usul staves
+    const makam::Usul* usul = makam::usulOfGroups(ts->groups(), ns);
     if (local) {
         Fraction stretch = (ns / fm->timesig()).reduced();
         ts->setStretch(stretch);
@@ -1466,6 +1522,9 @@ void Score::cmdAddTimeSig(Measure* fm, staff_idx_t staffIdx, TimeSig* ts, bool l
         //  ignore if there is already a timesig
         //  with same values
         //
+        if (usul) {
+            makamFillUsulStaves(masterScore(), tick, *usul);   // Makam: write the strokes again
+        }
         delete ts;
         return;
     }
@@ -1615,6 +1674,10 @@ void Score::cmdAddTimeSig(Measure* fm, staff_idx_t staffIdx, TimeSig* ts, bool l
                 }
             }
         }
+    }
+
+    if (usul) {
+        makamFillUsulStaves(masterScore(), tick, *usul);   // Makam
     }
     delete ts;
 }

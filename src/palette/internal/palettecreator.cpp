@@ -57,6 +57,7 @@
 #include "engraving/dom/instrchange.h"
 #include "engraving/dom/jump.h"
 #include "engraving/dom/keysig.h"
+#include "engraving/dom/makamdata.h"
 #include "engraving/dom/layoutbreak.h"
 #include "engraving/dom/letring.h"
 #include "engraving/dom/marker.h"
@@ -288,28 +289,13 @@ PalettePtr PaletteCreator::newKeySigPalette()
     sp->setDrawGrid(true);
     sp->setYOffset(1.0);
 
-    for (int i = 0; i < 7; ++i) {
+    // Makam: the donanıms of the Arel-Ezgi-Uzdilek system instead of the Western keys.
+    // The cell name lists the makams written with the donanım, then its accidentals.
+    for (const makam::Donanim& donanim : makam::donanimlar()) {
         auto k = Factory::makeKeySig(mu::engraving::gpaletteScore->dummy()->segment());
-        k->setKey(Key(i + 1));
-        sp->appendElement(k, TConv::userName(Key(i + 1)));
+        k->setKeySigEvent(makam::donanimKeySigEvent(donanim));
+        sp->appendElement(k, QString::fromUtf8(donanim.makamlar) + QString::fromUtf8(" — ") + QString::fromUtf8(donanim.text));
     }
-    for (int i = -7; i < 0; ++i) {
-        auto k = Factory::makeKeySig(mu::engraving::gpaletteScore->dummy()->segment());
-        k->setKey(Key(i));
-        sp->appendElement(k, TConv::userName(Key(i)));
-    }
-    auto k = Factory::makeKeySig(mu::engraving::gpaletteScore->dummy()->segment());
-    k->setKey(Key::C);
-    sp->appendElement(k, TConv::userName(Key::C));
-
-    // atonal key signature
-    KeySigEvent nke;
-    nke.setConcertKey(Key::C);
-    nke.setCustom(true);
-    nke.setMode(KeyMode::NONE);
-    auto nk = Factory::makeKeySig(mu::engraving::gpaletteScore->dummy()->segment());
-    nk->setKeySigEvent(nke);
-    sp->appendElement(nk, TConv::userName(Key::C, true));
 
     return sp;
 }
@@ -1665,10 +1651,17 @@ PalettePtr PaletteCreator::newTimePalette(bool defaultPalette)
         { 9,  8, TimeSigType::CUT_TRIPLE, QT_TRANSLATE_NOOP("engraving/timesig", "Cut triple time (9/8)") }
     };
 
-    for (const TS& timeSignatureType : defaultPalette ? defaultTimeSignatureList : masterTimeSignatureList) {
+    (void)defaultPalette;
+    (void)defaultTimeSignatureList;
+    (void)masterTimeSignatureList;
+
+    // Makam: the usuls instead of the Western time signatures. The beam groups carry the usul
+    // (makamdata.h), so dropping one also writes its düm and tek strokes on the usul staff.
+    for (const makam::Usul& usul : makam::usuller()) {
         auto timeSignature = Factory::makeTimeSig(gpaletteScore->dummy()->segment());
-        timeSignature->setSig(Fraction(timeSignatureType.numerator, timeSignatureType.denominator), timeSignatureType.type);
-        sp->appendElement(timeSignature, timeSignatureType.name);
+        timeSignature->setSig(Fraction(usul.n, usul.d), TimeSigType::NORMAL);
+        timeSignature->setGroups(makam::usulGroups(usul));
+        sp->appendElement(timeSignature, QString::fromUtf8(usul.name) + QString(" (%1/%2)").arg(usul.n).arg(usul.d));
     }
 
     return sp;
