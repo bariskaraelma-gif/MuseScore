@@ -48,6 +48,7 @@
 
 #include "engraving/compat/dummyelement.h"
 #include "engraving/dom/accidental.h"
+#include "engraving/editing/makamtuner.h"
 #include "engraving/dom/actionicon.h"
 #include "engraving/dom/anchors.h"
 #include "engraving/dom/articulation.h"
@@ -4225,7 +4226,11 @@ void NotationInteraction::movePitch(MoveDirection d, PitchMode mode)
         score()->cmdMoveRest(toRest(score()->selection().element()), toDirection(d));
     } else {
         startEdit(TranslatableString("undoableAction", "Change pitch"));
-        score()->upDown(MoveDirection::Up == d, mode);
+        // Makam: ↑/↓ follow the Turkish (AEU) accidental ladder; Ctrl+↑/↓ (octave) stay
+        if (mode != PitchMode::CHROMATIC
+            || !mu::engraving::makam::turkishStep(score(), MoveDirection::Up == d ? 1 : -1)) {
+            score()->upDown(MoveDirection::Up == d, mode);
+        }
     }
 
     apply();

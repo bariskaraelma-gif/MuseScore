@@ -26,6 +26,7 @@
 
 namespace mu::engraving {
 class MasterScore;
+class Score;
 }
 
 namespace mu::engraving::makam {
@@ -72,4 +73,8 @@ int perdeAlter(const std::string& perde);       // the ♯ (1) / ♭ (-1) contai
 
 // The makams of a score, in order, with where each was found
 std::vector<ScoreMakam> scoreMakams(MasterScore* score);
+
+// Türk arıza ↑/↓: moves the selected notes one step in the AEU accidental ladder (inside a
+// command). Returns false when no pitched note is selected (MuseScore's own pitch-up/down then).
+bool turkishStep(Score* score, int direction);
 }

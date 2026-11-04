@@ -57,6 +57,12 @@
 #include "../dom/segment.h"
 #include "../dom/staff.h"
 #include "../dom/textbase.h"
+#include "../dom/factory.h"
+#include "../dom/interval.h"
+#include "../dom/select.h"
+#include "../dom/tie.h"
+
+#include "transpose.h"
 
 namespace mu::engraving::makam {
 namespace {
@@ -994,5 +1000,269 @@ std::vector<ScoreMakam> scoreMakams(MasterScore* score)
         list.push_back({ m.makam->id, QString::fromUtf8(m.makam->name), measure ? measure->no() + 1 : 1, m.source });
     }
     return list;
+}
+}
+
+//---------------------------------------------------------
+//   Türk arıza ↑/↓: the Turkish (AEU) accidental ladder of the TurkAriza plugins (v0.7)
+//     −3 küçük mücennep bemol (♭)  −2 bakiye bemol  −1 koma bemol  0 naturel
+//     +1 koma diyez  +2 bakiye diyez (♯)  +3 küçük mücennep diyez
+//   Above the top step the next note's naturel follows (Fa +3 → Sol). Mi–Fa and Si–Do are only
+//   4 komas apart: Mi ↑ Mi♯ ↑ Fa, Si ↑ Do. Koma diyez only on Fa. Going down: Fa ↓ Mi♯, Do ↓ Si.
+//   An accidental is written only where the step differs from the key signature or from an
+//   earlier accidental on the same note in the measure.
+//---------------------------------------------------------
+
+namespace mu::engraving::makam {
+namespace {
+constexpr int NO_STEP = 99;
+
+const std::string LADDER_LETTERS = "CDEFGAB";
+constexpr int NAT_TPC[7] = { 14, 16, 18, 13, 15, 17, 19 };   // C D E F G A B
+constexpr int SEMIS_UP[7] = { 2, 2, 1, 2, 2, 2, 1 };          // to the next letter
+
+const std::vector<int>& ladder(char letter)
+{
+    static const std::vector<int> C { 0, 2, 3 };              // no bemol steps: Do ↓ Si
+    static const std::vector<int> E { -3, -2, -1, 0, 2 };     // only ♯ (4 komas): Mi ↑ Mi♯ ↑ Fa
+    static const std::vector<int> F { 0, 1, 2, 3 };           // no bemol steps: Fa ↓ Mi♯
+    static const std::vector<int> B { -3, -2, -1, 0 };        // no diyez steps: Si ↑ Do
+    static const std::vector<int> other { -3, -2, -1, 0, 2, 3 };
+    switch (letter) {
+    case 'C': return C;
+    case 'E': return E;
+    case 'F': return F;
+    case 'B': return B;
+    default: break;
+    }
+    return other;
+}
+
+int nextLadderStep(char letter, int step, int direction)
+{
+    const std::vector<int>& list = ladder(letter);
+    if (direction > 0) {
+        for (int s : list) {
+            if (s > step) {
+                return s;
+            }
+        }
+    } else {
+        for (auto it = list.rbegin(); it != list.rend(); ++it) {
+            if (*it < step) {
+                return *it;
+            }
+        }
+    }
+    return NO_STEP;
+}
+
+int stepOfAccidental(AccidentalType type)
+{
+    switch (type) {
+    case AccidentalType::FLAT: return -3;
+    case AccidentalType::FLAT_SLASH: return -2;
+    case AccidentalType::MIRRORED_FLAT: return -1;
+    case AccidentalType::LOWER_ONE_UNDECIMAL_QUARTERTONE: return -1;
+    case AccidentalType::NATURAL: return 0;
+    case AccidentalType::SHARP_SLASH: return 1;
+    case AccidentalType::SHARP: return 2;
+    case AccidentalType::SHARP_SLASH3: return 3;
+    default: break;
+    }
+    return NO_STEP;
+}
+
+AccidentalType accidentalOfStep(int step)
+{
+    switch (step) {
+    case -3: return AccidentalType::FLAT;
+    case -2: return AccidentalType::FLAT_SLASH;        // bakiye bemol
+    case -1: return AccidentalType::MIRRORED_FLAT;     // koma bemol (ters bemol)
+    case 0: return AccidentalType::NATURAL;
+    case 1: return AccidentalType::SHARP_SLASH;        // koma diyez
+    case 2: return AccidentalType::SHARP;
+    case 3: return AccidentalType::SHARP_SLASH3;       // küçük mücennep diyez
+    default: break;
+    }
+    return AccidentalType::NONE;
+}
+
+int stepOfKoma(int koma)
+{
+    switch (koma) {
+    case -5: return -3;
+    case -4: return -2;
+    case -1: return -1;
+    case 1: return 1;
+    case 4: return 2;
+    case 5: return 3;
+    default: break;
+    }
+    return 0;
+}
+
+// The written ♯/♭ (equal-tempered) of a step
+int alterOfStep(int step)
+{
+    return step == -3 ? -1 : step == 2 ? 1 : 0;
+}
+
+void letterOfTpc(int tpc, char& letter, int& alter)
+{
+    static const char* const FIFTHS = "FCGDAEB";
+    letter = FIFTHS[((tpc + 1) % 7 + 7) % 7];
+    alter = (tpc + 1 + 7) / 7 - 3;
+}
+
+// Step of the last accidental on the same note (letter and written natural pitch) earlier in the
+// measure, on the same staff in any voice; NO_STEP when there is none
+int measureStep(const Note* note, char letter, int natWritten)
+{
+    const Chord* chord = note->chord();
+    const Segment* segment = chord ? chord->segment() : nullptr;
+    const Measure* measure = segment ? segment->measure() : nullptr;
+    if (!measure) {
+        return NO_STEP;
+    }
+    const track_idx_t firstTrack = note->staffIdx() * VOICES;
+    int found = NO_STEP;
+    for (Segment* s = measure->first(SegmentType::ChordRest); s && s->tick() < segment->tick(); s = s->next(SegmentType::ChordRest)) {
+        for (track_idx_t track = firstTrack; track < firstTrack + VOICES; ++track) {
+            EngravingItem* e = s->element(track);
+            if (!e || !e->isChord()) {
+                continue;
+            }
+            for (const Note* n : toChord(e)->notes()) {
+                if (n->accidentalType() == AccidentalType::NONE) {
+                    continue;
+                }
+                char l = 'C';
+                int a = 0;
+                letterOfTpc(n->tpc2(), l, a);
+                if (l != letter || writtenPitch(n) - a != natWritten) {
+                    continue;
+                }
+                const int st = stepOfAccidental(n->accidentalType());
+                found = st != NO_STEP ? st : (a > 0 ? 2 : a < 0 ? -3 : 0);
+            }
+        }
+    }
+    return found;
+}
+
+// The step a note without its own accidental is on: an earlier accidental in the measure, else
+// the key signature
+int currentStep(const Note* note, char letter, int natWritten)
+{
+    const int ms = measureStep(note, letter, natWritten);
+    if (ms != NO_STEP) {
+        return ms;
+    }
+    const Staff* staff = note->staff();
+    if (!staff) {
+        return 0;
+    }
+    const std::vector<int> komas = keyKomas(staff->keySigEvent(note->tick()));
+    return stepOfKoma(komas[LADDER_LETTERS.find(letter)]);
+}
+
+void removeAccidental(Note* note)
+{
+    for (EngravingObject* obj : note->linkList()) {
+        Note* ln = toNote(obj);
+        if (Accidental* acc = ln->accidental()) {
+            ln->score()->undoRemoveElement(acc);
+        }
+    }
+}
+
+// Writes the note (and its tie chain) as letter + step
+void setNoteStep(Score* score, Note* note, char letter, int natWritten, int step)
+{
+    const int ks = currentStep(note, letter, natWritten);
+    const int alter = alterOfStep(step);
+    const int written = natWritten + alter;
+    const int tpc2 = NAT_TPC[LADDER_LETTERS.find(letter)] + 7 * alter;
+    const Part* part = note->part();
+    const Interval v = part ? part->instrument(note->tick())->transpose() : Interval();
+    const int pitch = written + v.chromatic;
+    const int tpc1 = v.isZero() ? tpc2 : Transpose::transposeTpc(tpc2, v, true);
+
+    removeAccidental(note);
+    score->undoChangePitch(note, pitch, tpc1, tpc2);
+    if (ks != step) {
+        for (EngravingObject* obj : note->linkList()) {
+            Note* ln = toNote(obj);
+            Accidental* acc = Factory::createAccidental(ln);
+            acc->setParent(ln);
+            acc->setAccidentalType(accidentalOfStep(step));
+            acc->setRole(AccidentalRole::USER);
+            ln->score()->undoAddElement(acc);
+        }
+    }
+
+    // the tied notes follow
+    for (Note* n = note; n->tieFor() && n->tieFor()->endNote();) {
+        n = n->tieFor()->endNote();
+        removeAccidental(n);
+        score->undoChangePitch(n, pitch, tpc1, tpc2);
+    }
+}
+}
+
+bool turkishStep(Score* score, int direction)
+{
+    if (!score) {
+        return false;
+    }
+    std::vector<Note*> notes;
+    for (Note* n : score->selection().noteList()) {
+        const Staff* staff = n->staff();
+        if (!staff || !staff->isPitchedStaff(n->tick())) {
+            continue;
+        }
+        if (n->tieBack()) {
+            continue;                                  // the tie chain follows its first note
+        }
+        notes.push_back(n);
+    }
+    if (notes.empty()) {
+        return false;
+    }
+
+    for (Note* note : notes) {
+        char letter = 'C';
+        int alter = 0;
+        letterOfTpc(note->tpc2(), letter, alter);
+        if (alter < -1 || alter > 1) {
+            continue;                                  // double sharps / flats: not in the ladder
+        }
+        int natWritten = writtenPitch(note) - alter;
+        int step = note->accidentalType() != AccidentalType::NONE ? stepOfAccidental(note->accidentalType()) : NO_STEP;
+        if (step == NO_STEP) {
+            step = currentStep(note, letter, natWritten);
+        }
+
+        int next = nextLadderStep(letter, step, direction);
+        if (next == NO_STEP) {
+            size_t index = LADDER_LETTERS.find(letter);
+            if (direction > 0) {
+                natWritten += SEMIS_UP[index];
+                index = (index + 1) % 7;
+                next = 0;
+            } else {
+                index = (index + 6) % 7;
+                natWritten -= SEMIS_UP[index];
+                next = LADDER_LETTERS[index] == 'E' ? 2 : 0;   // Fa ↓ Mi♯
+            }
+            letter = LADDER_LETTERS[index];
+        }
+        setNoteStep(score, note, letter, natWritten, next);
+    }
+
+    score->setPlayNote(true);
+    score->setSelectionChanged(true);
+    return true;
 }
 }
