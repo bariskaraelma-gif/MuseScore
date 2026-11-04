@@ -30,6 +30,8 @@
 #include "dom/sig.h"
 #include "dom/tempo.h"
 #include "dom/staff.h"
+#include "dom/makamdata.h"
+#include "dom/timesig.h"
 #include "dom/utils.h"
 
 #include "utils/arrangementutils.h"
@@ -84,6 +86,37 @@ static muse::mpe::NoteEvent buildMetronomeEvent(const TimeSigFrac& timeSig, cons
                           0,
                           eventPitchLevel,
                           dynamicLevelFromType(mpe::DynamicType::mf),
+                          articulations,
+                          bps);
+}
+
+//! Makam: the usul of the time signature at tick (time signatures from the usul palette), or nullptr
+static const makam::Usul* makamUsulAt(const Score* score, const int tick)
+{
+    if (!score || score->nstaves() == 0) {
+        return nullptr;
+    }
+    const TimeSig* ts = score->staff(0)->timeSig(Fraction::fromTicks(tick));
+    return ts ? makam::usulOfGroups(ts->groups(), ts->sig()) : nullptr;
+}
+
+//! Makam: one stroke of an usul on the metronome track (standard drum kit): düm = Bass Drum 1,
+//! tek = High Floor Tom, as on the usul staff; düm a little stronger
+static muse::mpe::NoteEvent buildUsulMetronomeEvent(const bool dum, const double bps, const int ticks,
+                                                    const muse::mpe::timestamp_t actualTimestamp,
+                                                    const muse::mpe::ArticulationsProfilePtr profile)
+{
+    duration_t duration = durationFromTempoAndTicks(bps, ticks);
+    pitch_level_t eventPitchLevel = dum ? pitchLevel(PitchClass::C, 2)   // 36
+                                    : pitchLevel(PitchClass::G, 2);      // 43
+    const ArticulationMap articulations = makeStandardArticulationMap(profile, actualTimestamp, duration);
+
+    return mpe::NoteEvent(actualTimestamp,
+                          duration,
+                          0,
+                          0,
+                          eventPitchLevel,
+                          dynamicLevelFromType(dum ? mpe::DynamicType::f : mpe::DynamicType::mf),
                           articulations,
                           bps);
 }
@@ -230,6 +263,19 @@ void PlaybackEventsRenderer::renderMetronome(const Score* score, const Measure* 
     int step = timeSignatureFraction.isBeatedCompound(bps.val)
                ? timeSignatureFraction.beatTicks() : timeSignatureFraction.dUnitTicks();
 
+    // Makam: a measure in an usul plays the usul's strokes (düm / tek) instead of the beats
+    const makam::Usul* usul = makamUsulAt(score, measureStartTick);
+    if (usul && !measure->isAnacrusis() && measure->ticks() == Fraction(usul->n, usul->d)) {
+        int t = measureStartTick;
+        for (const makam::Darb& darb : usul->darb) {
+            const int len = Fraction(darb.len, usul->d).ticks();
+            timestamp_t eventTimestamp = timestampFromTicks(score, t + ticksPositionOffset);
+            result[eventTimestamp].emplace_back(buildUsulMetronomeEvent(darb.dum, bps.val, len, eventTimestamp, profile));
+            t += len;
+        }
+        return;
+    }
+
     int startTick = measureStartTick;
     int rtick = 0;
 
@@ -257,6 +303,24 @@ void PlaybackEventsRenderer::renderMetronome(const Score* score, const int tick,
 
     TimeSigFrac timeSignatureFraction = score->sigmap()->timesig(tick).timesig();
     BeatsPerSecond bps = score->tempomap()->multipliedTempo(tick);
+
+    // Makam: in an usul, only the strokes sound (a stroke starting at this tick, else nothing)
+    if (const makam::Usul* usul = makamUsulAt(score, tick)) {
+        const Measure* measure = score->tick2measure(Fraction::fromTicks(tick));
+        if (measure && measure->ticks() == Fraction(usul->n, usul->d)) {
+            int t = measure->tick().ticks();
+            for (const makam::Darb& darb : usul->darb) {
+                const int len = Fraction(darb.len, usul->d).ticks();
+                if (t == tick) {
+                    result[actualTimestamp].emplace_back(buildUsulMetronomeEvent(darb.dum, bps.val, len, actualTimestamp, profile));
+                    break;
+                }
+                t += len;
+            }
+            return;
+        }
+    }
+
     BeatType beatType = score->tick2beatType(Fraction::fromTicks(tick));
     mpe::NoteEvent event = buildMetronomeEvent(timeSignatureFraction, bps.val, beatType, actualTimestamp, profile);
 
@@ -281,6 +345,21 @@ void PlaybackEventsRenderer::renderCountIn(const Score* score, const int startTi
                ? timeSignatureFraction.beatTicks() : timeSignatureFraction.dUnitTicks();
 
     duration_t stepDuration = durationFromTempoAndTicks(bps.val, step);
+
+    // Makam: in an usul the count-in is one measure of the usul's strokes
+    if (const makam::Usul* usul = makamUsulAt(score, measureStartTick)) {
+        if (Fraction::fromTicks(ticksPerMeasure) == Fraction(usul->n, usul->d)) {
+            int t = 0;
+            for (const makam::Darb& darb : usul->darb) {
+                const int len = Fraction(darb.len, usul->d).ticks();
+                const timestamp_t eventTimestamp = actualTimestamp + durationFromTempoAndTicks(bps.val, t);
+                result[eventTimestamp].emplace_back(buildUsulMetronomeEvent(darb.dum, bps.val, len, eventTimestamp, profile));
+                t += len;
+            }
+            countInDuration = durationFromTempoAndTicks(bps.val, ticksPerMeasure);
+            return;
+        }
+    }
 
     // Add extra clicks if...
     int endTick = ticksPerMeasure + (startTick - measureStartTick); // ... not starting playback at beginning of measure
