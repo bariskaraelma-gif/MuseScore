@@ -45,6 +45,22 @@ const UiActionList ProjectUiActions::m_actions = {
              TranslatableString("action", "New"),
              IconCode::Code::NEW_FILE
              ),
+    // Makam: blank score with two staves
+    UiAction("file-new-double",
+             mu::context::UiCtxAny,
+             mu::context::CTX_ANY,
+             TranslatableString("action", "Yeni (çift dizek)"),
+             TranslatableString("action", "Yeni nota, çift dizek"),
+             IconCode::Code::NEW_FILE
+             ),
+    // Makam: built-in Image Capture tool (toolbar button)
+    UiAction("image-capture",
+             mu::context::UiCtxAny,
+             mu::context::CTX_ANY,
+             TranslatableString("action", "Görüntü yakala"),
+             TranslatableString("action", "Görüntü yakala: notanın bir bölümünü resim olarak kaydet"),
+             IconCode::Code::CAMERA
+             ),
     UiAction("file-close",
              mu::context::UiCtxAny,
              mu::context::CTX_ANY,

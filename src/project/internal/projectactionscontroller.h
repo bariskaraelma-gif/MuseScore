@@ -48,6 +48,7 @@
 #include "musesounds/imusesoundscheckupdatescenario.h"
 #include "musesounds/imusesamplercheckstatusscenario.h"
 #include "extensions/iextensionsprovider.h"
+#include "notation/iinstrumentsrepository.h"
 
 #include "async/asyncable.h"
 
@@ -82,6 +83,7 @@ class ProjectActionsController : public IProjectFilesController, public muse::mi
     muse::ContextInject<musesounds::IMuseSoundsCheckUpdateScenario> museSoundsCheckUpdateScenario = { this };
     muse::ContextInject<musesounds::IMuseSamplerCheckStatusScenario> museSamplerCheckStatusScenario = { this };
     muse::ContextInject<muse::extensions::IExtensionsProvider> extensionsProvider = { this };
+    muse::ContextInject<notation::IInstrumentsRepository> instrumentsRepository = { this };
 
 public:
 
@@ -118,7 +120,9 @@ private:
     notation::INotationInteractionPtr currentInteraction() const;
     notation::INotationSelectionPtr currentNotationSelection() const;
 
-    void newProject();
+    void newProject(bool doubleStaff = false);
+    muse::Ret createBlankProject(bool doubleStaff);
+    void openImageCapture();
 
     void openProject(const muse::actions::ActionData& args);
     muse::Ret openProject(const muse::io::path_t& path, const QString& displayNameOverride = QString());

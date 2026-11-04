@@ -40,6 +40,11 @@ void ScoresPageModel::createNewScore()
     dispatcher()->dispatch("file-new");
 }
 
+void ScoresPageModel::createNewDoubleScore()
+{
+    dispatcher()->dispatch("file-new-double");
+}
+
 void ScoresPageModel::convertFileToScore()
 {
     dispatcher()->dispatch("file-convert-to-score");

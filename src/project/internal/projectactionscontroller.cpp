@@ -52,7 +52,9 @@ using namespace muse::actions;
 static const muse::Uri NOTATION_PAGE_URI("musescore://notation");
 static const muse::Uri NOTATION_REVIEW_PAGE_URI("musescore://notation/review");
 static const muse::Uri HOME_PAGE_URI("musescore://home");
-static const muse::Uri NEW_SCORE_URI("musescore://project/newscore");
+// Makam: "file-new" opens a blank score directly, the New Score dialog is not used
+// Makam: file name of the built-in Image Capture plugin (share/plugins/imagecapture)
+static const QString IMAGE_CAPTURE_PLUGIN_FILE("imagecapture.qml");
 static const muse::Uri PROJECT_PROPERTIES_URI("musescore://project/properties");
 static const muse::Uri UPLOAD_PROGRESS_URI("musescore://project/upload/progress");
 
@@ -64,7 +66,9 @@ static constexpr int SAVE_AS_BTN_ID    = RETRY_SAVE_BTN_ID + 1;
 
 void ProjectActionsController::init()
 {
-    dispatcher()->reg(this, "file-new", this, &ProjectActionsController::newProject);
+    dispatcher()->reg(this, "file-new", [this]() { newProject(false); });
+    dispatcher()->reg(this, "file-new-double", [this]() { newProject(true); });
+    dispatcher()->reg(this, "image-capture", this, &ProjectActionsController::openImageCapture);
     dispatcher()->reg(this, "file-open", this, &ProjectActionsController::openProject);
 
     dispatcher()->reg(this, "file-close", [this]() {
@@ -131,6 +135,7 @@ bool ProjectActionsController::canReceiveAction(const ActionCode& code) const
     if (!currentNotationProject()) {
         static const std::unordered_set<ActionCode> DONT_REQUIRE_OPEN_PROJECT {
             "file-new",
+            "file-new-double",
             "file-open",
             "file-convert-to-score",
             "continue-last-session",
@@ -675,7 +680,7 @@ bool ProjectActionsController::isAnyProjectOpened() const
     return false;
 }
 
-void ProjectActionsController::newProject()
+void ProjectActionsController::newProject(bool doubleStaff)
 {
     //! NOTE This method is synchronous,
     //! but inside `multiwindowsProvider` there can be an event loop
@@ -694,25 +699,98 @@ void ProjectActionsController::newProject()
 
     if (globalContext()->currentProject()) {
         if (multiwindowsProvider()->isHasWindowWithoutProject()) {
-            multiwindowsProvider()->activateWindowWithoutProject({ "file-new" });
+            multiwindowsProvider()->activateWindowWithoutProject({ doubleStaff ? "file-new-double" : "file-new" });
             return;
         }
         QStringList args;
-        args << "--session-type" << "start-with-new";
+        args << "--session-type" << (doubleStaff ? "start-with-new-double" : "start-with-new");
         multiwindowsProvider()->openNewWindow(args);
         return;
     }
 
-    auto promise = interactive()->open(NEW_SCORE_URI);
-    promise.onResolve(this, [this](const Val&) {
-        extensionsProvider()->performPointAsync(EXEC_ONPOST_PROJECT_CREATED);
+    Ret ret = createBlankProject(doubleStaff);
+    if (!ret) {
+        LOGE() << ret.toString();
+        return;
+    }
 
-        Ret ret = doFinishOpenProject();
+    extensionsProvider()->performPointAsync(EXEC_ONPOST_PROJECT_CREATED);
 
-        if (!ret) {
-            LOGE() << ret.toString();
+    ret = doFinishOpenProject();
+    if (!ret) {
+        LOGE() << ret.toString();
+    }
+}
+
+//! Makam: a blank page with one "Türk Müziği" staff (or one part with two staves),
+//! 4/4, no key signature, 32 measures, no title frame
+Ret ProjectActionsController::createBlankProject(bool doubleStaff)
+{
+    const muse::String instrumentId = doubleStaff ? u"turk-muzigi-cift" : u"turk-muzigi";
+    const InstrumentTemplate& templ = instrumentsRepository()->instrumentTemplate(instrumentId);
+    IF_ASSERT_FAILED(templ.isValid()) {
+        return make_ret(Ret::Code::InternalError);
+    }
+
+    ProjectCreateOptions options;
+    ScoreCreateOptions& scoreOptions = options.scoreOptions;
+    scoreOptions.globalTimesig = mu::engraving::Fraction(4, 4);
+    scoreOptions.timesigType = mu::engraving::TimeSigType::NORMAL;
+    scoreOptions.key = mu::engraving::Key::C;
+    scoreOptions.totalMeasures = 32;
+
+    PartInstrument pi;
+    pi.instrumentTemplate = templ;
+    scoreOptions.parts << pi;
+
+    const ScoreOrderList& orders = instrumentsRepository()->orders();
+    scoreOptions.order = orders.empty() ? customOrder() : orders.front();
+
+    INotationProjectPtr project = projectCreator()->newProject(iocContext());
+    IF_ASSERT_FAILED(project) {
+        return make_ret(Ret::Code::InternalError);
+    }
+
+    Ret ret = project->createNew(options);
+    if (!ret) {
+        return ret;
+    }
+
+    globalContext()->setCurrentProject(project);
+    return make_ret(Ret::Code::Ok);
+}
+
+//! Makam: the Image Capture tool is a built-in plugin (share/plugins/imagecapture),
+//! started from the toolbar button whether or not it is enabled in the plugin manager
+void ProjectActionsController::openImageCapture()
+{
+    if (!currentNotationProject()) {
+        return;
+    }
+
+    // Prefer the built-in copy; a copy in the user's plugins folder is used only if there is none
+    muse::Uri uri;
+    for (const muse::extensions::Manifest& m : extensionsProvider()->manifestList()) {
+        if (!m.legacyPlugin || io::filename(m.path).toQString().toLower() != IMAGE_CAPTURE_PLUGIN_FILE) {
+            continue;
         }
-    });
+        if (!uri.isValid() || !m.isRemovable) {
+            uri = m.uri;
+        }
+        if (!m.isRemovable) {
+            break;
+        }
+    }
+
+    if (!uri.isValid()) {
+        LOGE() << "Image Capture plugin not found";
+        return;
+    }
+
+    Ret ret = extensionsProvider()->perform(UriQuery(uri));
+    if (!ret) {
+        LOGE() << ret.toString();
+    }
 }
 
 bool ProjectActionsController::closeOpenedProject(bool goToHome)

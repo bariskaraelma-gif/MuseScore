@@ -399,6 +399,19 @@ FocusScope {
                 }
             }
 
+            // Makam: blank score with two staves
+            FlatButton {
+                navigation.name: "NewDoubleStaffScore"
+                navigation.panel: navBottomPanel
+                navigation.column: 5
+
+                text: qsTrc("project", "Yeni (çift dizek)")
+
+                onClicked: {
+                    scoresPageModel.createNewDoubleScore()
+                }
+            }
+
             FlatButton {
                 navigation.name: "ConvertFileToScore"
                 navigation.panel: navBottomPanel

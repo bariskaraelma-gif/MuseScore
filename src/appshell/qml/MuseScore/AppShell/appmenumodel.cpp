@@ -198,6 +198,7 @@ MenuItem* AppMenuModel::makeFileMenu()
 
     MenuItemList fileItems {
         makeMenuItem("file-new"),
+        makeMenuItem("file-new-double"),
         makeMenuItem("file-open"),
         makeMenu(TranslatableString("appshell/menu/file", "Open &recent"), recentScoresList, "menu-file-open", openRecentEnabled),
         makeMenuItem("file-close"),
@@ -215,6 +216,7 @@ MenuItem* AppMenuModel::makeFileMenu()
         makeMenuItem("parts", TranslatableString("action", "Parts…")),
         makeSeparator(),
         makeMenuItem("print"),
+        makeMenuItem("image-capture"),
         makeSeparator(),
         makeMenuItem("quit", MenuItemRole::QuitRole)
     };

@@ -461,6 +461,30 @@
                   <genre>turkish</genre>
                   <genre>common</genre>
             </Instrument>
+            <!-- Makam: "Yeni (çift dizek)": one part with two G-clef staves joined by a brace -->
+            <Instrument id="turk-muzigi-cift">
+                  <family>guitars</family>
+                  <trackName>Türk Müziği (çift dizek)</trackName>
+                  <longName>Türk Müziği</longName>
+                  <shortName>T.M.</shortName>
+                  <description>Türk müziği, iki dizek: iki sol anahtarı, gitar sesi.</description>
+                  <musicXMLid>pluck.guitar.nylon-string</musicXMLid>
+                  <staves>2</staves>
+                  <clef>G</clef>
+                  <bracket>1</bracket>
+                  <bracketSpan>2</bracketSpan>
+                  <barlineSpan>2</barlineSpan>
+                  <clef staff="2">G</clef>
+                  <aPitchRange>40-93</aPitchRange>
+                  <pPitchRange>40-93</pPitchRange>
+                  <singleNoteDynamics>0</singleNoteDynamics>
+                  <glissandoStyle>portamento</glissandoStyle>
+                  <Channel name="open">
+                        <!--MIDI: Bank 0, Prog 24; MS General: Nylon String Guitar-->
+                        <program value="24"/> <!--Acoustic Guitar (nylon)-->
+                  </Channel>
+                  <genre>turkish</genre>
+            </Instrument>
       </InstrumentGroup>
       <InstrumentGroup id="woodwinds">
             <name>Woodwinds</name>
