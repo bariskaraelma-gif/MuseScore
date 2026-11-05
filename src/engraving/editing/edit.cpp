@@ -1482,6 +1482,48 @@ static void makamFillUsulStaves(MasterScore* ms, const Fraction& tick, const mak
 }
 
 //---------------------------------------------------------
+//   makamSetUsulName
+//    Makam: the usul's name as a system text above the measure where the usul starts.
+//    An earlier usul name at that tick is replaced (or only removed, for a time signature
+//    that is not an usul).
+//---------------------------------------------------------
+
+static bool makamIsUsulName(const String& text)
+{
+    const String t = text.trimmed();
+    for (const makam::Usul& usul : makam::usuller()) {
+        if (t == String::fromUtf8(usul.name)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+static void makamSetUsulName(MasterScore* ms, const Fraction& tick, const makam::Usul* usul)
+{
+    Measure* m = ms->tick2measure(tick);
+    Segment* seg = m ? m->findSegment(SegmentType::ChordRest, tick) : nullptr;
+    if (!seg) {
+        return;
+    }
+
+    const std::vector<EngravingItem*> annotations = seg->annotations();
+    for (EngravingItem* e : annotations) {
+        if (e->isSystemText() && makamIsUsulName(toSystemText(e)->plainText())) {
+            ms->undoRemoveElement(e);
+        }
+    }
+
+    EngravingItem* el = seg->element(0);
+    if (!usul || !el || !el->isChordRest()) {
+        return;
+    }
+    SystemText* text = Factory::createSystemText(ms->dummy()->segment(), TextStyleType::SYSTEM);
+    text->setXmlText(String::fromUtf8(usul->name));
+    toChordRest(el)->undoAddAnnotation(text);
+}
+
+//---------------------------------------------------------
 //   cmdAddTimeSig
 //
 //    Add or change time signature at measure in response
@@ -1524,6 +1566,7 @@ void Score::cmdAddTimeSig(Measure* fm, staff_idx_t staffIdx, TimeSig* ts, bool l
         //
         if (usul) {
             makamFillUsulStaves(masterScore(), tick, *usul);   // Makam: write the strokes again
+            makamSetUsulName(masterScore(), tick, usul);
         }
         delete ts;
         return;
@@ -1678,6 +1721,9 @@ void Score::cmdAddTimeSig(Measure* fm, staff_idx_t staffIdx, TimeSig* ts, bool l
 
     if (usul) {
         makamFillUsulStaves(masterScore(), tick, *usul);   // Makam
+    }
+    if (!local) {
+        makamSetUsulName(masterScore(), tick, usul);       // Makam: the usul's name above the measure
     }
     delete ts;
 }

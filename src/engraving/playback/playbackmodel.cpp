@@ -712,6 +712,9 @@ bool PlaybackModel::hasToReloadTracks(const ScoreChanges& changes) const
         ElementType::GUITAR_BEND,
         ElementType::GUITAR_BEND_SEGMENT,
         ElementType::BREATH,
+        // Makam: a time signature (usul) changes the metronome of every measure up to the next
+        // one, not only of the measures whose notes changed
+        ElementType::TIMESIG,
     };
 
     for (const ElementType type : changes.changedTypes) {
