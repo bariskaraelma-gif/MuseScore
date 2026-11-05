@@ -45,9 +45,11 @@ Bitince yeni bir terminal açılır ve GitHub'a bir kez giriş yapılır (taray�
 
 ```powershell
 gh auth login
-git -C C:\MakamNota\src config user.name "Baris"
-git -C C:\MakamNota\src config user.email "karaelma@gazi.edu.tr"
+git -C C:\MakamNota\src config user.name "ADINIZ"
+git -C C:\MakamNota\src config user.email "E-POSTA@ADRESINIZ"
 ```
+
+Son iki satırda tırnak içine bu bilgisayardaki commit'lerde görünecek ad ve e-posta yazılır. Fork herkese açık olduğu için bu adres GitHub'da görülebilir.
 
 ## 3. Derle ve çalıştır
 
