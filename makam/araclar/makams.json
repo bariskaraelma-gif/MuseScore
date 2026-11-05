@@ -1,0 +1,795 @@
+{
+ "makams": [
+  {
+   "id": "ussak",
+   "name": "Uşşak",
+   "keys": [
+    "ussak"
+   ],
+   "donanim": {
+    "B": -1
+   },
+   "calib": {
+    "B-1": [
+     -50,
+     -66.67,
+     -50
+    ]
+   },
+   "ks": [
+    "B-1"
+   ],
+   "alt": [],
+   "karar": "A0",
+   "seyir": 71.9
+  },
+  {
+   "id": "rast",
+   "name": "Rast",
+   "keys": [
+    "rast"
+   ],
+   "donanim": {
+    "B": -1
+   },
+   "calib": {
+    "B-1": [
+     -16.67,
+     -16.67,
+     -16.67
+    ],
+    "F4": [
+     -16.67,
+     -33.33,
+     -16.67
+    ]
+   },
+   "ks": [
+    "B-1",
+    "F4"
+   ],
+   "alt": [],
+   "karar": "G0",
+   "seyir": 70.6
+  },
+  {
+   "id": "huzzam",
+   "name": "Hüzzam",
+   "keys": [
+    "huzzam"
+   ],
+   "donanim": {
+    "B": -1,
+    "E": -4
+   },
+   "calib": {
+    "B-1": [
+     -16.67,
+     -16.67,
+     -16.67
+    ],
+    "E-4": [
+     -50,
+     -66.67,
+     -16.67
+    ],
+    "F4": [
+     -33.33,
+     -33.33,
+     -16.67
+    ],
+    "E4": [
+     -33.33,
+     -33.33,
+     -33.33
+    ],
+    "E-1": [
+     -16.67,
+     -16.67,
+     -16.67
+    ]
+   },
+   "ks": [
+    "B-1",
+    "E-4",
+    "F4"
+   ],
+   "alt": [],
+   "karar": "B-1",
+   "seyir": 74.9
+  },
+  {
+   "id": "hicaz",
+   "name": "Hicaz",
+   "keys": [
+    "hicaz"
+   ],
+   "donanim": {
+    "B": -4
+   },
+   "calib": {
+    "B-4": [
+     -83.33,
+     -83.33,
+     -83.33
+    ],
+    "C4": [
+     -16.67,
+     -16.67,
+     -16.67
+    ],
+    "F4": [
+     -33.33,
+     -50,
+     -33.33
+    ]
+   },
+   "ks": [
+    "B-4",
+    "C4"
+   ],
+   "alt": [
+    [
+     "B-4",
+     "C4",
+     "F4"
+    ]
+   ],
+   "karar": "A0",
+   "seyir": 74.1
+  },
+  {
+   "id": "huseyni",
+   "name": "Hüseyni",
+   "keys": [
+    "huseyni"
+   ],
+   "donanim": {
+    "B": -1
+   },
+   "calib": {
+    "B-1": [
+     -33.33,
+     -50,
+     -33.33
+    ],
+    "F4": [
+     -33.33,
+     -50,
+     -33.33
+    ]
+   },
+   "ks": [
+    "B-1",
+    "F4"
+   ],
+   "alt": [],
+   "karar": "A0",
+   "seyir": 75.5
+  },
+  {
+   "id": "segah",
+   "name": "Segah",
+   "keys": [
+    "segah"
+   ],
+   "donanim": {
+    "B": -1,
+    "E": -1
+   },
+   "calib": {
+    "B-1": [
+     -16.67,
+     -16.67,
+     -16.67
+    ],
+    "E-1": [
+     0,
+     -16.67,
+     0
+    ],
+    "F4": [
+     -16.67,
+     -50,
+     -16.67
+    ],
+    "E4": [
+     -33.33,
+     -33.33,
+     -33.33
+    ]
+   },
+   "ks": [
+    "B-1",
+    "E-1",
+    "F4"
+   ],
+   "alt": [],
+   "karar": "B-1",
+   "seyir": 73.3
+  },
+  {
+   "id": "saba",
+   "name": "Saba",
+   "keys": [
+    "saba"
+   ],
+   "donanim": {
+    "B": -1,
+    "D": -4
+   },
+   "calib": {
+    "B-1": [
+     -33.33,
+     -50,
+     -33.33
+    ],
+    "D-4": [
+     -66.67,
+     -66.67,
+     -66.67
+    ]
+   },
+   "ks": [
+    "B-1",
+    "D-4"
+   ],
+   "alt": [],
+   "karar": "A0",
+   "seyir": 71.9
+  },
+  {
+   "id": "nihavend",
+   "name": "Nihavend",
+   "keys": [
+    "nihavend",
+    "nihavent"
+   ],
+   "donanim": {},
+   "calib": {},
+   "ks": [
+    "B-5",
+    "E-5"
+   ],
+   "alt": [],
+   "karar": "G0",
+   "seyir": 72.5
+  },
+  {
+   "id": "kurdi",
+   "name": "Kürdi",
+   "keys": [
+    "kurdi"
+   ],
+   "donanim": {},
+   "calib": {},
+   "ks": [
+    "B-5"
+   ],
+   "alt": [],
+   "karar": "A0",
+   "seyir": 74
+  },
+  {
+   "id": "muhayyerkurdi",
+   "name": "Muhayyerkürdi",
+   "keys": [
+    "muhayyerkurdi",
+    "muhayyer kurdi"
+   ],
+   "donanim": {},
+   "calib": {},
+   "ks": [
+    "B-5"
+   ],
+   "alt": [],
+   "karar": "A0",
+   "seyir": 78.9
+  },
+  {
+   "id": "muhayyer",
+   "name": "Muhayyer",
+   "keys": [
+    "muhayyer"
+   ],
+   "donanim": {
+    "B": -1
+   },
+   "calib": {
+    "B-1": [
+     -33.33,
+     -50,
+     -33.33
+    ],
+    "F4": [
+     -33.33,
+     -50,
+     -33.33
+    ]
+   },
+   "ks": [
+    "B-1",
+    "F4"
+   ],
+   "alt": [],
+   "karar": "A0",
+   "seyir": 78.5
+  },
+  {
+   "id": "acemkurdi",
+   "name": "Acemkürdi",
+   "keys": [
+    "acemkurdi",
+    "acem kurdi"
+   ],
+   "donanim": {},
+   "calib": {},
+   "ks": [
+    "B-5"
+   ],
+   "alt": [],
+   "karar": "A0",
+   "seyir": 76.5
+  },
+  {
+   "id": "bayati",
+   "name": "Bayati",
+   "keys": [
+    "bayati",
+    "beyati"
+   ],
+   "donanim": {
+    "B": -1
+   },
+   "calib": {
+    "B-1": [
+     -50,
+     -66.67,
+     -50
+    ]
+   },
+   "ks": [
+    "B-1"
+   ],
+   "alt": [],
+   "karar": "A0",
+   "seyir": 73.8
+  },
+  {
+   "id": "evic",
+   "name": "Eviç",
+   "keys": [
+    "evic"
+   ],
+   "donanim": {
+    "B": -1
+   },
+   "calib": {
+    "B-1": [
+     -16.67,
+     -16.67,
+     -16.67
+    ],
+    "F4": [
+     -16.67,
+     -33.33,
+     -16.67
+    ]
+   },
+   "ks": [
+    "B-1",
+    "F4"
+   ],
+   "alt": [],
+   "karar": "F4",
+   "seyir": 77.2
+  },
+  {
+   "id": "kurdilihicazkar",
+   "name": "Kürdilihicazkâr",
+   "keys": [
+    "kurdilihicazkar",
+    "kurdili hicazkar"
+   ],
+   "donanim": {},
+   "calib": {},
+   "ks": [
+    "A-5",
+    "B-5",
+    "E-5"
+   ],
+   "alt": [],
+   "karar": "G0",
+   "seyir": 77
+  },
+  {
+   "id": "hicazuzzal",
+   "name": "Hicaz Uzzal",
+   "keys": [
+    "hicaz uzzal",
+    "hicazuzzal",
+    "uzzal hicaz",
+    "uzzal"
+   ],
+   "donanim": {
+    "B": -4
+   },
+   "calib": {
+    "B-4": [
+     -83.33,
+     -83.33,
+     -83.33
+    ],
+    "C4": [
+     -16.67,
+     -16.67,
+     -16.67
+    ],
+    "F4": [
+     -33.33,
+     -50,
+     -33.33
+    ]
+   },
+   "ks": [
+    "B-4",
+    "C4"
+   ],
+   "alt": [],
+   "karar": "A0",
+   "seyir": 75.3
+  },
+  {
+   "id": "zirgulelihicaz",
+   "name": "Zirgüleli Hicaz",
+   "keys": [
+    "zirguleli hicaz",
+    "zirgulelihicaz",
+    "hicaz zirgule"
+   ],
+   "donanim": {
+    "B": -4
+   },
+   "calib": {
+    "B-4": [
+     -83.33,
+     -83.33,
+     -83.33
+    ],
+    "C4": [
+     -16.67,
+     -16.67,
+     -16.67
+    ],
+    "G4": [
+     -16.67,
+     -16.67,
+     -16.67
+    ]
+   },
+   "ks": [
+    "B-4",
+    "C4",
+    "G4"
+   ],
+   "alt": [],
+   "karar": "A0",
+   "seyir": 72.6
+  },
+  {
+   "id": "sedaraban",
+   "name": "Şedaraban",
+   "keys": [
+    "sedaraban",
+    "sedd-i araban",
+    "seddi araban",
+    "sed araban",
+    "sedd araban"
+   ],
+   "donanim": {
+    "B": -4,
+    "E": -4
+   },
+   "calib": {
+    "E-4": [
+     -83.33,
+     -83.33,
+     -83.33
+    ],
+    "F4": [
+     -16.67,
+     -16.67,
+     -16.67
+    ],
+    "B-4": [
+     -83.33,
+     -83.33,
+     -83.33
+    ],
+    "C4": [
+     -16.67,
+     -16.67,
+     -16.67
+    ]
+   },
+   "ks": [
+    "B-4",
+    "E-4",
+    "F4",
+    "C4"
+   ],
+   "alt": [],
+   "karar": "D0",
+   "seyir": 74.5
+  },
+  {
+   "id": "buselik",
+   "name": "Buselik",
+   "keys": [
+    "buselik"
+   ],
+   "donanim": {},
+   "calib": {},
+   "ks": [],
+   "alt": [],
+   "karar": "A0",
+   "seyir": 72.7
+  },
+  {
+   "id": "cargah",
+   "name": "Çargah",
+   "keys": [
+    "cargah",
+    "yeni cargah"
+   ],
+   "donanim": {},
+   "calib": {},
+   "ks": [],
+   "alt": [],
+   "karar": "C0",
+   "seyir": 73.1
+  },
+  {
+   "id": "mahur",
+   "name": "Mahur",
+   "keys": [
+    "mahur"
+   ],
+   "donanim": {
+    "F": 5
+   },
+   "calib": {
+    "F5": [
+     116.67,
+     116.67,
+     116.67
+    ]
+   },
+   "ks": [
+    "F5"
+   ],
+   "alt": [],
+   "karar": "G0",
+   "seyir": 78.2
+  },
+  {
+   "id": "acemasiran",
+   "name": "Acemaşiran",
+   "keys": [
+    "acemasiran",
+    "acem asiran"
+   ],
+   "donanim": {},
+   "calib": {},
+   "ks": [
+    "B-5"
+   ],
+   "alt": [],
+   "karar": "F0",
+   "seyir": 76.4
+  },
+  {
+   "id": "evcara",
+   "name": "Evcârâ",
+   "keys": [
+    "evcara",
+    "evc ara",
+    "evc-ara",
+    "evara"
+   ],
+   "donanim": {
+    "B": -1
+   },
+   "calib": {
+    "B-1": [
+     -16.67,
+     -16.67,
+     -16.67
+    ],
+    "F4": [
+     -16.67,
+     -33.33,
+     -16.67
+    ],
+    "C4": [
+     -16.67,
+     -16.67,
+     -16.67
+    ],
+    "E4": [
+     -16.67,
+     -16.67,
+     -16.67
+    ]
+   },
+   "ks": [
+    "B-1",
+    "F4",
+    "C4",
+    "E4",
+    "A4"
+   ],
+   "alt": [],
+   "karar": "F4",
+   "seyir": 78
+  },
+  {
+   "id": "suzidil",
+   "name": "Suzidil",
+   "keys": [
+    "suzidil",
+    "suzi dil"
+   ],
+   "donanim": {
+    "F": 1
+   },
+   "calib": {
+    "F1": [
+     16.67,
+     16.67,
+     16.67
+    ],
+    "G4": [
+     -16.67,
+     -16.67,
+     -16.67
+    ],
+    "D4": [
+     -16.67,
+     -16.67,
+     -16.67
+    ]
+   },
+   "ks": [
+    "F1",
+    "G4",
+    "D4"
+   ],
+   "alt": [],
+   "karar": "E0",
+   "seyir": 76
+  },
+  {
+   "id": "karcigar",
+   "name": "Karcığar",
+   "keys": [
+    "karcigar"
+   ],
+   "donanim": {
+    "B": -1,
+    "E": -4
+   },
+   "calib": {
+    "B-1": [
+     -33.33,
+     -66.67,
+     -33.33
+    ],
+    "E-4": [
+     -50,
+     -66.67,
+     -50
+    ],
+    "F4": [
+     -33.33,
+     -33.33,
+     -33.33
+    ]
+   },
+   "ks": [
+    "B-1",
+    "E-4",
+    "F4"
+   ],
+   "alt": [],
+   "karar": "A0",
+   "seyir": 74.5
+  },
+  {
+   "id": "suzinak",
+   "name": "Suzinak",
+   "keys": [
+    "suzinak"
+   ],
+   "donanim": {
+    "B": -1,
+    "E": -4
+   },
+   "calib": {
+    "A-4": [
+     -83.33,
+     -83.33,
+     -83.33
+    ],
+    "B-1": [
+     -16.67,
+     -16.67,
+     -16.67
+    ],
+    "E-4": [
+     -83.33,
+     -83.33,
+     -83.33
+    ],
+    "F4": [
+     -16.67,
+     -16.67,
+     -16.67
+    ]
+   },
+   "ks": [
+    "B-1",
+    "E-4",
+    "F4"
+   ],
+   "alt": [],
+   "karar": "G0",
+   "seyir": 73.3
+  },
+  {
+   "id": "hicazkar",
+   "name": "Hicazkâr",
+   "keys": [
+    "hicazkar"
+   ],
+   "donanim": {
+    "A": -4,
+    "B": -1,
+    "E": -4
+   },
+   "calib": {
+    "A-4": [
+     -83.33,
+     -83.33,
+     -83.33
+    ],
+    "B-1": [
+     0,
+     -16.67,
+     0
+    ],
+    "E-4": [
+     -83.33,
+     -66.67,
+     -83.33
+    ],
+    "F4": [
+     0,
+     -16.67,
+     0
+    ]
+   },
+   "ks": [
+    "A-4",
+    "B-1",
+    "E-4",
+    "F4"
+   ],
+   "alt": [],
+   "karar": "G0",
+   "seyir": 77.5
+  }
+ ],
+ "yedenSegah": -16.67,
+ "koma": 22.641509433962263
+}
