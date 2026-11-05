@@ -417,6 +417,22 @@
     <seq>Alt+Shift+Up</seq>
     </SC>
   <SC>
+    <key>makam-staff-space-less</key>
+    <seq>Alt+PgUp</seq>
+    </SC>
+  <SC>
+    <key>makam-staff-space-more</key>
+    <seq>Alt+PgDown</seq>
+    </SC>
+  <SC>
+    <key>makam-staff-space-less-system</key>
+    <seq>Ctrl+Alt+PgUp</seq>
+    </SC>
+  <SC>
+    <key>makam-staff-space-more-system</key>
+    <seq>Ctrl+Alt+PgDown</seq>
+    </SC>
+  <SC>
     <key>pitch-up-octave</key>
     <seq>Ctrl+Up</seq>
     </SC>

@@ -100,6 +100,22 @@ public:
     virtual void endDrag() = 0;
     virtual muse::async::Notification dragChanged() const = 0;
 
+    // Makam: staff spacing by hand, the gap above a staff (engraving/editing/editstaffspacing.h)
+    virtual bool isStaffSpacingHandle(const muse::PointF& pos) const = 0;
+    virtual bool isStaffSpacingDragStarted() const = 0;
+    virtual void startStaffSpacingDrag(const muse::PointF& pos, bool thisSystemOnly) = 0;
+    virtual void staffSpacingDrag(const muse::PointF& pos) = 0;
+    virtual void endStaffSpacingDrag() = 0;
+    virtual void changeStaffSpacing(double delta, bool thisSystemOnly) = 0;
+
+    // Makam: line end, a line at its natural width (engraving/editing/editstaffspacing.h)
+    virtual void endLineHere() = 0;
+    virtual bool isLineEndHandle(const muse::PointF& pos) const = 0;
+    virtual void startLineEndDrag(const muse::PointF& pos) = 0;
+    virtual void lineEndDrag(const muse::PointF& pos) = 0;
+    virtual void endLineEndDrag() = 0;
+    virtual void resetLineEnd(const muse::PointF& pos) = 0;
+
     virtual bool isOutgoingDragElementAllowed(const EngravingItem* element) const = 0;
     virtual void startOutgoingDragElement(const EngravingItem* element, QObject* dragSource, const muse::PointF& hotSpot) = 0;
     virtual void startOutgoingDragRange(QObject* dragSource) = 0;

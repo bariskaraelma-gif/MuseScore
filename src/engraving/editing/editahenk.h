@@ -37,11 +37,12 @@ struct Ahenk {
     int chromatic = 0;
 };
 
-// Yerinden, 1 ses, 4 ses, 5 ses (as in the Makam plugin), and written pitch (Western)
+// Written pitch (Western), then the twelve ney ahenks from Bolâhenk (Yerinden) down to Dâvut
+// Mâbeyni (7 ses), a semitone apart: from the highest sound to the lowest
 const std::vector<Ahenk>& ahenkler();
 
-// Index of the ahenk of new scores: 4 ses
-static constexpr int DEFAULT_AHENK = 2;
+// Index of the ahenk of new scores: Kız, 4 ses
+static constexpr int DEFAULT_AHENK = 6;
 
 // Parts that follow the ahenk: pitched parts (not drum sets, not tablature)
 bool isAhenkPart(const Part* part);

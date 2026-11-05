@@ -402,9 +402,44 @@ const Tempo& NotationPlayback::multipliedTempo(tick_t tick) const
         return empty;
     }
 
-    m_currentTempo.valueBpm = static_cast<int>(std::round(score()->tempomap()->multipliedTempo(tick).toBPM().val));
+    // Makam: in the note value of the tempo marking (♪ = 90 rather than ♩ = 45)
+    const TDuration unit = tempoUnit(tick);
+    const double quarterBpm = score()->tempomap()->multipliedTempo(tick).toBPM().val;
+    m_currentTempo.valueBpm = static_cast<int>(std::round(quarterBpm / 4.0 / unit.ticks().toDouble()));
+    m_currentTempo.duration = unit.type();
+    m_currentTempo.withDot = unit.dots() > 0;
 
     return m_currentTempo;
+}
+
+//! Makam: the note value of the tempo marking in effect at tick (♪ for "♪ = 90"),
+//! a quarter if the tempo has no marking with a note value
+TDuration NotationPlayback::tempoUnit(tick_t tick) const
+{
+    const mu::engraving::TempoMap* tempoMap = score()->tempomap();
+    auto it = tempoMap->upper_bound(static_cast<int>(tick));
+    while (it != tempoMap->begin()) {
+        --it;
+        const Segment* seg = score()->tick2segment(Fraction::fromTicks(it->first), true, SegmentType::ChordRest);
+        if (!seg) {
+            continue;
+        }
+        for (const EngravingItem* e : seg->annotations()) {
+            if (!e->isTempoText()) {
+                continue;
+            }
+            const TempoText* tempoText = toTempoText(e);
+            if (tempoText != m_tempoUnitText || tempoText->xmlText() != m_tempoUnitXml) {
+                m_tempoUnitText = tempoText;
+                m_tempoUnitXml = tempoText->xmlText();
+                m_tempoUnit = tempoText->duration();
+            }
+            if (m_tempoUnit.isValid()) {
+                return m_tempoUnit;
+            }
+        }
+    }
+    return TDuration(DurationType::V_QUARTER);
 }
 
 MeasureBeat NotationPlayback::beat(tick_t tick) const

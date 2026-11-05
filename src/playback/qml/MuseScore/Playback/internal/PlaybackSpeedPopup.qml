@@ -56,21 +56,21 @@ StyledPopupView {
         RowLayout {
             spacing: 12
 
+            // Makam: the tempo itself (90 plays at 90), not a percentage
             IncrementalPropertyControl {
                 Layout.preferredWidth: 76
-                currentValue: root.playbackModel.tempoMultiplier * 100
+                currentValue: root.playbackModel.tempoBpm
 
-                maxValue: 300
-                minValue: 10
-                step: 5
-                measureUnitsSymbol: "%"
+                maxValue: 999
+                minValue: 1
+                step: 1
                 decimals: 0
 
                 navigation.panel: navPanel
                 navigation.accessible.name: qsTrc("playback", "Speed")
 
                 onValueEdited: function(newValue) {
-                    root.playbackModel.tempoMultiplier = newValue / 100
+                    root.playbackModel.tempoBpm = newValue
                 }
             }
 

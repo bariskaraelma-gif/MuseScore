@@ -216,12 +216,15 @@ private:
     bool m_readonly = false;
     bool m_isCanvasDragged = false;
     bool m_tripleClickPending = false;
+    Qt::CursorShape m_handleCursor = Qt::ArrowCursor;   // Makam: the cursor of the spacing handle under the mouse
 
     struct MouseDownInfo {
         enum DragAction {
             DragOutgoingElement,
             DragOutgoingRange,
             PasteRangeOnRelease,
+            StaffSpacing,   // Makam: dragging the gap above a staff
+            LineEnd,        // Makam: dragging the width of a line
             Other,
             Nothing
         } dragAction = Other;

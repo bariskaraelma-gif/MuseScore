@@ -21,6 +21,8 @@
  */
 #include "playbacktoolbarmodel.h"
 
+#include <algorithm>
+
 #include "types/translatablestring.h"
 
 #include "ui/view/musicalsymbolcodes.h"
@@ -335,4 +337,22 @@ QVariant PlaybackToolBarModel::tempo() const
 qreal PlaybackToolBarModel::tempoMultiplier() const
 {
     return playbackController()->tempoMultiplier();
+}
+
+int PlaybackToolBarModel::tempoBpm() const
+{
+    return playbackController()->currentTempo().valueBpm;
+}
+
+//! Makam: typing 90 plays at ♩ = 90 (or ♪ = 90): the multiplier of the marked tempo
+void PlaybackToolBarModel::setTempoBpm(int bpm)
+{
+    const int current = tempoBpm();
+    const qreal multiplier = tempoMultiplier();
+    if (bpm <= 0 || current <= 0 || multiplier <= 0 || bpm == current) {
+        return;
+    }
+
+    const qreal markedBpm = current / multiplier;
+    setTempoMultiplier(std::clamp(bpm / markedBpm, 0.1, 3.0));
 }

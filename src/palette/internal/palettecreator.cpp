@@ -240,10 +240,9 @@ PalettePtr PaletteCreator::newDynamicsPalette(bool defaultPalette)
     sp->setGridSize(defaultPalette ? 50 : 60, 28);
     sp->setDrawGrid(true);
 
+    // Makam: p, mf, f; the others are under "More"
     static const std::vector<const char*> defaultDynamics = {
-        "ppp", "pp", "p", "mp", "mf", "f", "ff", "fff",
-        "fp", "pf", "sf", "sfz", "sff", "sffz", "sfp",
-        "rfz", "rf", "fz"
+        "p", "mf", "f"
     };
 
     static const std::vector<const char*> masterDynamics = {
@@ -290,11 +289,11 @@ PalettePtr PaletteCreator::newKeySigPalette()
     sp->setYOffset(1.0);
 
     // Makam: the donanıms of the Arel-Ezgi-Uzdilek system instead of the Western keys.
-    // The cell name lists the makams written with the donanım, then its accidentals.
+    // The cell name lists the makams written with the donanım.
     for (const makam::Donanim& donanim : makam::donanimlar()) {
         auto k = Factory::makeKeySig(mu::engraving::gpaletteScore->dummy()->segment());
         k->setKeySigEvent(makam::donanimKeySigEvent(donanim));
-        sp->appendElement(k, QString::fromUtf8(donanim.makamlar) + QString::fromUtf8(" — ") + QString::fromUtf8(donanim.text));
+        sp->appendElement(k, QString::fromUtf8(donanim.makamlar));
     }
 
     return sp;
@@ -321,6 +320,10 @@ PalettePtr PaletteCreator::newAccidentalsPalette(bool defaultPalette)
     };
 
     for (const auto& a : aeuAccidentals) {
+        // Makam: the büyük mücennep accidentals are only under "More"
+        if (defaultPalette && (a.first == AccidentalType::FLAT_SLASH2 || a.first == AccidentalType::SHARP_SLASH2)) {
+            continue;
+        }
         auto ac = Factory::makeAccidental(gpaletteScore->dummy());
         ac->setAccidentalType(a.first);
         sp->appendElement(ac, QString::fromUtf8(a.second));
@@ -533,6 +536,8 @@ PalettePtr PaletteCreator::newLayoutPalette(bool defaultPalette)
     }
 
     sp->appendActionIcon(ActionIconType::SYSTEM_LOCK, "toggle-system-lock");
+    // Makam: end the line here, at its natural width (a frame fills the rest of the line)
+    sp->appendActionIcon(ActionIconType::UNDEFINED, "makam-line-end");
 
     static const std::vector<SpacerType> spacers  {
         SpacerType::DOWN,
@@ -1503,20 +1508,21 @@ PalettePtr PaletteCreator::newTextPalette(bool defaultPalette)
     st->setXmlText(QT_TRANSLATE_NOOP("palette", "Staff text"));
     sp->appendElement(st, QT_TRANSLATE_NOOP("palette", "Staff text"))->setElementTranslated(true);
 
-    auto staffTextLine = makeElement<TextLine>(gpaletteScore);
-    staffTextLine->setBeginText(u"Staff");
-    staffTextLine->setEndHookType(HookType::HOOK_90);
-    sp->appendElement(staffTextLine, QT_TRANSLATE_NOOP("palette", "Staff text line"));
+    // Makam: no staff and system text lines
 
     auto stxt = makeElement<SystemText>(gpaletteScore);
     stxt->setXmlText(QT_TRANSLATE_NOOP("palette", "System text"));
     sp->appendElement(stxt, QT_TRANSLATE_NOOP("palette", "System text"))->setElementTranslated(true);
 
-    auto systemTextLine = makeElement<TextLine>(gpaletteScore, true);
-    systemTextLine->setLen(12 * gpaletteScore->style().spatium());
-    systemTextLine->setBeginText(u"System");
-    systemTextLine->setEndHookType(HookType::HOOK_90);
-    sp->appendElement(systemTextLine, QT_TRANSLATE_NOOP("palette", "System text line"));
+    // Makam: the sections of a peşrev or saz semaisi, as system texts
+    static const std::vector<const char*> sections {
+        "1. Hane", "2. Hane", "3. Hane", "4. Hane", "Teslim", "Saz", "Ara Saz"
+    };
+    for (const char* section : sections) {
+        auto sectionText = makeElement<SystemText>(gpaletteScore);
+        sectionText->setXmlText(String::fromUtf8(section));
+        sp->appendElement(sectionText, QString::fromUtf8(section));
+    }
 
     auto expressionText = makeElement<Expression>(gpaletteScore);
     expressionText->setTextStyleType(TextStyleType::EXPRESSION);
@@ -1539,19 +1545,15 @@ PalettePtr PaletteCreator::newTextPalette(bool defaultPalette)
         muse::TranslatableString userName = TConv::userName(playTechType);
     };
 
+    // Makam: no legato, arco, distort, overdrive and jazz tone
     static const std::vector<PlayTechAnnotationInfo> playTechAnnotations = {
-        { QT_TRANSLATE_NOOP("palette", "legato"),    PlayingTechniqueType::Legato },
         { QT_TRANSLATE_NOOP("palette", "pizz."),     PlayingTechniqueType::Pizzicato },
-        { QT_TRANSLATE_NOOP("palette", "arco"),      PlayingTechniqueType::Natural, false, muse::TranslatableString("palette", "Arco") },
         { QT_TRANSLATE_NOOP("palette", "tremolo"),   PlayingTechniqueType::Tremolo, true },
         //: For brass and plucked string instruments: staff text that prescribes to use mute while playing, see https://en.wikipedia.org/wiki/Mute_(music)
         { QT_TRANSLATE_NOOP("palette", "mute"),      PlayingTechniqueType::Mute },
         //: For brass and plucked string instruments: staff text that prescribes to play without mute, see https://en.wikipedia.org/wiki/Mute_(music)
         { QT_TRANSLATE_NOOP("palette", "open"),      PlayingTechniqueType::Open },
-        { QT_TRANSLATE_NOOP("palette", "distort"),   PlayingTechniqueType::Distortion },
-        { QT_TRANSLATE_NOOP("palette", "overdrive"), PlayingTechniqueType::Overdrive },
         { QT_TRANSLATE_NOOP("palette", "harmonics"), PlayingTechniqueType::Harmonics },
-        { QT_TRANSLATE_NOOP("palette", "jazz tone"), PlayingTechniqueType::JazzTone },
         { QT_TRANSLATE_NOOP("palette", "normal"),    PlayingTechniqueType::Natural },
     };
 
@@ -1605,7 +1607,7 @@ PalettePtr PaletteCreator::newTimePalette(bool defaultPalette)
     };
 
     PalettePtr sp = std::make_shared<Palette>(iocContext(), Palette::Type::TimeSig);
-    sp->setName(QT_TRANSLATE_NOOP("palette", "Time signatures"));
+    sp->setName(QString::fromUtf8("Usûl"));   // Makam
     sp->setMag(.8);
     sp->setGridSize(42, 38);
     sp->setDrawGrid(true);

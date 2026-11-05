@@ -1524,6 +1524,46 @@ static void makamSetUsulName(MasterScore* ms, const Fraction& tick, const makam:
 }
 
 //---------------------------------------------------------
+//   makamSetDefaultTempo
+//    Makam: an usul on the first measure swaps the default tempo marking of a new score
+//    (♩ = 80 or ♪ = 90, makamdata.h) for the one of its unit. A tempo marking the user
+//    wrote or changed stays.
+//---------------------------------------------------------
+
+static void makamSetDefaultTempo(MasterScore* ms, const Fraction& tick, const makam::Usul* usul)
+{
+    if (!usul || !tick.isZero()) {
+        return;
+    }
+    Segment* seg = ms->tick2segment(tick, true, SegmentType::ChordRest);
+    if (!seg) {
+        return;
+    }
+
+    const makam::DefaultTempo& wanted = makam::defaultTempo(usul->d);
+    for (EngravingItem* e : seg->annotations()) {
+        if (!e->isTempoText()) {
+            continue;
+        }
+        TempoText* old = toTempoText(e);
+        const String xml = old->xmlText();
+        if (xml == wanted.xml || (xml != makam::defaultTempo(4).xml && xml != makam::defaultTempo(8).xml)) {
+            return;
+        }
+
+        TempoText* tempoText = Factory::createTempoText(seg);
+        tempoText->setParent(seg);
+        tempoText->setTrack(old->track());
+        tempoText->setXmlText(wanted.xml);
+        tempoText->setFollowText(true);
+        tempoText->updateTempo();
+        ms->undoRemoveElement(old);
+        ms->undoAddElement(tempoText);
+        return;
+    }
+}
+
+//---------------------------------------------------------
 //   cmdAddTimeSig
 //
 //    Add or change time signature at measure in response
@@ -1567,6 +1607,7 @@ void Score::cmdAddTimeSig(Measure* fm, staff_idx_t staffIdx, TimeSig* ts, bool l
         if (usul) {
             makamFillUsulStaves(masterScore(), tick, *usul);   // Makam: write the strokes again
             makamSetUsulName(masterScore(), tick, usul);
+            makamSetDefaultTempo(masterScore(), tick, usul);
         }
         delete ts;
         return;
@@ -1724,6 +1765,7 @@ void Score::cmdAddTimeSig(Measure* fm, staff_idx_t staffIdx, TimeSig* ts, bool l
     }
     if (!local) {
         makamSetUsulName(masterScore(), tick, usul);       // Makam: the usul's name above the measure
+        makamSetDefaultTempo(masterScore(), tick, usul);   // Makam: ♩ = 80 or ♪ = 90
     }
     delete ts;
 }

@@ -68,6 +68,20 @@ public:
     MOCK_METHOD(void, endDrag, (), (override));
     MOCK_METHOD(muse::async::Notification, dragChanged, (), (const, override));
 
+    MOCK_METHOD(bool, isStaffSpacingHandle, (const muse::PointF&), (const, override));
+    MOCK_METHOD(bool, isStaffSpacingDragStarted, (), (const, override));
+    MOCK_METHOD(void, startStaffSpacingDrag, (const muse::PointF&, bool), (override));
+    MOCK_METHOD(void, staffSpacingDrag, (const muse::PointF&), (override));
+    MOCK_METHOD(void, endStaffSpacingDrag, (), (override));
+    MOCK_METHOD(void, changeStaffSpacing, (double, bool), (override));
+
+    MOCK_METHOD(void, endLineHere, (), (override));
+    MOCK_METHOD(bool, isLineEndHandle, (const muse::PointF&), (const, override));
+    MOCK_METHOD(void, startLineEndDrag, (const muse::PointF&), (override));
+    MOCK_METHOD(void, lineEndDrag, (const muse::PointF&), (override));
+    MOCK_METHOD(void, endLineEndDrag, (), (override));
+    MOCK_METHOD(void, resetLineEnd, (const muse::PointF&), (override));
+
     MOCK_METHOD(bool, isOutgoingDragElementAllowed, (const EngravingItem*), (const, override));
     MOCK_METHOD(void, startOutgoingDragElement, (const EngravingItem*, QObject*, const muse::PointF&), (override));
     MOCK_METHOD(void, startOutgoingDragRange, (QObject*), (override));

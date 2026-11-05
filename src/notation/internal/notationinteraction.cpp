@@ -1378,6 +1378,169 @@ muse::async::Notification NotationInteraction::dragChanged() const
     return m_dragChanged;
 }
 
+//! Makam: the handle left of a staff, to drag the gap above it
+bool NotationInteraction::isStaffSpacingHandle(const PointF& pos) const
+{
+    return mu::engraving::makam::staffGapAt(score(), pos).isValid();
+}
+
+bool NotationInteraction::isStaffSpacingDragStarted() const
+{
+    return m_staffSpacingStarted;
+}
+
+void NotationInteraction::startStaffSpacingDrag(const PointF& pos, bool thisSystemOnly)
+{
+    m_staffSpacingGap = mu::engraving::makam::staffGapAt(score(), pos);
+    m_staffSpacingBegin = pos;
+    m_staffSpacingDelta = 0.0;
+    m_staffSpacingThisSystem = thisSystemOnly;
+    m_staffSpacingStarted = m_staffSpacingGap.isValid();
+    m_staffSpacingChanged = false;
+}
+
+//! Makam: the gap follows the mouse in quarter spaces; each step undoes the last one, so the
+//! whole drag is one undo step
+void NotationInteraction::staffSpacingDrag(const PointF& pos)
+{
+    if (!m_staffSpacingStarted) {
+        return;
+    }
+
+    const double delta = std::round((pos.y() - m_staffSpacingBegin.y()) / score()->style().spatium() * 4.0) / 4.0;
+    if (m_staffSpacingChanged && muse::RealIsEqual(delta, m_staffSpacingDelta)) {
+        return;
+    }
+    m_staffSpacingDelta = delta;
+
+    if (m_staffSpacingChanged) {
+        rollback();
+    }
+    startEdit(TranslatableString("undoableAction", "Change staff spacing"));
+    mu::engraving::makam::setStaffGap(score(), m_staffSpacingGap, delta, m_staffSpacingThisSystem);
+    m_staffSpacingChanged = true;
+
+    score()->update();
+    notifyAboutDragChanged();
+}
+
+void NotationInteraction::endStaffSpacingDrag()
+{
+    if (m_staffSpacingChanged) {
+        apply();
+    }
+    m_staffSpacingStarted = false;
+    m_staffSpacingChanged = false;
+}
+
+//! Makam: the keyboard step, for the staff of the selection
+void NotationInteraction::changeStaffSpacing(double delta, bool thisSystemOnly)
+{
+    const mu::engraving::makam::StaffGap gap = mu::engraving::makam::staffGapOfSelection(score());
+    if (!gap.isValid()) {
+        return;
+    }
+    startEdit(TranslatableString("undoableAction", "Change staff spacing"));
+    mu::engraving::makam::setStaffGap(score(), gap, delta, thisSystemOnly);
+    apply();
+}
+
+//! Makam: action of the "line end" palette cell (Layout palette)
+static const std::string MAKAM_LINE_END_CODE("makam-line-end");
+
+//! Makam: the line ends after the last selected measure, at its natural width. Inside a command.
+static void makamEndLineAfterSelection(mu::engraving::Score* score, const mu::engraving::Selection& sel)
+{
+    Measure* measure = nullptr;
+    if (sel.isRange()) {
+        measure = sel.startSegment() ? sel.startSegment()->measure() : nullptr;
+        while (measure && measure->nextMeasure() && measure->nextMeasure()->tick() < sel.tickEnd()) {
+            measure = measure->nextMeasure();
+        }
+    } else if (!sel.elements().empty()) {
+        measure = sel.elements().back()->findMeasure();
+    }
+    if (measure) {
+        mu::engraving::makam::setLineEnd(score, measure, mu::engraving::makam::naturalLineEndFrameWidth(measure));
+    }
+}
+
+void NotationInteraction::endLineHere()
+{
+    if (score()->selection().isNone()) {
+        return;
+    }
+    startEdit(TranslatableString("undoableAction", "End the line here"));
+    makamEndLineAfterSelection(score(), score()->selection());
+    apply();
+}
+
+bool NotationInteraction::isLineEndHandle(const PointF& pos) const
+{
+    return mu::engraving::makam::lineEndAt(score(), pos) != nullptr;
+}
+
+void NotationInteraction::startLineEndDrag(const PointF& pos)
+{
+    m_lineEndMeasure = mu::engraving::makam::lineEndAt(score(), pos);
+    m_lineEndBegin = pos;
+    m_lineEndFrameWidth = mu::engraving::makam::lineEndFrameWidth(m_lineEndMeasure);
+    m_lineEndNaturalWidth = -1.0;
+    m_lineEndDelta = 0.0;
+    m_lineEndChanged = false;
+}
+
+//! Makam: the frame after the line takes what the measures give up, from no frame (the full line)
+//! to the natural width of the measures; as for the staff spacing, the whole drag is one undo step
+void NotationInteraction::lineEndDrag(const PointF& pos)
+{
+    if (!m_lineEndMeasure) {
+        return;
+    }
+
+    const double delta = std::round((pos.x() - m_lineEndBegin.x()) / m_lineEndMeasure->spatium() * 4.0) / 4.0;
+    if (m_lineEndChanged && muse::RealIsEqual(delta, m_lineEndDelta)) {
+        return;
+    }
+    m_lineEndDelta = delta;
+
+    if (m_lineEndChanged) {
+        rollback();
+    }
+    startEdit(TranslatableString("undoableAction", "Change line width"));
+    if (m_lineEndNaturalWidth < 0.0) {
+        m_lineEndNaturalWidth = mu::engraving::makam::naturalLineEndFrameWidth(m_lineEndMeasure);
+    }
+    const double maxWidth = std::max(m_lineEndNaturalWidth, m_lineEndFrameWidth);
+    const double width = std::clamp(m_lineEndFrameWidth - delta, 0.0, maxWidth);
+    mu::engraving::makam::setLineEnd(score(), m_lineEndMeasure, width);
+    m_lineEndChanged = true;
+
+    score()->update();
+    notifyAboutDragChanged();
+}
+
+void NotationInteraction::endLineEndDrag()
+{
+    if (m_lineEndChanged) {
+        apply();
+    }
+    m_lineEndMeasure = nullptr;
+    m_lineEndChanged = false;
+}
+
+//! Makam: double click on the handle, the line at its natural width
+void NotationInteraction::resetLineEnd(const PointF& pos)
+{
+    Measure* measure = mu::engraving::makam::lineEndAt(score(), pos);
+    if (!measure) {
+        return;
+    }
+    startEdit(TranslatableString("undoableAction", "Change line width"));
+    mu::engraving::makam::setLineEnd(score(), measure, mu::engraving::makam::naturalLineEndFrameWidth(measure));
+    apply();
+}
+
 bool NotationInteraction::isOutgoingDragElementAllowed(const EngravingItem* element) const
 {
     if (!element) {
@@ -2435,6 +2598,10 @@ void NotationInteraction::applyPaletteElementToList(EngravingItem* element, mu::
 
     if (element->isActionIcon()) {
         const ActionIcon* icon = toActionIcon(element);
+        if (icon->actionCode() == MAKAM_LINE_END_CODE) {   // Makam
+            makamEndLineAfterSelection(score, sel);
+            return;
+        }
         switch (icon->actionType()) {
         case ActionIconType::SYSTEM_LOCK: {
             EditSystemLocks::applyLockToSelection(score);
@@ -2530,6 +2697,11 @@ void NotationInteraction::applyPaletteElementToRange(EngravingItem* element, mu:
                                                      const mu::engraving::Selection& sel, Qt::KeyboardModifiers modifiers)
 {
     const ElementType elementType = element->type();
+
+    if (element->isActionIcon() && toActionIcon(element)->actionCode() == MAKAM_LINE_END_CODE) {   // Makam
+        makamEndLineAfterSelection(score, sel);
+        return;
+    }
 
     bool isMeasureAnchoredElement = false;
     std::vector<EngravingItem*> targetElements = mu::engraving::filterTargetElements(sel, element, isMeasureAnchoredElement);

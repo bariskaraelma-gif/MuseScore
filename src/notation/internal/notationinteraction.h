@@ -39,6 +39,7 @@
 
 #include "engraving/dom/engravingitem.h"
 #include "engraving/dom/elementgroup.h"
+#include "engraving/editing/editstaffspacing.h"
 #include "engraving/rendering/paintoptions.h"
 #include "engraving/types/symid.h"
 #include "scorecallbacks.h"
@@ -114,6 +115,22 @@ public:
     void drag(const muse::PointF& fromPos, const muse::PointF& toPos, DragMode mode) override;
     void endDrag() override;
     muse::async::Notification dragChanged() const override;
+
+    // Makam: staff spacing by hand
+    bool isStaffSpacingHandle(const muse::PointF& pos) const override;
+    bool isStaffSpacingDragStarted() const override;
+    void startStaffSpacingDrag(const muse::PointF& pos, bool thisSystemOnly) override;
+    void staffSpacingDrag(const muse::PointF& pos) override;
+    void endStaffSpacingDrag() override;
+    void changeStaffSpacing(double delta, bool thisSystemOnly) override;
+
+    // Makam: line end
+    void endLineHere() override;
+    bool isLineEndHandle(const muse::PointF& pos) const override;
+    void startLineEndDrag(const muse::PointF& pos) override;
+    void lineEndDrag(const muse::PointF& pos) override;
+    void endLineEndDrag() override;
+    void resetLineEnd(const muse::PointF& pos) override;
 
     bool isOutgoingDragElementAllowed(const EngravingItem* element) const override;
     void startOutgoingDragElement(const EngravingItem* element, QObject* dragSource, const muse::PointF& hotSpot) override;
@@ -536,6 +553,22 @@ private:
     std::shared_ptr<MScoreErrorsController> m_errorsController = nullptr;
 
     DragData m_dragData;
+
+    // Makam: the staff spacing drag
+    mu::engraving::makam::StaffGap m_staffSpacingGap;
+    muse::PointF m_staffSpacingBegin;
+    double m_staffSpacingDelta = 0.0;
+    bool m_staffSpacingThisSystem = false;
+    bool m_staffSpacingStarted = false;
+    bool m_staffSpacingChanged = false;
+
+    // Makam: the line end drag
+    mu::engraving::Measure* m_lineEndMeasure = nullptr;
+    muse::PointF m_lineEndBegin;
+    double m_lineEndFrameWidth = 0.0;     // spatium, at the start of the drag
+    double m_lineEndNaturalWidth = -1.0;  // spatium, frame width for the natural line; -1: not computed yet
+    double m_lineEndDelta = 0.0;
+    bool m_lineEndChanged = false;
     muse::async::Notification m_dragChanged;
     std::vector<muse::LineF> m_anchorLines;
 

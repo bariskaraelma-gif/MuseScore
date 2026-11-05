@@ -116,6 +116,21 @@ inline const Usul* usulOfGroups(const Groups& groups, const Fraction& sig)
     return nullptr;
 }
 
+// The tempo marking at the start of a new score: ♩ = 80, or ♪ = 90 once its first usul counts in
+// eighths. Dropping an usul on the first measure swaps one default marking for the other; a
+// marking the user changed stays.
+struct DefaultTempo {
+    const char16_t* xml = u"";
+    double bps = 0.0;   // quarter notes per second
+};
+
+inline const DefaultTempo& defaultTempo(int usulDenominator)
+{
+    static const DefaultTempo quarter { u"<sym>metNoteQuarterUp</sym> = 80", 80.0 / 60.0 };
+    static const DefaultTempo eighth { u"<sym>metNote8thUp</sym> = 90", 90.0 / 120.0 };
+    return usulDenominator == 8 ? eighth : quarter;
+}
+
 //---------------------------------------------------------
 //   Donanıms (key signatures) of Arel-Ezgi-Uzdilek
 //---------------------------------------------------------

@@ -37,11 +37,15 @@
 #include "cloud/qml/Muse/Cloud/enums.h"
 #include "engraving/infrastructure/mscio.h"
 #include "engraving/engravingerrors.h"
+#include "engraving/dom/factory.h"
 #include "engraving/dom/instrument.h"
+#include "engraving/dom/makamdata.h"
 #include "engraving/dom/masterscore.h"
 #include "engraving/dom/part.h"
+#include "engraving/dom/segment.h"
 #include "engraving/dom/staff.h"
 #include "engraving/dom/stafftype.h"
+#include "engraving/dom/tempotext.h"
 #include "engraving/style/style.h"
 #include "engraving/editing/editahenk.h"
 
@@ -818,6 +822,19 @@ Ret ProjectActionsController::createBlankProject(BlankScoreKind kind)
 
     // Makam: ahenk 4 ses (written La sounds Si3); outside a command, so not in the undo history
     mu::engraving::makam::setAhenk(score, mu::engraving::makam::ahenkler().at(mu::engraving::makam::DEFAULT_AHENK));
+
+    // Makam: ♩ = 80 at the start; an usul in eighths dropped on the first measure makes it ♪ = 90
+    mu::engraving::Segment* firstSeg = score->tick2segment(mu::engraving::Fraction(0, 1), true,
+                                                           mu::engraving::SegmentType::ChordRest);
+    if (firstSeg) {
+        mu::engraving::TempoText* tempoText = mu::engraving::Factory::createTempoText(firstSeg);
+        tempoText->setParent(firstSeg);
+        tempoText->setTrack(0);
+        tempoText->setXmlText(mu::engraving::makam::defaultTempo(4).xml);
+        tempoText->setFollowText(true);
+        tempoText->updateTempo();
+        score->undoAddElement(tempoText);
+    }
 
     score->doLayout();
 

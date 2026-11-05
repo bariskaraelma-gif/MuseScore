@@ -384,6 +384,19 @@ void NotationActionController::init()
 
     registerAction("concert-pitch", &Controller::toggleConcertPitch);
 
+    registerAction("makam-line-end", &Interaction::endLineHere);   // Makam
+
+    // Makam: the gap above the staff of the selection, half a space at a time
+    auto staffSpacing = [this](double delta, bool thisSystemOnly) {
+        if (INotationInteractionPtr interaction = currentNotationInteraction()) {
+            interaction->changeStaffSpacing(delta, thisSystemOnly);
+        }
+    };
+    registerAction("makam-staff-space-less", [staffSpacing]() { staffSpacing(-0.5, false); });
+    registerAction("makam-staff-space-more", [staffSpacing]() { staffSpacing(0.5, false); });
+    registerAction("makam-staff-space-less-system", [staffSpacing]() { staffSpacing(-0.5, true); });
+    registerAction("makam-staff-space-more-system", [staffSpacing]() { staffSpacing(0.5, true); });
+
     // Makam: ahenk of the score (status bar menu)
     for (size_t i = 0; i < mu::engraving::makam::ahenkler().size(); ++i) {
         registerAction("makam-ahenk-" + std::to_string(i), [this, i]() { setAhenk(i); });

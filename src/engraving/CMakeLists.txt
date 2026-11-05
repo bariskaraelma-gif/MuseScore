@@ -121,6 +121,8 @@ target_sources(engraving PRIVATE
     editing/editahenk.h
     editing/makamtuner.cpp
     editing/makamtuner.h
+    editing/editstaffspacing.cpp
+    editing/editstaffspacing.h
     editing/editdata.cpp
     editing/editdata.h
     editing/editexcerpt.cpp
@@ -365,6 +367,7 @@ set_source_files_properties(
     # Makam: outside the unity batches, so that the upstream batches stay as they are
     editing/editahenk.cpp
     editing/makamtuner.cpp
+    editing/editstaffspacing.cpp
     style/style.cpp
     #${CMAKE_CURRENT_LIST_DIR}/api/vi/style.cpp
 

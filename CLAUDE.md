@@ -33,7 +33,8 @@ Bu program o eklentilerin yaptığını yerleşik yapar.
   - Paket şöyle indirilir: `gh run download <id> -n <artifact> -D <klasör>`.
   - MSI paketi gizli GUID istediği için yalnız taşınabilir paket üretilir.
 - **Unity build açık** (`MUSE_COMPILE_USE_UNITY=ON`). Yeni bir `.cpp` dosyası unity gruplarını kaydırır, upstream dosyalarında "ambiguous symbol" hataları çıkar. Bu yüzden her yeni `.cpp` dosyası unity'den çıkarılır:
-  - `src/engraving/CMakeLists.txt`: `set_source_files_properties(... SKIP_UNITY_BUILD_INCLUSION ON)` listesine eklenir (`editahenk.cpp`, `makamtuner.cpp` gibi).
+  - `src/engraving/CMakeLists.txt`: `set_source_files_properties(... SKIP_UNITY_BUILD_INCLUSION ON)` listesine eklenir (`editahenk.cpp`, `makamtuner.cpp`, `editstaffspacing.cpp` gibi).
+  - Çok yerde kullanılan başlıklara (`actionicon.h`, `system.h` gibi) dokunmak derlemeyi çok uzatır; mümkünse kaçınılır.
   - QML modellerinde de aynısı yapılır (`src/notationscene/qml/MuseScore/NotationScene/CMakeLists.txt`, `makamtuningmodel.cpp`).
   - Yeni `.cpp` içinde `using namespace mu::engraving` kullanılmaz.
 - Çalışma kopyası CRLF (`core.autocrlf=true`).
@@ -72,6 +73,20 @@ Bizim eklediğimiz her şey `Makam:` yorumuyla işaretlidir. Aramak için: `git 
 - **Usullü metronom:** usul ölçülerinde metronom düm/tek çalar, sayım bir usul ölçüsüdür. Kod: `src/engraving/playback/playbackeventsrenderer.cpp`.
 - **Görüntü yakalama** (kamera düğmesi): `share/plugins/imagecapture/` içine gömülü eklenti, komut `image-capture`.
 - Paletlerden Batı'ya özgü olanlar gizlendi: anahtar, perde, klavye paletleri ve İtalyanca tempo terimleri.
+- **Palet düzeni** (`palettecreator.cpp`):
+  - Donanım hücrelerinde yalnız makam adları var. Ölçü göstergeleri paletinin adı "Usûl".
+  - Metin paletinde legato, arco, distort, overdrive, caz tonu ve dizek/sistem metin çizgileri yok. 1.–4. Hane, Teslim, Saz, Ara Saz sistem metni olarak eklendi.
+  - Varsayılan palette yalnız p, mf, f ve kreşendo/dekreşendo var. Büyük mücennep diyez/bemol yalnız "Daha fazla" bölümünde.
+  - Kayıtlı paletler çalışma alanında (`Default.mws`) durur. Palet tanımı değişince `paletteworkspacesetup.cpp` içindeki `MAKAM_PALETTE_VERSION` bir artırılır; kayıtlı paletler bir kez varsayılana döner.
+- **Nota araç çubuğu:** çift diyez/bemol, marcato, accent, tenuto varsayılan olarak gizli (`defaultNoteInputBarConfig`).
+- **Ahenk listesi:** en üstte "Yazıldığı gibi (Batı)", sonra Bolâhenk'ten Dâvut Mâbeyni'ne 12 ney ahengi, yarımşar ses aşağı. Varsayılan Kız (4 ses), `DEFAULT_AHENK`.
+- **Tempo:**
+  - Yeni eserin başında ♩ = 80 var. İlk ölçüye 8'lik birimli usul bırakılınca ♪ = 90 olur (`makamSetDefaultTempo`, `edit.cpp`; değerler `makamdata.h`). Elle değişmiş işarete dokunulmaz.
+  - Çalma araç çubuğunda hız % değil tempo sayısıdır (`tempoBpm`, `playbacktoolbarmodel`). Gösterge, işaretin birimini kullanır (`NotationPlayback::tempoUnit`).
+- **Elle aralık düzenleme** (`src/engraving/editing/editstaffspacing.{h,cpp}`, etkileşim `NotationInteraction`, fare `NotationViewInputController`):
+  - Dizek aralığı: dizeğin solundaki tutamak (⇕) sürüklenir. Ctrl ile yalnız o satır değişir (sabit spacer); Ctrl'siz bütün satırlar değişir (dizek `userDist` ya da `minSystemDistance`). Klavye: Alt+PgUp/PgDown, Ctrl+Alt+PgUp/PgDown. İlk kullanımda dikey yayma kapanır.
+  - Satır genişliği: son ölçünün sağındaki tutamak (⇔) satırın sonuna yatay çerçeve + satır sonu koyar ve çerçevenin genişliğini değiştirir. Çift tıklama ya da Yerleşim paletindeki "Satır sonu (yaslamasız)" (`makam-line-end`) satırı doğal genişliğe getirir. Hepsi MuseScore'un kendi öğeleri, dosya uyumlu kalır.
+  - Notasyon görünümü hover olaylarını her kipte alır (tutamak imleci için).
 
 ## Sıradaki işler
 

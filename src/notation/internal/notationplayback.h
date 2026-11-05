@@ -32,6 +32,7 @@
 
 namespace mu::engraving {
 class Score;
+class TempoText;
 }
 
 namespace mu::notation {
@@ -95,6 +96,8 @@ public:
 private:
     engraving::Score* score() const;
 
+    engraving::TDuration tempoUnit(muse::midi::tick_t tick) const;   // Makam
+
     void addLoopIn(int tick);
     void addLoopOut(int tick);
     void updateLoopBoundaries();
@@ -116,6 +119,11 @@ private:
     muse::async::Channel<muse::audio::secs_t> m_totalPlayTimeChanged;
 
     mutable Tempo m_currentTempo;
+
+    // Makam: the last tempo marking read by tempoUnit(), its text and note value
+    mutable const engraving::TempoText* m_tempoUnitText = nullptr;
+    mutable muse::String m_tempoUnitXml;
+    mutable engraving::TDuration m_tempoUnit;
 
     mutable engraving::PlaybackModel m_playbackModel;
 };

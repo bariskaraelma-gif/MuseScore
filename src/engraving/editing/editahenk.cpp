@@ -38,13 +38,22 @@
 namespace mu::engraving::makam {
 const std::vector<Ahenk>& ahenkler()
 {
-    // written La sounds as: Mi4 (330 Hz), Re4 (294 Hz), Si3 (247 Hz), La3 (220 Hz)
+    // The neys and their ahenks, each a semitone below the one before; "ses" is the distance below
+    // Bolâhenk (Yerinden), where written La sounds as Mi4 (330 Hz)
     static const std::vector<Ahenk> list {
-        { "Yerinden (La = Mi)", -3, -5 },
-        { "1 ses (La = Re)",    -4, -7 },
-        { "4 ses (La = Si)",    -6, -10 },
-        { "5 ses (La = La)",    -7, -12 },
-        { "Yazıldığı gibi (Batı)", 0, 0 },
+        { "Yazıldığı gibi (Batı)", 0, 0 },   // La4 (440 Hz), above Bolâhenk
+        { "Bolâhenk — Yerinden (La = Mi)",              -3, -5 },
+        { "Bolâhenk Mâbeyni — yarım ses (La = Mi♭)",    -3, -6 },
+        { "Süpürde — 1 ses (La = Re)",                  -4, -7 },
+        { "Müstahsen — 1,5 ses (La = Do♯)",             -5, -8 },
+        { "Müstahsen Mâbeyni — 2 ses (La = Do)",        -5, -9 },
+        { "Kız — 4 ses (La = Si)",                      -6, -10 },
+        { "Kız Mâbeyni — 4,5 ses (La = Si♭)",           -6, -11 },
+        { "Mansûr — 5 ses (La = La)",                   -7, -12 },
+        { "Mansûr Mâbeyni — 5,5 ses (La = La♭)",        -7, -13 },
+        { "Şah — 6 ses (La = Sol)",                     -8, -14 },
+        { "Dâvut — 6,5 ses (La = Fa♯)",                 -9, -15 },
+        { "Dâvut Mâbeyni — 7 ses (La = Fa)",            -9, -16 },
     };
     return list;
 }

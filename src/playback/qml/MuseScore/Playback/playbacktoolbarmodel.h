@@ -48,6 +48,8 @@ class PlaybackToolBarModel : public muse::uicomponents::AbstractMenuModel
 
     Q_PROPERTY(QVariant tempo READ tempo NOTIFY tempoChanged)
     Q_PROPERTY(qreal tempoMultiplier READ tempoMultiplier WRITE setTempoMultiplier NOTIFY tempoChanged)
+    // Makam: the playback speed as the tempo itself (in the note value of the tempo marking)
+    Q_PROPERTY(int tempoBpm READ tempoBpm WRITE setTempoBpm NOTIFY tempoChanged)
 
     QML_ELEMENT
 
@@ -72,6 +74,7 @@ public:
 
     QVariant tempo() const;
     qreal tempoMultiplier() const;
+    int tempoBpm() const;
 
     Q_INVOKABLE void load() override;
 
@@ -82,6 +85,7 @@ public slots:
     void setMeasureNumber(int measureNumber);
     void setBeatNumber(int beatNumber);
     void setTempoMultiplier(qreal multiplier);
+    void setTempoBpm(int bpm);
 
 signals:
     void isToolbarFloatingChanged(bool floating);

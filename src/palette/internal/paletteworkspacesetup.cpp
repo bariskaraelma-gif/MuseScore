@@ -22,6 +22,7 @@
 #include "paletteworkspacesetup.h"
 
 #include "io/buffer.h"
+#include "settings.h"
 
 #include "palettecreator.h"
 #include "../palettetypes.h"
@@ -39,6 +40,11 @@ using namespace muse::io;
 using namespace muse::workspace;
 
 static const AsciiStringView PALETTE_XML_TAG("PaletteBox");
+
+// Makam: raised when the Makam palettes change, so that palettes saved in the workspace by an
+// earlier version are replaced once by the new default palettes
+static const Settings::Key MAKAM_PALETTE_VERSION_KEY("palette", "makam/paletteVersion");
+static constexpr int MAKAM_PALETTE_VERSION = 2;   // 2: line end in the Layout palette
 
 PaletteTreePtr PaletteWorkspaceSetup::readPalette(const ByteArray& data, const muse::modularity::ContextPtr& iocCtx)
 {
@@ -102,8 +108,9 @@ void PaletteWorkspaceSetup::setup()
 
     auto loadData = [this, saveData]() {
         RetVal<QByteArray> data = workspacesDataProvider()->rawData(WS_Palettes);
+        const bool makamOutdated = settings()->value(MAKAM_PALETTE_VERSION_KEY).toInt() < MAKAM_PALETTE_VERSION;
         PaletteTreePtr tree;
-        if (data.ret && !data.val.isEmpty()) {
+        if (data.ret && !data.val.isEmpty() && !makamOutdated) {
             LOGD() << "there is palette data in the workspace, we will use it";
             ByteArray ba = ByteArray::fromQByteArrayNoCopy(data.val);
             tree = readPalette(ba, iocContext());
@@ -113,7 +120,10 @@ void PaletteWorkspaceSetup::setup()
         }
         paletteProvider()->setUserPaletteTree(tree);
 
-        if (engraving::gpaletteScore->mscVersion() < engraving::Constants::MSC_VERSION) {
+        if (makamOutdated) {
+            settings()->setSharedValue(MAKAM_PALETTE_VERSION_KEY, Val(MAKAM_PALETTE_VERSION));
+            saveData();
+        } else if (engraving::gpaletteScore->mscVersion() < engraving::Constants::MSC_VERSION) {
             LOGD() << "Workspace file found with palette file version " << engraving::gpaletteScore->mscVersion() <<
                 ". Migrating palette file to " << engraving::Constants::MSC_VERSION;
             saveData();

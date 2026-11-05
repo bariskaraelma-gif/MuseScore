@@ -726,6 +726,23 @@ void NotationViewInputController::mousePressEvent(QMouseEvent* event)
         return;
     }
 
+    // Makam: the handle left of a staff drags the gap above it (Ctrl: this system only)
+    if (button == Qt::LeftButton && !ctx.hitElement && !m_readonly && viewInteraction()->isStaffSpacingHandle(logicPos)) {
+        viewInteraction()->startStaffSpacingDrag(logicPos, event->modifiers() & Qt::ControlModifier);
+        m_mouseDownInfo.dragAction = MouseDownInfo::StaffSpacing;
+        m_view->asItem()->setCursor(Qt::SizeVerCursor);
+        return;
+    }
+
+    // Makam: the handle right of a line drags its width (over the frame that ends the line, too)
+    if (button == Qt::LeftButton && (!ctx.hitElement || ctx.hitElement->isHBox()) && !m_readonly
+        && viewInteraction()->isLineEndHandle(logicPos)) {
+        viewInteraction()->startLineEndDrag(logicPos);
+        m_mouseDownInfo.dragAction = MouseDownInfo::LineEnd;
+        m_view->asItem()->setCursor(Qt::SizeHorCursor);
+        return;
+    }
+
     // End editing
     if (!ctx.hitElement) {
         viewInteraction()->endEditElement();
@@ -1108,6 +1125,12 @@ void NotationViewInputController::mouseMoveEvent(QMouseEvent* event)
         m_view->asItem()->setCursor(canDrop ? Qt::DragCopyCursor : Qt::ForbiddenCursor);
         return;
     }
+    case MouseDownInfo::StaffSpacing:
+        viewInteraction()->staffSpacingDrag(m_view->toLogical(event->pos()));   // Makam
+        return;
+    case MouseDownInfo::LineEnd:
+        viewInteraction()->lineEndDrag(m_view->toLogical(event->pos()));   // Makam
+        return;
     case MouseDownInfo::Nothing:
         return;
     case MouseDownInfo::Other:
@@ -1236,6 +1259,17 @@ void NotationViewInputController::mouseReleaseEvent(QMouseEvent* event)
         return;
     }
 
+    if (m_mouseDownInfo.dragAction == MouseDownInfo::StaffSpacing) {
+        interaction->endStaffSpacingDrag();   // Makam
+        m_handleCursor = Qt::ArrowCursor;     // the cursor is reset; the next hover sets it again
+        return;
+    }
+    if (m_mouseDownInfo.dragAction == MouseDownInfo::LineEnd) {
+        interaction->endLineEndDrag();        // Makam
+        m_handleCursor = Qt::ArrowCursor;
+        return;
+    }
+
     if (event->modifiers() != Qt::ControlModifier && event->modifiers() != Qt::ShiftModifier) {
         if (!hitElement && !m_isCanvasDragged && !interaction->isGripEditStarted()
             && !interaction->isDragStarted() && !noteInput->isNoteInputMode()) {
@@ -1339,6 +1373,13 @@ void NotationViewInputController::mouseDoubleClickEvent(QMouseEvent* event)
         return;
     }
 
+    // Makam: a double click on the handle right of a line puts it at its natural width
+    const PointF logicPos = m_view->toLogical(event->pos());
+    if (!m_readonly && viewInteraction()->isLineEndHandle(logicPos)) {
+        viewInteraction()->resetLineEnd(logicPos);
+        return;
+    }
+
     EngravingItem* hitElement = hitElementContext().element;
     if (!hitElement) {
         return;
@@ -1416,6 +1457,21 @@ void NotationViewInputController::mouseDoubleClickEvent(QMouseEvent* event)
 void NotationViewInputController::hoverMoveEvent(QHoverEvent* event)
 {
     if (!m_view->isNoteEnterMode()) {
+        // Makam: the spacing handles show their cursor: up/down left of a staff, left/right
+        // right of a line
+        if (!m_readonly && viewInteraction()) {
+            const PointF pos = m_view->toLogical(event->position());
+            Qt::CursorShape shape = Qt::ArrowCursor;
+            if (viewInteraction()->isStaffSpacingHandle(pos)) {
+                shape = Qt::SizeVerCursor;
+            } else if (viewInteraction()->isLineEndHandle(pos)) {
+                shape = Qt::SizeHorCursor;
+            }
+            if (shape != m_handleCursor) {
+                m_handleCursor = shape;
+                m_view->asItem()->setCursor(shape == Qt::ArrowCursor ? QCursor() : QCursor(shape));
+            }
+        }
         return;
     }
 

@@ -51,6 +51,7 @@ AbstractNotationPaintView::AbstractNotationPaintView(QQuickItem* parent)
     setFlag(ItemHasContents, true);
     setFlag(ItemAcceptsDrops, true);
     setAcceptedMouseButtons(Qt::AllButtons);
+    setAcceptHoverEvents(true);   // Makam: also outside note input, for the staff spacing handle
 
     connect(this, &QQuickPaintedItem::widthChanged, this, &AbstractNotationPaintView::onViewSizeChanged);
     connect(this, &QQuickPaintedItem::heightChanged, this, &AbstractNotationPaintView::onViewSizeChanged);
@@ -546,7 +547,7 @@ void AbstractNotationPaintView::onNoteInputStateChanged()
 {
     TRACEFUNC;
 
-    setAcceptHoverEvents(isNoteEnterMode());
+    // Makam: hover events stay on outside note input (staff spacing handle)
     updateLoopMarkers();
     updateShadowNoteVisibility();
     scheduleRedraw();
