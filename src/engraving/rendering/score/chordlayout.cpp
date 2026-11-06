@@ -22,6 +22,7 @@
 #include <cfloat>
 
 #include "chordlayout.h"
+#include "makammizrap.h"   // Makam
 
 #include "containers.h"
 
@@ -831,7 +832,9 @@ void ChordLayout::layoutArticulations(Chord* item, LayoutContext& ctx)
 
     Articulation* prevVisibleArticulation = nullptr;
     for (Articulation* a : item->articulations()) {
-        if (item->measure()->hasVoices(a->staffIdx(), item->tick(), item->actualTicks()) && a->anchor() == ArticulationAnchor::AUTO) {
+        if (makam::isMizrap(a->symId()) && a->anchor() == ArticulationAnchor::AUTO) {
+            a->setUp(true);         // Makam: the mızrap arrows are always above the notes
+        } else if (item->measure()->hasVoices(a->staffIdx(), item->tick(), item->actualTicks()) && a->anchor() == ArticulationAnchor::AUTO) {
             a->setUp(item->up());         // if there are voices place articulation at stem
         } else if (a->anchor() == ArticulationAnchor::AUTO) {
             if (a->isOrnament()) {
@@ -1120,10 +1123,42 @@ void ChordLayout::layoutArticulations2(Chord* item, LayoutContext& ctx, bool lay
     //
     staffTopY = std::min(staffTopY, chordTopY);
     staffBotY = std::max(staffBotY, chordBotY);
+
+    // Makam: two mızrap arrows of the chord stand side by side, in the order they were put, the
+    // pair centred on the chord (makammizrap.h)
+    Articulation* mizrapFirst = nullptr;
+    Articulation* mizrapSecond = nullptr;
+    for (Articulation* a : item->articulations()) {
+        if (makam::isMizrap(a->symId()) && a->visible() && !a->layoutCloseToNote()) {
+            if (!mizrapFirst) {
+                mizrapFirst = a;
+            } else if (!mizrapSecond && a->up() == mizrapFirst->up()) {
+                mizrapSecond = a;
+            }
+        }
+    }
+
     Articulation* stacc = nullptr;
     for (Articulation* a : item->articulations()) {
         double kearnHeight = 0.0;
         if ((layoutOnCrossBeamSide && !a->isOnCrossBeamSide()) || a->isLaissezVib()) {
+            continue;
+        }
+
+        if (a == mizrapSecond && mizrapFirst->segment()) {
+            // Makam: right of the first arrow, at its height (after its autoplace); no autoplace of
+            // its own, so that the pair stays level
+            TLayout::layoutItem(a, ctx);
+            const double gap = makam::MIZRAP_PAIR_GAP * a->mag() * a->style().spatium();
+            a->setPos(mizrapFirst->x() + mizrapFirst->width() + gap, mizrapFirst->y());
+            if (!a->isOnCrossBeamSide()) {
+                if (System* sys = a->measure()->system()) {
+                    sys->staff(a->vStaffIdx())->skyline().add(a->shape().translate(a->systemPos() + item->staffOffset()));
+                }
+                if (a->addToSkyline()) {
+                    a->segment()->staffShape(a->vStaffIdx()).add(a->shape().translated(a->pos() + item->pos() + item->staffOffset()));
+                }
+            }
             continue;
         }
 
@@ -1156,6 +1191,11 @@ void ChordLayout::layoutArticulations2(Chord* item, LayoutContext& ctx, bool lay
                 }
             }
             a->mutldata()->moveX(-a->ldata()->opticalCenter());
+            if (a == mizrapFirst && mizrapSecond) {
+                // Makam: room for the second arrow on the right, the pair centred
+                TLayout::layoutItem(mizrapSecond, ctx);
+                a->mutldata()->moveX(-0.5 * (makam::MIZRAP_PAIR_GAP * a->mag() * a->style().spatium() + mizrapSecond->width()));
+            }
         }
 
         if (!a->isOnCrossBeamSide()) {

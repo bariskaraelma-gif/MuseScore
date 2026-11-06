@@ -3,8 +3,8 @@
  *
  * Makam: model of the Finale-like tool bar on the left of the score (Preferences > Appearance >
  * Arayüz). Each tool shows a column beside the tool bar: the AEU accidentals for note input,
- * the palette of the tool for the others. The two mızrap buttons put a strum arrow above the
- * selected notes. (The panels on the left are closed, and Properties floats, by NotationPageModel.)
+ * the palette of the tool for the others. (The panels on the left are closed, and Properties
+ * floats, by NotationPageModel.)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as
@@ -58,7 +58,6 @@ public:
     Q_INVOKABLE void load();
     Q_INVOKABLE void selectTool(const QString& tool);   // a click on a tool button
     Q_INVOKABLE void applyAccidental(const QString& id);
-    Q_INVOKABLE void addMizrap(bool down);               // the direction of the plectrum
     Q_INVOKABLE void showAllPalettes();                  // "Bütün paletler": the Palettes panel
     Q_INVOKABLE void toggleProperties();                 // the floating Properties window
 

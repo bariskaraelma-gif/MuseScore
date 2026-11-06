@@ -20,14 +20,8 @@
 #include "settings.h"
 
 #include "engraving/dom/accidental.h"
-#include "engraving/dom/articulation.h"
-#include "engraving/dom/chord.h"
-#include "engraving/dom/factory.h"
-#include "engraving/dom/rootitem.h"
-#include "engraving/dom/score.h"
 
 #include "notation/inotation.h"
-#include "notation/inotationelements.h"
 #include "notation/inotationinteraction.h"
 #include "notation/inotationnoteinput.h"
 #include "notation/inotationselection.h"
@@ -143,21 +137,6 @@ void MakamToolsModel::applyAccidental(const QString& id)
         }
         return;
     }
-}
-
-void MakamToolsModel::addMizrap(bool down)
-{
-    INotationPtr notation = globalContext()->currentNotation();
-    if (!notation || notation->interaction()->selection()->isNone()) {
-        return;
-    }
-
-    // a strum arrow above the note, as an articulation: one more click on it takes it away
-    mu::engraving::Score* score = notation->elements()->msScore();
-    std::shared_ptr<mu::engraving::Articulation> arrow = mu::engraving::Factory::makeArticulation(score->dummy()->chord());
-    arrow->setSymId(down ? mu::engraving::SymId::guitarStrumDown : mu::engraving::SymId::guitarStrumUp);
-    arrow->setAnchor(mu::engraving::ArticulationAnchor::TOP);
-    notation->interaction()->applyPaletteElement(arrow.get());
 }
 
 void MakamToolsModel::showAllPalettes()

@@ -44,7 +44,7 @@ static const AsciiStringView PALETTE_XML_TAG("PaletteBox");
 // Makam: raised when the Makam palettes change, so that palettes saved in the workspace by an
 // earlier version are replaced once by the new default palettes
 static const Settings::Key MAKAM_PALETTE_VERSION_KEY("palette", "makam/paletteVersion");
-static constexpr int MAKAM_PALETTE_VERSION = 2;   // 2: line end in the Layout palette
+static constexpr int MAKAM_PALETTE_VERSION = 4;   // 2: line end in the Layout palette, 3-4: mızrap arrows
 
 PaletteTreePtr PaletteWorkspaceSetup::readPalette(const ByteArray& data, const muse::modularity::ContextPtr& iocCtx)
 {

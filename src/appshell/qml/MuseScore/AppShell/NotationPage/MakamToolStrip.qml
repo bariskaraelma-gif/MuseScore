@@ -3,8 +3,8 @@
  *
  * Makam: the Finale-like tool bar on the left of the score, shown when Preferences >
  * Appearance > Arayüz is "Finale benzeri". Two columns of tools in groups. Each tool shows a
- * column beside the bar: the AEU accidentals for note input, its palette for the others; the
- * mızrap buttons put a strum arrow above the selected notes; Özellikler floats the Properties
+ * column beside the bar: the AEU accidentals for note input, its palette for the others (the
+ * mızrap arrows are at the top of the Artikülasyon palette); Özellikler floats the Properties
  * panel as a small window.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -65,12 +65,8 @@ Item {
               description: "Satır sonu, sayfa sonu, boşluklar" }
         ],
         [
-            { id: "mizrap-down", title: "Mızrap aşağı", icon: IconCode.ARROW_DOWN, action: true,
-              description: "Seçili notaların üstüne aşağı ok koyar (bir daha basınca kalkar)" },
-            { id: "mizrap-up", title: "Mızrap yukarı", icon: IconCode.ARROW_UP, action: true,
-              description: "Seçili notaların üstüne yukarı ok koyar (bir daha basınca kalkar)" },
             { id: "articulation", title: "Artikülasyon", icon: IconCode.ARTICULATION,
-              description: "Artikülasyonlar" },
+              description: "Mızrap okları ve artikülasyonlar" },
             { id: "dynamics", title: "Nüans", icon: IconCode.DYNAMIC_FORTE,
               description: "Nüanslar, kreşendo ve dekreşendo" },
             { id: "text", title: "Metin", drawn: "label",
@@ -112,8 +108,6 @@ Item {
             toolsModel.showAllPalettes()
         } else if (toolId === "properties") {
             toolsModel.toggleProperties()
-        } else if (toolId === "mizrap-down" || toolId === "mizrap-up") {
-            toolsModel.addMizrap(toolId === "mizrap-down")
         } else {
             toolsModel.selectTool(toolId)
         }

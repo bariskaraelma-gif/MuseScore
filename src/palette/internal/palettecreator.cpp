@@ -685,6 +685,15 @@ PalettePtr PaletteCreator::newArticulationsPalette(bool defaultPalette)
     sp->setGridSize(42, 25);
     sp->setDrawGrid(true);
 
+    // Makam: the mızrap (plectrum) arrows first, in both the palette and its "More" part; drawn
+    // long by the engraving (rendering/score/makammizrap.h)
+    auto mizrapDown = Factory::makeArticulation(gpaletteScore->dummy()->chord());
+    mizrapDown->setSymId(SymId::guitarStrumDown);
+    sp->appendElement(mizrapDown, QString::fromUtf8("Mızrap aşağı"));
+    auto mizrapUp = Factory::makeArticulation(gpaletteScore->dummy()->chord());
+    mizrapUp->setSymId(SymId::guitarStrumUp);
+    sp->appendElement(mizrapUp, QString::fromUtf8("Mızrap yukarı"));
+
     auto slur = Factory::makeSlur(gpaletteScore->dummy());
     sp->appendElement(slur, QT_TRANSLATE_NOOP("palette", "Slur"));
 

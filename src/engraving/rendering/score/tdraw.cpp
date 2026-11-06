@@ -27,6 +27,7 @@
 #include "draw/svgrenderer.h"
 
 #include "rendering/paintoptions.h"
+#include "makammizrap.h"   // Makam
 #include "style/style.h"
 #include "style/defaultstyle.h"
 
@@ -587,6 +588,25 @@ void TDraw::draw(const Articulation* item, Painter* painter, const PaintOptions&
     TRACE_DRAW_ITEM;
 
     painter->setPen(item->curColor(opt));
+
+    if (makam::isMizrap(item->symId())) {
+        // Makam: a long thin shaft with a small open head, see makammizrap.h
+        const double sp = item->mag() * item->style().spatium();   // as the glyphs are scaled
+        const double lw = makam::MIZRAP_LINE_WIDTH * sp;
+        const double h = makam::MIZRAP_HEIGHT * sp - lw;   // the round caps stay inside the box
+        const double cx = 0.5 * makam::MIZRAP_HEAD_WIDTH * sp;
+        const double halfHead = cx - 0.5 * lw;
+        const double headLength = makam::MIZRAP_HEAD_LENGTH * sp;
+        const bool down = item->symId() == SymId::guitarStrumDown;
+        const double tipY = down ? -0.5 * lw : -0.5 * lw - h;
+        const double headY = down ? tipY - headLength : tipY + headLength;
+
+        painter->setPen(Pen(item->curColor(opt), lw, PenStyle::SolidLine, PenCapStyle::RoundCap, PenJoinStyle::RoundJoin));
+        painter->drawLine(LineF(cx, -0.5 * lw, cx, -0.5 * lw - h));
+        painter->drawLine(LineF(cx, tipY, cx - halfHead, headY));
+        painter->drawLine(LineF(cx, tipY, cx + halfHead, headY));
+        return;
+    }
 
     if (item->textType() == ArticulationTextType::NO_TEXT) {
         item->drawSymbol(item->symId(), painter);

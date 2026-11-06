@@ -98,14 +98,18 @@ Bizim eklediğimiz her şey `Makam:` yorumuyla işaretlidir. Aramak için: `git 
 
 - **Finale benzeri arayüz** (Tercihler > Görünüm > Arayüz; ayar `makam/interface` = `musescore` | `finale`, varsayılan MuseScore):
   - Notanın solunda iki sütunlu, gruplu araç çubuğu: `src/appshell/qml/MuseScore/AppShell/NotationPage/MakamToolStrip.qml`. `NotationPage.qml` içinde `central` bir Item oldu: araç çubuğu + NotationView.
-  - Gruplar: Seçim | Nota girişi — Makam | Usul, Ölçü çizgisi | Yerleşim — Mızrap ↓ | Mızrap ↑, Artikülasyon | Nüans, Metin | Söz, Tekrar — Özellikler | Bütün paletler. Anahtar, Tempo, Süsleme aracı yok (tempo üstteki çalma çubuğunda).
+  - Gruplar: Seçim | Nota girişi — Makam | Usul, Ölçü çizgisi | Yerleşim — Artikülasyon | Nüans, Metin | Söz, Tekrar — Özellikler | Bütün paletler. Anahtar, Tempo, Süsleme aracı yok (tempo üstteki çalma çubuğunda).
   - Her araç çubuğun yanında dikey bir sütun açar (açılır kutu yok): Nota girişi → AEU arızaları (üstte naturel, solda 4 diyez, sağda 4 bemol; `MakamToolsModel::applyAccidental`, nota çubuğundaki arıza düğmeleri gibi). Öteki araçlar → kendi paleti, iki hücre genişliğinde, "Daha fazla" ile tam palet (`ToolPaletteColumn.qml`, palette modülü). THM arızaları sonra.
   - Araç → palet eşlemesi: `PaletteRootModel::makamToolPalettes()` (`src/palette/qml/MuseScore/Palette/internal/paletterootmodel.cpp`). Kullanıcının kendi (sadeleştirilmiş) paletleri gösterilir.
-  - Mızrap: `MakamToolsModel::addMizrap` seçili notalara `guitarStrumDown/Up` artikülasyonu koyar (üstte, `ArticulationAnchor::TOP`; Leland'de yok, Bravura'dan gelir). İkinci tık kaldırır.
   - Simgeler: Makam = ters bemol (koma, U+E280) solda aşağıda + çizgili bemol (bakiye, U+E442) sağda yukarıda; Usul = 5 üstte 8 altta, çizgisiz, palettekiyle aynı rakamlar; Metin = "Metin" yazısı. Nota yazı tipiyle (`ui.theme.musicalFont`); ötekiler MuseScore simge yazı tipinden.
   - Paneller (`NotationPageModel`, `src/appshell/qml/MuseScore/AppShell/notationpagemodel.cpp`): `applyMakamInterface` Finale kipinde açılışta ve kip seçilince (Tercihler kapandıktan sonra, zamanlayıcıyla) Paletler, Yerleşim, Özellikler'i kapatır; MuseScore seçilince açar ve Özellikler'i yerine takar. `makam-properties` komutu (`onMakamProperties`) Özellikler'i yüzen küçük pencere olarak açar: Özellikler düğmesi açar/kapatır, Söz ve Metin yalnız açar.
   - Model: `makamtoolsmodel.*` (`src/notationscene/qml/MuseScore/NotationScene/`). Notadaki etkileşime (NotationInteraction) dokunulmadı.
-  - Durum: derlendi ve kuruldu, açılışta QML hatası yok; bu sürümü kullanıcı henüz denemedi.
+  - Durum: derlendi ve kuruldu; kullanıcı deniyor.
+- **Mızrap okları** (`guitarStrumDown/Up` artikülasyonu; dosya standart MuseScore dosyası kalır, asıl MuseScore'da kısa ok görünür):
+  - Artikülasyon paletinin en başında (Bağ'dan önce): "Mızrap aşağı", "Mızrap yukarı" (`palettecreator.cpp`). İkinci tık kaldırır.
+  - Uzun ince sap + küçük açık uç, ~3 aralık: kodla çizilir. Ölçüler `src/engraving/rendering/score/makammizrap.h`; şekil `TLayout::fillArticulationShape`, çizim `TDraw::draw(const Articulation*)`. Boşluk boyu `mag() * style().spatium()` (magS() değil: o oran).
+  - Yerleşim `ChordLayout`: ANCHOR AUTO iken hep üstte; aynı akorda iki ok yan yana, konulma sırasıyla, çift ortalanmış (`layoutArticulations2`).
+  - Komut satırından deneme: `MuseScore4.exe -o out.png test.mscx` (kurulu program). Kurulumdan sonra programı açıp zorla kapatma: palet sürümü sıfırlanmış sayılır ama palet kaydedilmez (`MAKAM_PALETTE_VERSION` bu yüzden 4).
 
 ## Sıradaki işler
 

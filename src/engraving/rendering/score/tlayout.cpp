@@ -33,6 +33,7 @@
 #include "iengravingfont.h"
 #include "types/typesconv.h"
 #include "types/symnames.h"
+#include "makammizrap.h"   // Makam
 #include "dom/score.h"
 #include "dom/utils.h"
 
@@ -954,7 +955,10 @@ void TLayout::fillArticulationShape(const Articulation* item, Articulation::Layo
     LAYOUT_CALL_ITEM(item);
 
     SymId sym = item->symId();
-    if (sym == SymId::articAccentAbove || sym == SymId::articAccentBelow) {
+    if (makam::isMizrap(sym)) {
+        // Makam: the long mızrap arrow drawn by TDraw instead of the glyph
+        ldata->setShape(Shape(makam::mizrapBbox(item->mag() * item->style().spatium()), item));
+    } else if (sym == SymId::articAccentAbove || sym == SymId::articAccentBelow) {
         RectF symBbox = item->symBbox(sym);
         double width = symBbox.width();
         double height = symBbox.height();
