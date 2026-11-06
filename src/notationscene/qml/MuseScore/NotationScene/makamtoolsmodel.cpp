@@ -21,6 +21,7 @@
 
 #include "settings.h"
 
+#include "engraving/dom/accidental.h"
 #include "engraving/dom/engravingitem.h"
 #include "engraving/dom/measurebase.h"
 
@@ -37,21 +38,38 @@ const char* FINALE_INTERFACE = "finale";
 
 const char* SELECTION_TOOL = "selection";
 const char* NOTE_INPUT_TOOL = "noteinput";
+
+bool isFinaleInterface(const muse::Val& value)
+{
+    return value.toString() == FINALE_INTERFACE;
+}
+
+//! the AEU accidentals as in the Accidentals palette (palettecreator.cpp); the glyphs are those
+//! of the accidental types in accidental.cpp (SMuFL code points)
+struct MakamAccidental {
+    const char* id;
+    mu::engraving::AccidentalType type;
+    const char* title;
+    char16_t glyph;
+    const char* column;
+};
+
+const MakamAccidental MAKAM_ACCIDENTALS[] = {
+    { "natural", mu::engraving::AccidentalType::NATURAL, "Naturel", 0xE261, "natural" },
+    { "koma-sharp", mu::engraving::AccidentalType::SHARP_SLASH, "Koma diyez", 0xE282, "sharp" },
+    { "bakiye-sharp", mu::engraving::AccidentalType::SHARP, "Bakiye diyez", 0xE262, "sharp" },
+    { "kucuk-sharp", mu::engraving::AccidentalType::SHARP_SLASH3, "Küçük mücennep diyez", 0xE446, "sharp" },
+    { "buyuk-sharp", mu::engraving::AccidentalType::SHARP_SLASH2, "Büyük mücennep diyez", 0xE447, "sharp" },
+    { "koma-flat", mu::engraving::AccidentalType::MIRRORED_FLAT, "Koma bemol", 0xE280, "flat" },
+    { "bakiye-flat", mu::engraving::AccidentalType::FLAT_SLASH, "Bakiye bemol", 0xE442, "flat" },
+    { "kucuk-flat", mu::engraving::AccidentalType::FLAT, "Küçük mücennep bemol", 0xE260, "flat" },
+    { "buyuk-flat", mu::engraving::AccidentalType::FLAT_SLASH2, "Büyük mücennep bemol", 0xE440, "flat" },
+};
 }
 
 MakamToolsModel::MakamToolsModel(QObject* parent)
     : QObject(parent), muse::Contextable(muse::iocCtxForQmlObject(this))
 {
-}
-
-bool MakamToolsModel::isFinaleMode()
-{
-    return muse::settings()->value(INTERFACE_KEY).toString() == FINALE_INTERFACE;
-}
-
-void MakamToolsModel::setFinaleMode(bool finale)
-{
-    muse::settings()->setSharedValue(INTERFACE_KEY, muse::Val(std::string(finale ? FINALE_INTERFACE : "musescore")));
 }
 
 bool MakamToolsModel::finaleMode() const
@@ -71,15 +89,15 @@ bool MakamToolsModel::hasNotation() const
 
 void MakamToolsModel::load()
 {
-    m_finaleMode = isFinaleMode();
+    m_finaleMode = isFinaleInterface(muse::settings()->value(INTERFACE_KEY));
     emit finaleModeChanged();
 
     muse::settings()->valueChanged(INTERFACE_KEY).onReceive(this, [this](const muse::Val& value) {
-        const bool finale = value.toString() == FINALE_INTERFACE;
+        const bool finale = isFinaleInterface(value);
         if (finale != m_finaleMode) {
             m_finaleMode = finale;
             emit finaleModeChanged();
-            onFinaleModeChanged(finale);
+            m_lastSelectionKey = nullptr;
         }
     });
 
@@ -89,19 +107,40 @@ void MakamToolsModel::load()
     onNotationChanged();
 }
 
-void MakamToolsModel::onFinaleModeChanged(bool finale)
+QVariantList MakamToolsModel::accidentals() const
 {
-    // the tool bar takes the place of the Palettes panel; the other way round it comes back
-    setPalettesPanelOpen(!finale);
-    if (!finale) {
-        setActiveTool(isNoteInput() ? NOTE_INPUT_TOOL : SELECTION_TOOL);
+    QVariantList result;
+    for (const MakamAccidental& a : MAKAM_ACCIDENTALS) {
+        result << QVariantMap {
+            { "id", QString::fromLatin1(a.id) },
+            { "title", QString::fromUtf8(a.title) },
+            { "glyph", QString(QChar(a.glyph)) },
+            { "column", QString::fromLatin1(a.column) },
+        };
     }
+    return result;
 }
 
-void MakamToolsModel::setPalettesPanelOpen(bool open)
+void MakamToolsModel::applyAccidental(const QString& id)
 {
-    if (uiActionsRegister()->actionState("toggle-palettes").checked != open) {
-        dispatcher()->dispatch("toggle-palettes");
+    INotationPtr notation = globalContext()->currentNotation();
+    if (!notation) {
+        return;
+    }
+
+    for (const MakamAccidental& a : MAKAM_ACCIDENTALS) {
+        if (id != QLatin1String(a.id)) {
+            continue;
+        }
+        // as the accidental buttons of the note input bar (NotationActionController::toggleAccidental)
+        INotationInteractionPtr interaction = notation->interaction();
+        INotationNoteInputPtr noteInput = interaction->noteInput();
+        if (noteInput->isNoteInputMode() && notationConfiguration()->addAccidentalDotsArticulationsToNextNoteEntered()) {
+            noteInput->setAccidental(a.type);
+        } else if (!interaction->selection()->isNone()) {
+            interaction->toggleAccidentalForSelection(a.type);
+        }
+        return;
     }
 }
 
@@ -171,8 +210,7 @@ void MakamToolsModel::selectTool(const QString& tool)
         if (!isNoteInput()) {
             dispatcher()->dispatch("note-input");
         }
-        setActiveTool(NOTE_INPUT_TOOL);
-        emit popupRequested(tool);
+        setActiveTool(NOTE_INPUT_TOOL);   // the accidental column, no popup
         return;
     }
 

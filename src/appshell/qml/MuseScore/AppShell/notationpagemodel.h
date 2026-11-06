@@ -102,6 +102,9 @@ private:
     void scheduleUpdateExtensionsToolBarVisibility();
     void doUpdateExtensionsToolBarVisibility();
 
+    // Makam: the Finale-like tool bar takes the place of the Palettes panel
+    void applyMakamInterface(bool finale);
+
     bool m_inited = false;
     bool m_updateDrumsetPanelVisibilityScheduled = false;
     bool m_updatePercussionPanelVisibilityScheduled = false;

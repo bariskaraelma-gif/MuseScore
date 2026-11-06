@@ -25,12 +25,23 @@
 #include "dockwindow/idockwindow.h"
 
 #include "async/async.h"
+#include "settings.h"
+
+#include <QTimer>
 
 #include "log.h"
 
 using namespace mu::appshell;
 using namespace mu::notation;
 using namespace muse::actions;
+
+// Makam: the same key as in MakamToolsModel and the Appearance preferences
+static const muse::Settings::Key MAKAM_INTERFACE_KEY("makam", "makam/interface");
+
+static bool isMakamFinaleInterface(const muse::Val& value)
+{
+    return value.toString() == "finale";
+}
 
 NotationPageModel::NotationPageModel(QObject* parent)
     : QObject(parent), muse::Contextable(muse::iocCtxForQmlObject(this))
@@ -93,7 +104,31 @@ void NotationPageModel::init()
         scheduleUpdatePercussionPanelVisibility();
     });
 
+    // Makam: with the Finale-like interface the Palettes panel is closed when the program starts
+    // and when the interface is chosen (after the Preferences dialog, hence the timer); with the
+    // MuseScore interface it is opened again when chosen, not at start (the user's layout)
+    if (isMakamFinaleInterface(muse::settings()->value(MAKAM_INTERFACE_KEY))) {
+        QTimer::singleShot(0, this, [this]() { applyMakamInterface(true); });
+    }
+    muse::settings()->valueChanged(MAKAM_INTERFACE_KEY).onReceive(this, [this](const muse::Val& value) {
+        const bool finale = isMakamFinaleInterface(value);
+        QTimer::singleShot(0, this, [this, finale]() { applyMakamInterface(finale); });
+    });
+
     m_inited = true;
+}
+
+void NotationPageModel::applyMakamInterface(bool finale)
+{
+    const muse::dock::IDockWindow* window = dockWindowProvider()->window();
+    if (!window) {
+        return;
+    }
+
+    const bool open = !finale;
+    if (window->isDockOpen(PALETTES_PANEL_NAME) != open) {
+        dispatcher()->dispatch("dock-set-open", ActionData::make_arg2<QString, bool>(PALETTES_PANEL_NAME, open));
+    }
 }
 
 QString NotationPageModel::notationToolBarName() const
