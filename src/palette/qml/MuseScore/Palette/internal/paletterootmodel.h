@@ -96,6 +96,10 @@ public:
 
     PaletteProvider* paletteProvider_property() const;
 
+    //! Makam: the palettes a tool of the Finale-like tool bar shows, as indices of the main
+    //! palette model (a palette the user has hidden or removed is left out)
+    Q_INVOKABLE QVariantList makamToolPalettes(const QString& tool) const;
+
 signals:
     void paletteSearchRequested();
     void applyCurrentPaletteElementRequested();

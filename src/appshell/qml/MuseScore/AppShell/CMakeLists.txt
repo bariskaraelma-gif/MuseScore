@@ -73,6 +73,7 @@ qt_add_qml_module(appshell_qml
         HomePage/HomePage.qml
         HomePage/PluginsPage.qml
         MainToolBar.qml
+        NotationPage/MakamToolStrip.qml
         NotationPage/NotationPage.qml
         NotationPage/NotationStatusBar.qml
         NotationReviewPage/NotationReviewPage.qml

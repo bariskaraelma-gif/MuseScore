@@ -587,22 +587,42 @@ DockPage {
         }
     ]
 
-    central: NotationView {
-        id: notationView
-        name: "MainNotationView"
+    // Makam: the score with the Finale-like tool bar on its left (hidden in the MuseScore interface)
+    central: Item {
+        id: centralArea
 
-        isNavigatorVisible: root.pageModel.isNavigatorVisible
-        isBraillePanelVisible: root.pageModel.isBraillePanelVisible
-        isMainView: true
+        readonly property NavigationSection navigationSection: notationView.navigationSection
 
-        Component.onCompleted: {
-            root.notationView = notationView.paintView
+        MakamToolStrip {
+            id: makamToolStrip
 
-            root.setDefaultNavigationControl(notationView.defaultNavigationControl)
+            anchors.left: parent.left
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
         }
 
-        Component.onDestruction: {
-            root.setDefaultNavigationControl(null)
+        NotationView {
+            id: notationView
+            name: "MainNotationView"
+
+            anchors.left: makamToolStrip.right
+            anchors.right: parent.right
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+
+            isNavigatorVisible: root.pageModel.isNavigatorVisible
+            isBraillePanelVisible: root.pageModel.isBraillePanelVisible
+            isMainView: true
+
+            Component.onCompleted: {
+                root.notationView = notationView.paintView
+
+                root.setDefaultNavigationControl(notationView.defaultNavigationControl)
+            }
+
+            Component.onDestruction: {
+                root.setDefaultNavigationControl(null)
+            }
         }
     }
 

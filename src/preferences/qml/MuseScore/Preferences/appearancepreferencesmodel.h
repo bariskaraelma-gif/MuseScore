@@ -66,6 +66,9 @@ class AppearancePreferencesModel : public QObject, public muse::Contextable, pub
         bool isOnlyInvertInDarkTheme READ isOnlyInvertInDarkTheme WRITE setOnlyInvertInDarkTheme NOTIFY isOnlyInvertInDarkThemeChanged)
     Q_PROPERTY(bool isCurrentThemeDark READ isCurrentThemeDark NOTIFY themesChanged)
 
+    // Makam: the Finale-like tool bar instead of the Palettes panel
+    Q_PROPERTY(bool makamFinaleInterface READ makamFinaleInterface WRITE setMakamFinaleInterface NOTIFY makamFinaleInterfaceChanged)
+
     muse::GlobalInject<muse::ui::IUiConfiguration> uiConfiguration;
     muse::GlobalInject<notation::INotationConfiguration> notationConfiguration;
 
@@ -108,6 +111,7 @@ public:
     bool scoreInversionEnabled() const;
     bool isOnlyInvertInDarkTheme() const;
     bool isCurrentThemeDark() const;
+    bool makamFinaleInterface() const;
 
     Q_INVOKABLE void resetAppearancePreferencesToDefault();
     Q_INVOKABLE void setNewColor(const QColor& newColor, ColorType colorType);
@@ -130,9 +134,11 @@ public slots:
     void setForegroundWallpaperPath(const QString& path);
     void setScoreInversionEnabled(bool value);
     void setOnlyInvertInDarkTheme(bool value);
+    void setMakamFinaleInterface(bool value);
 
 signals:
     void isFollowSystemThemeChanged();
+    void makamFinaleInterfaceChanged();
     void themesChanged();
     void currentFontIndexChanged();
     void bodyTextSizeChanged();

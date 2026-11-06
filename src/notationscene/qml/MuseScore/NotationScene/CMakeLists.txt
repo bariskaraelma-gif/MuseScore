@@ -50,6 +50,8 @@ qt_add_qml_module(notationscene_qml
         bonamodel.h
         bonarecorder.cpp
         bonarecorder.h
+        makamtoolsmodel.cpp
+        makamtoolsmodel.h
         elementpopups/caposettingsmodel.cpp
         elementpopups/caposettingsmodel.h
         elementpopups/dynamicpopupmodel.cpp
@@ -313,6 +315,8 @@ target_include_directories(notationscene_qml PRIVATE
 set_source_files_properties(makamtuningmodel.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 # Makam: Bona window (note entry by voice); the microphone through miniaudio (thirdparty/miniaudio)
 set_source_files_properties(bonaanalysis.cpp bonamodel.cpp bonarecorder.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
+# Makam: the Finale-like tool bar
+set_source_files_properties(makamtoolsmodel.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 target_include_directories(notationscene_qml PRIVATE ${CMAKE_SOURCE_DIR}/thirdparty/miniaudio)
 
 target_link_libraries(notationscene_qml PRIVATE

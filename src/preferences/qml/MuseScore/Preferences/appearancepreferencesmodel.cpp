@@ -22,6 +22,7 @@
 
 #include "appearancepreferencesmodel.h"
 
+#include "settings.h"
 #include "translation.h"
 
 #include "ui/internal/themeconverter.h"
@@ -387,4 +388,21 @@ void AppearancePreferencesModel::setOnlyInvertInDarkTheme(bool value)
     }
 
     notationConfiguration()->setOnlyInvertInDarkTheme(value);
+}
+
+// Makam: the same key as in MakamToolsModel (notationscene), which shows the tool bar
+static const Settings::Key MAKAM_INTERFACE_KEY("makam", "makam/interface");
+
+bool AppearancePreferencesModel::makamFinaleInterface() const
+{
+    return settings()->value(MAKAM_INTERFACE_KEY).toString() == "finale";
+}
+
+void AppearancePreferencesModel::setMakamFinaleInterface(bool value)
+{
+    if (value == makamFinaleInterface()) {
+        return;
+    }
+    settings()->setSharedValue(MAKAM_INTERFACE_KEY, Val(std::string(value ? "finale" : "musescore")));
+    emit makamFinaleInterfaceChanged();
 }

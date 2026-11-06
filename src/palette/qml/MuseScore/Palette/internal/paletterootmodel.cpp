@@ -21,6 +21,12 @@
  */
 #include "paletterootmodel.h"
 
+#include <map>
+#include <vector>
+
+#include "internal/palette.h"
+#include "internal/palettemodel.h"
+
 using namespace mu::palette;
 
 PaletteRootModel::PaletteRootModel(QObject* parent)
@@ -54,4 +60,41 @@ void PaletteRootModel::init()
 PaletteProvider* PaletteRootModel::paletteProvider_property() const
 {
     return dynamic_cast<PaletteProvider*>(paletteProvider().get());
+}
+
+QVariantList PaletteRootModel::makamToolPalettes(const QString& tool) const
+{
+    static const std::map<QString, std::vector<Palette::Type> > TOOL_PALETTES = {
+        { "noteinput", { Palette::Type::Accidental } },
+        { "makam", { Palette::Type::KeySig } },
+        { "usul", { Palette::Type::TimeSig } },
+        { "measure", { Palette::Type::BarLine, Palette::Type::Layout } },
+        { "articulation", { Palette::Type::Articulation, Palette::Type::Ornament, Palette::Type::Breath } },
+        { "dynamics", { Palette::Type::Dynamic } },
+        { "text", { Palette::Type::Text, Palette::Type::Tempo } },
+        { "repeat", { Palette::Type::Repeat } },
+    };
+
+    QVariantList result;
+    PaletteProvider* provider = paletteProvider_property();
+    auto it = TOOL_PALETTES.find(tool);
+    if (!provider || it == TOOL_PALETTES.end()) {
+        return result;
+    }
+
+    // the model QML sees (mainPaletteModel() itself is private)
+    const QAbstractItemModel* model = provider->property("mainPaletteModel").value<QAbstractItemModel*>();
+    if (!model) {
+        return result;
+    }
+    for (Palette::Type type : it->second) {
+        for (int row = 0; row < model->rowCount(); ++row) {
+            const QModelIndex index = model->index(row, 0);
+            if (index.data(PaletteTreeModel::PaletteTypeRole).value<Palette::Type>() == type) {
+                result << QVariant::fromValue(index);
+                break;
+            }
+        }
+    }
+    return result;
 }

@@ -42,6 +42,38 @@ PreferencesPage {
         width: parent.width
         spacing: root.sectionsSpacing
 
+        // Makam: the Finale-like tool bar on the left of the score instead of the Palettes panel
+        BaseSection {
+            id: interfaceSection
+
+            width: parent.width
+            title: "Arayüz"
+
+            navigation.section: root.navigationSection
+            navigation.order: root.navigationOrderStart
+
+            ComboBoxWithTitle {
+                title: "Araçlar"
+                columnWidth: interfaceSection.columnWidth
+
+                model: [
+                    { text: "MuseScore (palet paneli)", value: false },
+                    { text: "Finale benzeri (soldaki araç çubuğu)", value: true }
+                ]
+                currentIndex: control.indexOfValue(appearanceModel.makamFinaleInterface)
+
+                navigation.name: "MakamInterfaceBox"
+                navigation.panel: interfaceSection.navigation
+                navigation.row: 1
+
+                onValueEdited: function(newIndex, newValue) {
+                    appearanceModel.makamFinaleInterface = newValue
+                }
+            }
+        }
+
+        SeparatorLine {}
+
         ThemesSection {
             width: parent.width
 

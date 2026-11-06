@@ -52,6 +52,7 @@ qt_add_qml_module(palette_qml
         PaletteCellPropertiesDialog.qml
         PalettePropertiesDialog.qml
         PalettesPanel.qml
+        ToolPalettePopup.qml
     IMPORTS
         TARGET muse_ui_qml
         TARGET muse_uicomponents_qml

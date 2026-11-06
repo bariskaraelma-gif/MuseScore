@@ -96,6 +96,14 @@ Bizim eklediğimiz her şey `Makam:` yorumuyla işaretlidir. Aramak için: `git 
   - Son kayıt ve çözümlemesi: `%TEMP%\makam-bona-son.wav` / `.txt` (hata ayıklama için).
   - Kullanıcı testi: ilk denemede notalar 16'lık geç yazıldı (gecikme 60 → 190 yapıldı), sonra ilk hece düştü (düzeltildi). Son düzeltme kurulu ama mikrofonla henüz denenmedi.
 
+- **Finale benzeri arayüz** (Tercihler > Görünüm > Arayüz; ayar `makam/interface` = `musescore` | `finale`, varsayılan MuseScore):
+  - Notanın solunda dikey araç çubuğu: `src/appshell/qml/MuseScore/AppShell/NotationPage/MakamToolStrip.qml`. `NotationPage.qml` içinde `central` bir Item oldu: araç çubuğu + NotationView.
+  - Araçlar: Seçim, Nota girişi (arızalar), Makam (donanım), Usul, Ölçü (ölçü çizgileri + yerleşim), Artikülasyon (+ süsleme, nefes), Nüans, Söz (`lyrics` komutu), Metin (+ tempo), Tekrar; en altta "Bütün paletler" palet panelini açar/kapatır. Anahtar aracı yok (anahtar paleti kaldırıldı).
+  - Araç → palet eşlemesi: `PaletteRootModel::makamToolPalettes()` (`src/palette/qml/MuseScore/Palette/internal/paletterootmodel.cpp`). Kutu: `ToolPalettePopup.qml` (palette modülü). Kullanıcının kendi paletlerini gösterir; "Daha fazla" aynı kutuda tam paleti açar.
+  - Model: `makamtoolsmodel.*` (`src/notationscene/qml/MuseScore/NotationScene/`). Makam ve Usul açıkken ölçüye tıklamak kutuyu açar; yalnız seçim değişikliği dinlenir, NotationInteraction'a dokunulmadı. Paletten konan donanım/usul öğesi seçilince kutu yeniden açılmaz.
+  - Kip değişince palet paneli kapanır (Finale) ya da açılır (MuseScore): `toggle-palettes`. Simgeler MuseScore'un kendi simge yazı tipinden.
+  - Durum: derlendi, açılışta QML hatası yok; kullanıcı henüz denemedi.
+
 ## Sıradaki işler
 
 1. **Sesle nota girişi**:
