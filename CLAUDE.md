@@ -87,12 +87,20 @@ Bizim eklediğimiz her şey `Makam:` yorumuyla işaretlidir. Aramak için: `git 
   - Dizek aralığı: dizeğin solundaki tutamak (⇕) sürüklenir. Ctrl ile yalnız o satır değişir (sabit spacer); Ctrl'siz bütün satırlar değişir (dizek `userDist` ya da `minSystemDistance`). Klavye: Alt+PgUp/PgDown, Ctrl+Alt+PgUp/PgDown. İlk kullanımda dikey yayma kapanır.
   - Satır genişliği: son ölçünün sağındaki tutamak (⇔) satırın sonuna yatay çerçeve + satır sonu koyar ve çerçevenin genişliğini değiştirir. Çift tıklama ya da Yerleşim paletindeki "Satır sonu (yaslamasız)" (`makam-line-end`) satırı doğal genişliğe getirir. Hepsi MuseScore'un kendi öğeleri, dosya uyumlu kalır.
   - Notasyon görünümü hover olaylarını her kipte alır (tutamak imleci için).
+- **Bona (sesle nota girişi), 1. aşama: yalnız ritim, bütün notalar La:**
+  - Komut `makam-bona`. Araç çubuğunda ve Araçlar menüsünde. Pencere: `BonaDialog.qml`, model `bonamodel.*` (`src/notationscene/qml/MuseScore/NotationScene/`).
+  - Akış: ölçü seçilir → Kaydet. Metronom ve sayım geçici açılır, çalma seçili ölçüden başlar. Dur'a basınca heceler bulunur, ızgaraya (8'lik/16'lık) oturtulur ve tek geri alma adımında yazılır.
+  - Mikrofon: `bonarecorder.*`, miniaudio 0.11.22 (`thirdparty/miniaudio/`, tek başlık). 16 kHz mono. Aygıt kendi iş parçacığında açılıp kapanır, çünkü miniaudio COM'u dengesiz kapatıyor.
+  - Çözümleme: `bonaanalysis.*`. Enerji eşiği + seslilik (otokorelasyon) + legato çukurları; `quantize()` nicemleme.
+  - Zaman eşleme: mikrofon zamanı − çalma konumu farklarının ortancası, sonra `secToTick`. "Gecikme" (varsayılan 190 ms, ayar `makam/bonaLatencyMs`) ses kartı gecikmesini düşer. Vuruştan az önce söylenen hece eksiye taşar ve vuruşa yuvarlanır.
+  - Son kayıt ve çözümlemesi: `%TEMP%\makam-bona-son.wav` / `.txt` (hata ayıklama için).
+  - Kullanıcı testi: ilk denemede notalar 16'lık geç yazıldı (gecikme 60 → 190 yapıldı), sonra ilk hece düştü (düzeltildi). Son düzeltme kurulu ama mikrofonla henüz denenmedi.
 
 ## Sıradaki işler
 
 1. **Sesle nota girişi**:
-   - İki kip: Bona (do-re-mi heceleri tek perdede okunur, hece tanıma) ve Ezgili solfej (perde takibi).
-   - Ortak altyapı: kayıt, metronom, nota başı algılama, nicemleme.
+   - Bona 1. aşama (ritim) yapıldı; yukarıya bakın. Sırada: "Gecikmeyi ölç" düğmesi, 2. aşama hece tanıma (do-re-mi → perde).
+   - Sonra Ezgili solfej (perde takibi), aynı kayıt ve nicemleme altyapısıyla.
 2. Makam akordu için "Bu esere kaydet" ve makam başına "▶ Dinle".
 3. Sağ sütunda Claude paneli (sonra).
 4. Daha sonrası:

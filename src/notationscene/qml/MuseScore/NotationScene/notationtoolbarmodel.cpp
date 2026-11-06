@@ -38,7 +38,8 @@ void NotationToolBarModel::load()
         "parts",
         "toggle-mixer",
         "image-capture", // Makam: Image Capture button, as in MuseScore 3
-        "makam-tuning"   // Makam: calibration window
+        "makam-tuning",  // Makam: calibration window
+        "makam-bona"     // Makam: note entry by voice
     };
 
     ToolBarItemList items;

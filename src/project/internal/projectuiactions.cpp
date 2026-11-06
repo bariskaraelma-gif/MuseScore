@@ -69,6 +69,14 @@ const UiActionList ProjectUiActions::m_actions = {
              TranslatableString("action", "Makam akordu: perdelerin çıkış, iniş ve durak değerleri"),
              IconCode::Code::TUNING_FORK
              ),
+    // Makam: note entry by voice, Bona (toolbar button)
+    UiAction("makam-bona",
+             mu::context::UiCtxAny,
+             mu::context::CTX_ANY,
+             TranslatableString("action", "Bona"),
+             TranslatableString("action", "Bona: do-re-mi hecelerini okuyarak nota yaz"),
+             IconCode::Code::MICROPHONE
+             ),
     // Makam: built-in Image Capture tool (toolbar button)
     UiAction("image-capture",
              mu::context::UiCtxAny,

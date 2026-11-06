@@ -82,6 +82,7 @@ void ProjectActionsController::init()
     dispatcher()->reg(this, "file-new-usul", [this]() { newProject(BlankScoreKind::UsulOnly); });
     dispatcher()->reg(this, "image-capture", this, &ProjectActionsController::openImageCapture);
     dispatcher()->reg(this, "makam-tuning", this, &ProjectActionsController::openMakamTuning);
+    dispatcher()->reg(this, "makam-bona", this, &ProjectActionsController::openBona);
     dispatcher()->reg(this, "file-open", this, &ProjectActionsController::openProject);
 
     dispatcher()->reg(this, "file-close", [this]() {
@@ -850,6 +851,16 @@ void ProjectActionsController::openMakamTuning()
         return;
     }
     interactive()->open(MAKAM_TUNING_URI);
+}
+
+//! Makam: the "Bona" window (note entry by voice), one at a time
+void ProjectActionsController::openBona()
+{
+    static const Uri BONA_URI("musescore://notation/bona");
+    if (!currentNotationProject() || interactive()->isOpened(BONA_URI).val) {
+        return;
+    }
+    interactive()->open(BONA_URI);
 }
 
 //! Makam: the Image Capture tool is a built-in plugin (share/plugins/imagecapture),

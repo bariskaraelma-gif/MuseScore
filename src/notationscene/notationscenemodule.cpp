@@ -95,6 +95,8 @@ void NotationSceneModule::resolveImports()
         ir->registerQmlUri(Uri("musescore://notation/editpercussionshortcut"), "MuseScore.NotationScene", "EditPercussionShortcutDialog");
         // Makam: calibration of the makam tuning
         ir->registerQmlUri(Uri("musescore://notation/makamtuning"), "MuseScore.NotationScene", "MakamTuningDialog");
+        // Makam: note entry by voice (Bona)
+        ir->registerQmlUri(Uri("musescore://notation/bona"), "MuseScore.NotationScene", "BonaDialog");
     }
 }
 

@@ -399,6 +399,7 @@ MenuItem* AppMenuModel::makeToolsMenu()
 
     MenuItemList toolsItems {
         makeMenuItem("makam-tuning"),   // Makam
+        makeMenuItem("makam-bona"),     // Makam: note entry by voice
         makeMenuItem("transpose"),
         makeSeparator(),
         makeMenuItem("explode"),
