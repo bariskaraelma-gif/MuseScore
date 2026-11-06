@@ -67,15 +67,25 @@ void setStaffGap(Score* score, const StaffGap& gap, double delta, bool thisSyste
 // Returns its last measure, nullptr if none.
 Measure* lineEndAt(Score* score, const muse::PointF& pos);
 
-// Width in spatium of the frame after the measure, 0 if there is none
+// Whether a frame follows the measure, and its width in spatium (0 if there is none)
+bool hasLineEndFrame(const Measure* measure);
 double lineEndFrameWidth(const Measure* measure);
 
 // Width in spatium of the frame that leaves the line ending with the measure at its natural
-// width. Inside a command: it computes the spacing of the measure's system again, so a layout
-// must follow.
+// width. The spacing of the measure's system is computed again for it, then put back as it was.
 double naturalLineEndFrameWidth(Measure* measure);
+
+// The right end of the measure's line (page width), in canvas coordinates
+double lineEndRight(const Measure* measure);
 
 // Ends the line after the measure with a frame of the given width (spatium) and a line break.
 // Inside a command.
 void setLineEnd(Score* score, Measure* measure, double frameWidth);
+
+// Removes the frame after the measure; the line break goes back to the measure. Inside a command.
+void removeLineEnd(Score* score, Measure* measure);
+
+// The line end palette cell dropped at pos (canvas coordinates): the line ends after the measure
+// there, at its natural width. Inside a command. False if there is no measure at pos.
+bool dropLineEnd(Score* score, const muse::PointF& pos);
 }

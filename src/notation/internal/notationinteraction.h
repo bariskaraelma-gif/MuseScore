@@ -566,8 +566,9 @@ private:
     mu::engraving::Measure* m_lineEndMeasure = nullptr;
     muse::PointF m_lineEndBegin;
     double m_lineEndFrameWidth = 0.0;     // spatium, at the start of the drag
-    double m_lineEndNaturalWidth = -1.0;  // spatium, frame width for the natural line; -1: not computed yet
-    double m_lineEndDelta = 0.0;
+    double m_lineEndNaturalWidth = 0.0;   // spatium, frame width for the natural line
+    double m_lineEndWidth = 0.0;          // spatium, the frame width set last
+    bool m_lineEndHadFrame = false;       // the line ended with a frame at the start of the drag
     bool m_lineEndChanged = false;
     muse::async::Notification m_dragChanged;
     std::vector<muse::LineF> m_anchorLines;

@@ -199,9 +199,16 @@ Measure* lineEndAt(Score* score, const muse::PointF& pos)
         if (!last || first == muse::nidx || lastStaff == muse::nidx) {
             continue;
         }
-        // right of the end barline, so that the barline can still be clicked
+        // right of the end barline, so that the barline can still be clicked; over the whole frame
+        // that ends the line, so that the frame's own width grip (which works the other way
+        // round) is not reached by mistake
         const double right = system->x() + last->x() + last->width();
-        if (p.x() < right + 0.3 * sp || p.x() > right + HANDLE_WIDTH * sp) {
+        double end = right + HANDLE_WIDTH * sp;
+        const MeasureBase* next = last->next();
+        if (next && next->isHBox() && next->system() == system) {
+            end = std::max(end, system->x() + next->x() + next->width() + sp);
+        }
+        if (p.x() < right + 0.3 * sp || p.x() > end) {
             continue;
         }
         const double top = system->staffYpage(first);
@@ -219,6 +226,11 @@ static HBox* frameAfter(const Measure* measure)
     return next && next->isHBox() ? toHBox(next) : nullptr;
 }
 
+bool hasLineEndFrame(const Measure* measure)
+{
+    return frameAfter(measure) != nullptr;
+}
+
 double lineEndFrameWidth(const Measure* measure)
 {
     const HBox* frame = frameAfter(measure);
@@ -228,14 +240,34 @@ double lineEndFrameWidth(const Measure* measure)
 double naturalLineEndFrameWidth(Measure* measure)
 {
     System* system = measure ? measure->system() : nullptr;
-    if (!system) {
+    if (!system || system->measures().empty()) {
         return 0.0;
     }
+    using rendering::score::HorizontalSpacing;
+
     // the spacing without justification puts the measures at their natural x and width
-    rendering::score::HorizontalSpacing::computeSpacingForFullSystem(system);
+    const MeasureBase* last = system->measures().back();
+    const double oldEnd = last->x() + last->width();
+    const double target = system->width();
+    double width = HorizontalSpacing::computeSpacingForFullSystem(system);
     const double naturalEnd = measure->x() + measure->width();
+
+    // then the line is spaced again as the layout left it (SystemLayout::collectSystem): squeezed,
+    // stretched to the page width, or at its natural width
+    if (width > target) {
+        HorizontalSpacing::squeezeSystemToFit(system, width, target);
+    } else if (oldEnd > width + 0.5 * measure->spatium()) {
+        HorizontalSpacing::justifySystem(system, width, target);
+    }
+
     // half a space to spare: a line wider than the page would push its last measure to the next line
-    return std::max(0.0, (system->width() - naturalEnd) / measure->spatium() - 0.5);
+    return std::max(0.0, (target - naturalEnd) / measure->spatium() - 0.5);
+}
+
+double lineEndRight(const Measure* measure)
+{
+    const System* system = measure ? measure->system() : nullptr;
+    return system ? system->canvasPos().x() + system->width() : 0.0;
 }
 
 void setLineEnd(Score* score, Measure* measure, double frameWidth)
@@ -259,5 +291,32 @@ void setLineEnd(Score* score, Measure* measure, double frameWidth)
     }
 
     score->setLayoutAll();
+}
+
+void removeLineEnd(Score* score, Measure* measure)
+{
+    HBox* frame = frameAfter(measure);
+    if (!score || !frame) {
+        return;
+    }
+
+    // the line break goes back to the measure, so the line keeps its measures
+    if (frame->lineBreak() && !measure->lineBreak()) {
+        measure->undoSetBreak(true, LayoutBreakType::LINE);
+    }
+    score->deleteMeasures(frame, frame);
+    score->setLayoutAll();
+}
+
+bool dropLineEnd(Score* score, const muse::PointF& pos)
+{
+    staff_idx_t staffIdx = 0;
+    MeasureBase* mb = score ? score->pos2measure(pos, &staffIdx, 0, nullptr, nullptr) : nullptr;
+    if (!mb || !mb->isMeasure()) {
+        return false;
+    }
+    Measure* measure = toMeasure(mb);
+    setLineEnd(score, measure, naturalLineEndFrameWidth(measure));
+    return true;
 }
 }

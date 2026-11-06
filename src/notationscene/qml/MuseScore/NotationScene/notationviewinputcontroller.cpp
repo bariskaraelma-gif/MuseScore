@@ -720,6 +720,19 @@ void NotationViewInputController::mousePressEvent(QMouseEvent* event)
     ctx.isHitGrip = viewInteraction()->isHitGrip(logicPos);
     ctx.event = event;
 
+    // Makam: the handle right of a line drags its width. It lies over the frame that ends the
+    // line, so it comes before the grips: the frame's own width grip works the other way round.
+    const EngravingItem* selected = viewInteraction()->selection()->element();
+    const bool onOtherGrip = ctx.isHitGrip && !(selected && selected->isHBox());
+    if (button == Qt::LeftButton && !onOtherGrip && (!ctx.hitElement || ctx.hitElement->isHBox()) && !m_readonly
+        && viewInteraction()->isLineEndHandle(logicPos)) {
+        viewInteraction()->endEditElement();
+        viewInteraction()->startLineEndDrag(logicPos);
+        m_mouseDownInfo.dragAction = MouseDownInfo::LineEnd;
+        m_view->asItem()->setCursor(Qt::SizeHorCursor);
+        return;
+    }
+
     // Grip
     bool consumed = mousePress_considerGrip(ctx);
     if (consumed) {
@@ -731,15 +744,6 @@ void NotationViewInputController::mousePressEvent(QMouseEvent* event)
         viewInteraction()->startStaffSpacingDrag(logicPos, event->modifiers() & Qt::ControlModifier);
         m_mouseDownInfo.dragAction = MouseDownInfo::StaffSpacing;
         m_view->asItem()->setCursor(Qt::SizeVerCursor);
-        return;
-    }
-
-    // Makam: the handle right of a line drags its width (over the frame that ends the line, too)
-    if (button == Qt::LeftButton && (!ctx.hitElement || ctx.hitElement->isHBox()) && !m_readonly
-        && viewInteraction()->isLineEndHandle(logicPos)) {
-        viewInteraction()->startLineEndDrag(logicPos);
-        m_mouseDownInfo.dragAction = MouseDownInfo::LineEnd;
-        m_view->asItem()->setCursor(Qt::SizeHorCursor);
         return;
     }
 

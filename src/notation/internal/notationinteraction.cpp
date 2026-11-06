@@ -1484,39 +1484,56 @@ void NotationInteraction::startLineEndDrag(const PointF& pos)
 {
     m_lineEndMeasure = mu::engraving::makam::lineEndAt(score(), pos);
     m_lineEndBegin = pos;
+    m_lineEndHadFrame = mu::engraving::makam::hasLineEndFrame(m_lineEndMeasure);
     m_lineEndFrameWidth = mu::engraving::makam::lineEndFrameWidth(m_lineEndMeasure);
-    m_lineEndNaturalWidth = -1.0;
-    m_lineEndDelta = 0.0;
+    m_lineEndNaturalWidth = 0.0;
+    m_lineEndWidth = m_lineEndFrameWidth;
     m_lineEndChanged = false;
+
+    if (m_lineEndMeasure) {
+        // the natural width is found by spacing the line again; a full layout then puts the line
+        // back exactly as it was, before the mouse moves (outside a command, nothing else would)
+        m_lineEndNaturalWidth = mu::engraving::makam::naturalLineEndFrameWidth(m_lineEndMeasure);
+        score()->doLayout();
+        notifyAboutNotationChanged();
+    }
 }
 
-//! Makam: the frame after the line takes what the measures give up, from no frame (the full line)
-//! to the natural width of the measures; as for the staff spacing, the whole drag is one undo step
+//! Makam: the line end follows the mouse. The frame after the line takes what the measures give
+//! up, from no frame (the full line) to the natural width of the measures; as for the staff
+//! spacing, the whole drag is one undo step
 void NotationInteraction::lineEndDrag(const PointF& pos)
 {
     if (!m_lineEndMeasure) {
         return;
     }
 
-    const double delta = std::round((pos.x() - m_lineEndBegin.x()) / m_lineEndMeasure->spatium() * 4.0) / 4.0;
-    if (m_lineEndChanged && muse::RealIsEqual(delta, m_lineEndDelta)) {
+    const double delta = (pos.x() - m_lineEndBegin.x()) / m_lineEndMeasure->spatium();
+    const double maxWidth = std::max(m_lineEndNaturalWidth, m_lineEndFrameWidth);
+    double width = std::clamp(std::round((m_lineEndFrameWidth - delta) * 4.0) / 4.0, 0.0, maxWidth);
+    if (width < 0.25) {
+        width = 0.0;   // no frame: the line is stretched to the page width again
+    }
+    if (muse::RealIsEqual(width, m_lineEndWidth)) {
         return;
     }
-    m_lineEndDelta = delta;
+    m_lineEndWidth = width;
 
     if (m_lineEndChanged) {
         rollback();
+        m_lineEndChanged = false;
     }
-    startEdit(TranslatableString("undoableAction", "Change line width"));
-    if (m_lineEndNaturalWidth < 0.0) {
-        m_lineEndNaturalWidth = mu::engraving::makam::naturalLineEndFrameWidth(m_lineEndMeasure);
+    if (width > 0.0 || m_lineEndHadFrame) {
+        startEdit(TranslatableString("undoableAction", "Change line width"));
+        if (width > 0.0) {
+            mu::engraving::makam::setLineEnd(score(), m_lineEndMeasure, width);
+        } else {
+            mu::engraving::makam::removeLineEnd(score(), m_lineEndMeasure);
+        }
+        m_lineEndChanged = true;
+        score()->update();
     }
-    const double maxWidth = std::max(m_lineEndNaturalWidth, m_lineEndFrameWidth);
-    const double width = std::clamp(m_lineEndFrameWidth - delta, 0.0, maxWidth);
-    mu::engraving::makam::setLineEnd(score(), m_lineEndMeasure, width);
-    m_lineEndChanged = true;
 
-    score()->update();
     notifyAboutDragChanged();
 }
 
@@ -1859,6 +1876,17 @@ bool NotationInteraction::updateDropSingle(const PointF& pos, Qt::KeyboardModifi
     }
     //! NOTE: See Measure::acceptDrop
     case ElementType::ACTION_ICON: {
+        // Makam: the line end is dropped on a measure
+        if (toActionIcon(dropElem)->actionCode() == MAKAM_LINE_END_CODE) {
+            mu::engraving::staff_idx_t staffIdx = 0;
+            mu::engraving::MeasureBase* mb = score()->pos2measure(pos, &staffIdx, 0, nullptr, 0);
+            if (mb && mb->isMeasure()) {
+                setDropTarget(mb, true);
+                return true;
+            }
+            setDropTarget(nullptr);
+            return false;
+        }
         switch (toActionIcon(dropElem)->actionType()) {
         case ActionIconType::VFRAME:
         case ActionIconType::HFRAME:
@@ -2204,8 +2232,15 @@ bool NotationInteraction::dropSingle(const PointF& pos, Qt::KeyboardModifiers mo
     case ElementType::INSTRUMENT_CHANGE:
     case ElementType::REHEARSAL_MARK:
     case ElementType::JUMP:
-    case ElementType::MEASURE_REPEAT:
     case ElementType::ACTION_ICON:
+        // Makam: the line end acts on the measure it is dropped on
+        if (toActionIcon(edd.ed.dropElement)->actionCode() == MAKAM_LINE_END_CODE) {
+            accepted = mu::engraving::makam::dropLineEnd(score(), pos);
+            break;
+        }
+        accepted = doDropStandard();
+        break;
+    case ElementType::MEASURE_REPEAT:
     case ElementType::NOTE:
     case ElementType::CHORD:
     case ElementType::SPACER:

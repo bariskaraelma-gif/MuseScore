@@ -84,6 +84,11 @@ char16_t LayoutBreak::iconCode() const
 {
     switch (m_layoutBreakType) {
     case LayoutBreakType::LINE:
+        // Makam: on the frame that ends a line at its natural width (editstaffspacing.h), the icon
+        // of the "line end" palette cell (IconCode::TEXT_ALIGN_LEFT)
+        if (explicitParent() && explicitParent()->isHBox()) {
+            return 0xEF3D;
+        }
         return 0xF483;
     case LayoutBreakType::PAGE:
         return 0xF484;
