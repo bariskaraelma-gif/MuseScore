@@ -17,15 +17,17 @@
  */
 #include "makamtoolsmodel.h"
 
-#include <QTimer>
-
 #include "settings.h"
 
 #include "engraving/dom/accidental.h"
-#include "engraving/dom/engravingitem.h"
-#include "engraving/dom/measurebase.h"
+#include "engraving/dom/articulation.h"
+#include "engraving/dom/chord.h"
+#include "engraving/dom/factory.h"
+#include "engraving/dom/rootitem.h"
+#include "engraving/dom/score.h"
 
 #include "notation/inotation.h"
+#include "notation/inotationelements.h"
 #include "notation/inotationinteraction.h"
 #include "notation/inotationnoteinput.h"
 #include "notation/inotationselection.h"
@@ -97,7 +99,6 @@ void MakamToolsModel::load()
         if (finale != m_finaleMode) {
             m_finaleMode = finale;
             emit finaleModeChanged();
-            m_lastSelectionKey = nullptr;
         }
     });
 
@@ -144,6 +145,21 @@ void MakamToolsModel::applyAccidental(const QString& id)
     }
 }
 
+void MakamToolsModel::addMizrap(bool down)
+{
+    INotationPtr notation = globalContext()->currentNotation();
+    if (!notation || notation->interaction()->selection()->isNone()) {
+        return;
+    }
+
+    // a strum arrow above the note, as an articulation: one more click on it takes it away
+    mu::engraving::Score* score = notation->elements()->msScore();
+    std::shared_ptr<mu::engraving::Articulation> arrow = mu::engraving::Factory::makeArticulation(score->dummy()->chord());
+    arrow->setSymId(down ? mu::engraving::SymId::guitarStrumDown : mu::engraving::SymId::guitarStrumUp);
+    arrow->setAnchor(mu::engraving::ArticulationAnchor::TOP);
+    notation->interaction()->applyPaletteElement(arrow.get());
+}
+
 void MakamToolsModel::showAllPalettes()
 {
     dispatcher()->dispatch("toggle-palettes");
@@ -152,16 +168,11 @@ void MakamToolsModel::showAllPalettes()
 void MakamToolsModel::onNotationChanged()
 {
     emit hasNotationChanged();
-    m_lastSelectionKey = nullptr;
 
     INotationPtr notation = globalContext()->currentNotation();
     if (!notation) {
         return;
     }
-
-    notation->interaction()->selectionChanged().onNotify(this, [this]() {
-        onSelectionChanged();
-    });
 
     notation->interaction()->noteInput()->stateChanged().onNotify(this, [this]() {
         // note input started or ended elsewhere (N, Esc, the note input bar)
@@ -181,116 +192,32 @@ bool MakamToolsModel::isNoteInput() const
     return notation && notation->interaction()->noteInput()->isNoteInputMode();
 }
 
-bool MakamToolsModel::isOpenOnClickTool() const
-{
-    return m_activeTool == "makam" || m_activeTool == "usul";
-}
-
 void MakamToolsModel::setActiveTool(const QString& tool)
 {
     if (m_activeTool == tool) {
         return;
     }
     m_activeTool = tool;
-    m_lastSelectionKey = nullptr;
     emit activeToolChanged();
 }
 
 void MakamToolsModel::selectTool(const QString& tool)
 {
-    if (tool == SELECTION_TOOL) {
-        if (isNoteInput()) {
-            dispatcher()->dispatch("note-input");
-        }
-        setActiveTool(SELECTION_TOOL);
-        return;
-    }
-
-    if (tool == NOTE_INPUT_TOOL) {
-        if (!isNoteInput()) {
-            dispatcher()->dispatch("note-input");
-        }
-        setActiveTool(NOTE_INPUT_TOOL);   // the accidental column, no popup
-        return;
-    }
-
     if (tool == "lyrics") {
         // lyrics are typed under the selected note: no palette
         dispatcher()->dispatch("lyrics");
         return;
     }
 
-    if (isNoteInput()) {
+    // note input on only for its own tool (the others work on the selection)
+    if ((tool == NOTE_INPUT_TOOL) != isNoteInput()) {
         dispatcher()->dispatch("note-input");
     }
     setActiveTool(tool);
 
-    // the popup applies to the present selection; that selection opens no second popup
-    currentSelectionKey(m_lastSelectionKey, m_lastSelectionStaff);
-    emit popupRequested(tool);
-}
-
-bool MakamToolsModel::currentSelectionKey(const void*& key, size_t& staff) const
-{
-    key = nullptr;
-    staff = 0;
-
-    INotationPtr notation = globalContext()->currentNotation();
-    if (!notation) {
-        return false;
+    // the note input, makam and usul tools show their column beside the tool bar; the others
+    // open a popup
+    if (tool != SELECTION_TOOL && tool != NOTE_INPUT_TOOL && tool != "makam" && tool != "usul") {
+        emit popupRequested(tool);
     }
-    INotationSelectionPtr selection = notation->interaction()->selection();
-    if (selection->isNone()) {
-        return false;
-    }
-
-    if (selection->isRange()) {
-        key = selection->startMeasureBase();
-        staff = selection->range()->startStaffIndex();
-        return key != nullptr;
-    }
-
-    // one element (several single elements: no measure to speak of)
-    key = selection->element();
-    return key != nullptr;
-}
-
-void MakamToolsModel::setPopupOpen(bool open)
-{
-    if (m_popupOpen == open) {
-        return;
-    }
-    m_popupOpen = open;
-
-    if (!open) {
-        // a click on a measure closes the popup first: look at the selection once it is made
-        QTimer::singleShot(0, this, [this]() {
-            onSelectionChanged();
-        });
-    }
-}
-
-void MakamToolsModel::onSelectionChanged()
-{
-    if (!m_finaleMode || !isOpenOnClickTool() || m_popupOpen || isNoteInput()) {
-        return;
-    }
-
-    const void* key = nullptr;
-    size_t staff = 0;
-    if (!currentSelectionKey(key, staff)) {
-        return;
-    }
-    if (key == m_lastSelectionKey && staff == m_lastSelectionStaff) {
-        return;
-    }
-    m_lastSelectionKey = key;
-    m_lastSelectionStaff = staff;
-
-    INotationPtr notation = globalContext()->currentNotation();
-    const mu::engraving::EngravingItem* item = notation->interaction()->selection()->element();
-    if (item && (item->isKeySig() || item->isTimeSig())) {
-        return;   // what a palette cell just put there: no new popup for it
-    }
-    emit popupRequested(m_activeTool);
 }

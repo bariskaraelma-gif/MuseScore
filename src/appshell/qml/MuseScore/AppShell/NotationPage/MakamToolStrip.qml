@@ -2,9 +2,10 @@
  * SPDX-License-Identifier: GPL-3.0-only
  *
  * Makam: the Finale-like tool bar on the left of the score, shown when Preferences >
- * Appearance > Arayüz is "Finale benzeri". Two columns of tools in groups; each tool opens its
- * palettes in a popup, the Makam and Usul tools open theirs again on every measure clicked
- * while they are on. The note input tool shows a column of the AEU accidentals beside the bar.
+ * Appearance > Arayüz is "Finale benzeri". Two columns of tools in groups. The note input,
+ * Makam and Usul tools show a column beside the bar (the AEU accidentals, the donanıms, the
+ * usuls); the other tools open their palettes in a popup; the mızrap buttons put a strum arrow
+ * above the selected notes.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as
@@ -31,7 +32,7 @@ Item {
     id: root
 
     visible: toolsModel.finaleMode
-    width: visible ? toolBar.width + (accidentalColumn.visible ? accidentalColumn.width : 0) : 0
+    width: visible ? toolBar.width + (sideColumn.visible ? sideColumn.width : 0) : 0
 
     readonly property int buttonSize: 36
     readonly property int buttonSpacing: 4
@@ -44,7 +45,8 @@ Item {
     readonly property string timeSig5: ""
     readonly property string timeSig8: ""
 
-    // icon: an IconCode; drawn: "makam" or "usul" (music font glyphs)
+    // icon: an IconCode; drawn: "makam" or "usul" (music font glyphs) or "label" (the title);
+    // action: a button that does something at once instead of choosing a tool
     readonly property var toolGroups: [
         [
             { id: "selection", title: "Seçim", icon: IconCode.PAN_SCORE,
@@ -54,30 +56,34 @@ Item {
         ],
         [
             { id: "makam", title: "Makam", drawn: "makam",
-              description: "Makam donanımları. Bu araç açıkken tıkladığınız ölçüde kutu kendiliğinden açılır" },
+              description: "Makam donanımları yanda açılır. Ölçüyü seçip donanıma tıklayın" },
             { id: "usul", title: "Usul", drawn: "usul",
-              description: "Usuller. Bu araç açıkken tıkladığınız ölçüde kutu kendiliğinden açılır" },
+              description: "Usuller yanda açılır. Ölçüyü seçip usule tıklayın" },
             { id: "barline", title: "Ölçü çizgisi", icon: IconCode.DOUBLE_BAR_LINE,
               description: "Ölçü çizgileri" },
             { id: "layout", title: "Yerleşim", icon: IconCode.LINE_BREAK,
               description: "Satır sonu, sayfa sonu, boşluklar" }
         ],
         [
+            { id: "mizrap-down", title: "Mızrap aşağı", icon: IconCode.ARROW_DOWN, action: true,
+              description: "Seçili notaların üstüne aşağı ok koyar (bir daha basınca kalkar)" },
+            { id: "mizrap-up", title: "Mızrap yukarı", icon: IconCode.ARROW_UP, action: true,
+              description: "Seçili notaların üstüne yukarı ok koyar (bir daha basınca kalkar)" },
             { id: "articulation", title: "Artikülasyon", icon: IconCode.ARTICULATION,
               description: "Artikülasyonlar" },
             { id: "ornament", title: "Süsleme", icon: IconCode.ORNAMENT,
               description: "Süslemeler, nefes ve durak" },
             { id: "dynamics", title: "Nüans", icon: IconCode.DYNAMIC_FORTE,
               description: "Nüanslar, kreşendo ve dekreşendo" },
-            { id: "tempo", title: "Tempo", icon: IconCode.METRONOME,
-              description: "Tempo işaretleri" },
-            { id: "text", title: "Metin", icon: IconCode.AUTO_TEXT,
+            { id: "text", title: "Metin", drawn: "label",
               description: "Metinler (Hane, Teslim, Saz…)" },
             { id: "lyrics", title: "Söz", icon: IconCode.LYRICS,
               description: "Seçili notanın altına söz yazmaya başlar" },
             { id: "repeat", title: "Tekrar", icon: IconCode.REPEAT_START,
-              description: "Tekrarlar ve atlamalar" },
-            { id: "allpalettes", title: "Bütün paletler", icon: IconCode.GRID,
+              description: "Tekrarlar ve atlamalar" }
+        ],
+        [
+            { id: "allpalettes", title: "Bütün paletler", icon: IconCode.GRID, action: true,
               description: "Palet panelini açar ya da kapatır (kiriş, süsleme notası, çizgiler…)" }
         ]
     ]
@@ -103,6 +109,16 @@ Item {
         return ""
     }
 
+    function onToolClicked(toolId) {
+        if (toolId === "allpalettes") {
+            toolsModel.showAllPalettes()
+        } else if (toolId === "mizrap-down" || toolId === "mizrap-up") {
+            toolsModel.addMizrap(toolId === "mizrap-down")
+        } else {
+            toolsModel.selectTool(toolId)
+        }
+    }
+
     Connections {
         target: toolsModel
 
@@ -116,14 +132,6 @@ Item {
 
     ToolPalettePopup {
         id: palettePopup
-
-        onOpened: {
-            toolsModel.setPopupOpen(true)
-        }
-
-        onClosed: {
-            toolsModel.setPopupOpen(false)
-        }
     }
 
     Rectangle {
@@ -180,7 +188,7 @@ Item {
                             toolTipTitle: tool.title
                             toolTipDescription: tool.description
 
-                            accentButton: toolsModel.activeTool === tool.id
+                            accentButton: !tool.action && toolsModel.activeTool === tool.id
                             transparent: !accentButton
 
                             Component.onCompleted: {
@@ -188,11 +196,7 @@ Item {
                             }
 
                             onClicked: {
-                                if (tool.id === "allpalettes") {
-                                    toolsModel.showAllPalettes()
-                                } else {
-                                    toolsModel.selectTool(tool.id)
-                                }
+                                root.onToolClicked(tool.id)
                             }
 
                             // Makam: a reversed flat low on the left, a slashed flat high on the right
@@ -219,7 +223,8 @@ Item {
                                 }
                             }
 
-                            // Usul: 5 over 8 without a fraction line, the time signature digits of the music font (as in the Usul palette)
+                            // Usul: 5 over 8 without a fraction line, the time signature digits of the
+                            // music font (as in the Usul palette)
                             Item {
                                 anchors.fill: parent
                                 visible: toolButton.tool.drawn === "usul"
@@ -242,6 +247,14 @@ Item {
                                     font.pixelSize: 28
                                 }
                             }
+
+                            // the title as the icon (Metin)
+                            StyledTextLabel {
+                                anchors.centerIn: parent
+                                visible: toolButton.tool.drawn === "label"
+                                text: toolButton.tool.title
+                                font.pixelSize: 11
+                            }
                         }
                     }
                 }
@@ -249,16 +262,19 @@ Item {
         }
     }
 
-    // The accidentals of note input: naturel on top, sharps on the left, flats on the right
+    // The column beside the tool bar: the accidentals of note input, or the donanıms / usuls
     Rectangle {
-        id: accidentalColumn
+        id: sideColumn
+
+        readonly property bool showsAccidentals: toolsModel.activeTool === "noteinput"
+        readonly property bool showsPalette: toolsModel.activeTool === "makam" || toolsModel.activeTool === "usul"
 
         anchors.left: toolBar.right
         anchors.top: parent.top
         anchors.bottom: parent.bottom
-        width: 2 * root.buttonSize + root.buttonSpacing + 2 * root.sideMargin
+        width: (showsPalette ? paletteColumn.implicitWidth : 2 * root.buttonSize + root.buttonSpacing) + 2 * root.sideMargin
 
-        visible: toolsModel.activeTool === "noteinput"
+        visible: showsAccidentals || showsPalette
         color: ui.theme.backgroundPrimaryColor
 
         Rectangle {
@@ -269,8 +285,9 @@ Item {
             color: ui.theme.strokeColor
         }
 
-        // the cells of the two columns, row by row (null: an empty cell)
-        function rows() {
+        // the cells of the two accidental columns, row by row (null: an empty cell): naturel
+        // alone on the first row, then sharp | flat pairs from koma to büyük mücennep
+        function accidentalCells() {
             const all = toolsModel.accidentals
             const naturals = all.filter(a => a.column === "natural")
             const sharps = all.filter(a => a.column === "sharp")
@@ -285,48 +302,58 @@ Item {
             return cells
         }
 
-        Column {
+        Grid {
             anchors.top: parent.top
             anchors.topMargin: 6
             anchors.horizontalCenter: parent.horizontalCenter
+            visible: sideColumn.showsAccidentals
+
+            columns: 2
             spacing: root.buttonSpacing
 
-            // naturel alone on the first row, then sharp | flat pairs from koma to büyük mücennep
-            Grid {
-                columns: 2
-                spacing: root.buttonSpacing
+            Repeater {
+                model: sideColumn.accidentalCells()
 
-                Repeater {
-                    model: accidentalColumn.rows()
+                delegate: FlatButton {
+                    id: accidentalButton
 
-                    delegate: FlatButton {
-                        id: accidentalButton
+                    required property var modelData
 
-                        required property var modelData
+                    width: root.buttonSize
+                    height: root.buttonSize
 
-                        width: root.buttonSize
-                        height: root.buttonSize
+                    opacity: modelData ? 1 : 0
+                    enabled: Boolean(modelData) && toolsModel.hasNotation
+                    toolTipTitle: modelData ? modelData.title : ""
+                    transparent: true
 
-                        opacity: modelData ? 1 : 0
-                        enabled: Boolean(modelData) && toolsModel.hasNotation
-                        toolTipTitle: modelData ? modelData.title : ""
-                        transparent: true
+                    onClicked: {
+                        toolsModel.applyAccidental(accidentalButton.modelData.id)
+                    }
 
-                        onClicked: {
-                            toolsModel.applyAccidental(accidentalButton.modelData.id)
-                        }
-
-                        Text {
-                            anchors.horizontalCenter: parent.horizontalCenter
-                            y: 23 - baselineOffset
-                            text: accidentalButton.modelData ? accidentalButton.modelData.glyph : ""
-                            color: ui.theme.fontPrimaryColor
-                            font.family: ui.theme.musicalFont.family
-                            font.pixelSize: 26
-                        }
+                    Text {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        y: 23 - baselineOffset
+                        text: accidentalButton.modelData ? accidentalButton.modelData.glyph : ""
+                        color: ui.theme.fontPrimaryColor
+                        font.family: ui.theme.musicalFont.family
+                        font.pixelSize: 26
                     }
                 }
             }
+        }
+
+        ToolPaletteColumn {
+            id: paletteColumn
+
+            anchors.top: parent.top
+            anchors.topMargin: 6
+            anchors.bottom: parent.bottom
+            anchors.horizontalCenter: parent.horizontalCenter
+            width: implicitWidth
+
+            visible: sideColumn.showsPalette
+            tool: sideColumn.showsPalette ? toolsModel.activeTool : ""
         }
     }
 }

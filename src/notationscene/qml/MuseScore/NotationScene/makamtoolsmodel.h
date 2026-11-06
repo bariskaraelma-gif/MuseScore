@@ -2,10 +2,10 @@
  * SPDX-License-Identifier: GPL-3.0-only
  *
  * Makam: model of the Finale-like tool bar on the left of the score (Preferences > Appearance >
- * Arayüz). Each tool opens its palettes in a popup; while the Makam or the Usul tool is on, a
- * click on a measure opens the popup of that tool at once. The interaction of the score is not
- * changed: the tool only listens to the selection. The note input tool shows a column of the
- * AEU accidentals next to the tool bar. (The Palettes panel is closed by NotationPageModel.)
+ * Arayüz). The note input, Makam and Usul tools show a column beside the tool bar (the AEU
+ * accidentals, the donanıms, the usuls); the other tools open their palettes in a popup. The two
+ * mızrap buttons put a strum arrow above the selected notes. (The panels on the left are closed
+ * by NotationPageModel.)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as
@@ -59,7 +59,7 @@ public:
     Q_INVOKABLE void load();
     Q_INVOKABLE void selectTool(const QString& tool);   // a click on a tool button
     Q_INVOKABLE void applyAccidental(const QString& id);
-    Q_INVOKABLE void setPopupOpen(bool open);
+    Q_INVOKABLE void addMizrap(bool down);               // the direction of the plectrum
     Q_INVOKABLE void showAllPalettes();                  // "Bütün paletler": the Palettes panel
 
 signals:
@@ -70,16 +70,10 @@ signals:
 
 private:
     void onNotationChanged();
-    void onSelectionChanged();
     void setActiveTool(const QString& tool);
     bool isNoteInput() const;
-    bool isOpenOnClickTool() const;
-    bool currentSelectionKey(const void*& key, size_t& staff) const;
 
     bool m_finaleMode = false;
     QString m_activeTool = "selection";
-    bool m_popupOpen = false;
-    const void* m_lastSelectionKey = nullptr;   // the selection that last opened the popup
-    size_t m_lastSelectionStaff = 0;
 };
 }

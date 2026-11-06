@@ -104,9 +104,9 @@ void NotationPageModel::init()
         scheduleUpdatePercussionPanelVisibility();
     });
 
-    // Makam: with the Finale-like interface the Palettes panel is closed when the program starts
+    // Makam: with the Finale-like interface the panels on the left are closed when the program starts
     // and when the interface is chosen (after the Preferences dialog, hence the timer); with the
-    // MuseScore interface it is opened again when chosen, not at start (the user's layout)
+    // MuseScore interface they are opened again when chosen, not at start (the user's layout)
     if (isMakamFinaleInterface(muse::settings()->value(MAKAM_INTERFACE_KEY))) {
         QTimer::singleShot(0, this, [this]() { applyMakamInterface(true); });
     }
@@ -125,9 +125,13 @@ void NotationPageModel::applyMakamInterface(bool finale)
         return;
     }
 
+    // the whole left column (Palettes, Layout, Properties); they can still be opened from the
+    // View menu, and come back when the MuseScore interface is chosen
     const bool open = !finale;
-    if (window->isDockOpen(PALETTES_PANEL_NAME) != open) {
-        dispatcher()->dispatch("dock-set-open", ActionData::make_arg2<QString, bool>(PALETTES_PANEL_NAME, open));
+    for (const DockName& name : { PALETTES_PANEL_NAME, LAYOUT_PANEL_NAME, INSPECTOR_PANEL_NAME }) {
+        if (window->isDockOpen(name) != open) {
+            dispatcher()->dispatch("dock-set-open", ActionData::make_arg2<QString, bool>(name, open));
+        }
     }
 }
 
