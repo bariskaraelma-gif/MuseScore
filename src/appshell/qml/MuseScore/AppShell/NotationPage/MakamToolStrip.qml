@@ -2,10 +2,10 @@
  * SPDX-License-Identifier: GPL-3.0-only
  *
  * Makam: the Finale-like tool bar on the left of the score, shown when Preferences >
- * Appearance > Arayüz is "Finale benzeri". Two columns of tools in groups. The note input,
- * Makam and Usul tools show a column beside the bar (the AEU accidentals, the donanıms, the
- * usuls); the other tools open their palettes in a popup; the mızrap buttons put a strum arrow
- * above the selected notes.
+ * Appearance > Arayüz is "Finale benzeri". Two columns of tools in groups. Each tool shows a
+ * column beside the bar: the AEU accidentals for note input, its palette for the others; the
+ * mızrap buttons put a strum arrow above the selected notes; Özellikler floats the Properties
+ * panel as a small window.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as
@@ -71,18 +71,18 @@ Item {
               description: "Seçili notaların üstüne yukarı ok koyar (bir daha basınca kalkar)" },
             { id: "articulation", title: "Artikülasyon", icon: IconCode.ARTICULATION,
               description: "Artikülasyonlar" },
-            { id: "ornament", title: "Süsleme", icon: IconCode.ORNAMENT,
-              description: "Süslemeler, nefes ve durak" },
             { id: "dynamics", title: "Nüans", icon: IconCode.DYNAMIC_FORTE,
               description: "Nüanslar, kreşendo ve dekreşendo" },
             { id: "text", title: "Metin", drawn: "label",
-              description: "Metinler (Hane, Teslim, Saz…)" },
-            { id: "lyrics", title: "Söz", icon: IconCode.LYRICS,
-              description: "Seçili notanın altına söz yazmaya başlar" },
+              description: "Metinler (Hane, Teslim, Saz…); Özellikler penceresi de açılır" },
+            { id: "lyrics", title: "Söz", icon: IconCode.LYRICS, action: true,
+              description: "Seçili notanın altına söz yazmaya başlar; Özellikler penceresi de açılır" },
             { id: "repeat", title: "Tekrar", icon: IconCode.REPEAT_START,
               description: "Tekrarlar ve atlamalar" }
         ],
         [
+            { id: "properties", title: "Özellikler", icon: IconCode.CONFIGURE, action: true,
+              description: "Seçili öğenin özelliklerini küçük bir pencerede açar ya da kapatır" },
             { id: "allpalettes", title: "Bütün paletler", icon: IconCode.GRID, action: true,
               description: "Palet panelini açar ya da kapatır (kiriş, süsleme notası, çizgiler…)" }
         ]
@@ -95,8 +95,6 @@ Item {
     Component.onCompleted: {
         toolsModel.load()
     }
-
-    property var toolButtons: ({})
 
     function toolTitle(toolId) {
         for (let g = 0; g < root.toolGroups.length; ++g) {
@@ -112,26 +110,13 @@ Item {
     function onToolClicked(toolId) {
         if (toolId === "allpalettes") {
             toolsModel.showAllPalettes()
+        } else if (toolId === "properties") {
+            toolsModel.toggleProperties()
         } else if (toolId === "mizrap-down" || toolId === "mizrap-up") {
             toolsModel.addMizrap(toolId === "mizrap-down")
         } else {
             toolsModel.selectTool(toolId)
         }
-    }
-
-    Connections {
-        target: toolsModel
-
-        function onPopupRequested(tool) {
-            const button = root.toolButtons[tool]
-            if (button) {
-                palettePopup.openFor(tool, root.toolTitle(tool), button)
-            }
-        }
-    }
-
-    ToolPalettePopup {
-        id: palettePopup
     }
 
     Rectangle {
@@ -190,10 +175,6 @@ Item {
 
                             accentButton: !tool.action && toolsModel.activeTool === tool.id
                             transparent: !accentButton
-
-                            Component.onCompleted: {
-                                root.toolButtons[tool.id] = toolButton
-                            }
 
                             onClicked: {
                                 root.onToolClicked(tool.id)
@@ -262,12 +243,12 @@ Item {
         }
     }
 
-    // The column beside the tool bar: the accidentals of note input, or the donanıms / usuls
+    // The column beside the tool bar: the accidentals of note input, or the palette of the tool
     Rectangle {
         id: sideColumn
 
         readonly property bool showsAccidentals: toolsModel.activeTool === "noteinput"
-        readonly property bool showsPalette: toolsModel.activeTool === "makam" || toolsModel.activeTool === "usul"
+        readonly property bool showsPalette: toolsModel.activeTool !== "noteinput" && toolsModel.activeTool !== "selection"
 
         anchors.left: toolBar.right
         anchors.top: parent.top
@@ -354,6 +335,7 @@ Item {
 
             visible: sideColumn.showsPalette
             tool: sideColumn.showsPalette ? toolsModel.activeTool : ""
+            title: root.toolTitle(tool)
         }
     }
 }

@@ -110,6 +110,7 @@ void NotationPageModel::init()
     if (isMakamFinaleInterface(muse::settings()->value(MAKAM_INTERFACE_KEY))) {
         QTimer::singleShot(0, this, [this]() { applyMakamInterface(true); });
     }
+    dispatcher()->reg(this, "makam-properties", this, &NotationPageModel::onMakamProperties);
     muse::settings()->valueChanged(MAKAM_INTERFACE_KEY).onReceive(this, [this](const muse::Val& value) {
         const bool finale = isMakamFinaleInterface(value);
         QTimer::singleShot(0, this, [this, finale]() { applyMakamInterface(finale); });
@@ -120,19 +121,48 @@ void NotationPageModel::init()
 
 void NotationPageModel::applyMakamInterface(bool finale)
 {
-    const muse::dock::IDockWindow* window = dockWindowProvider()->window();
+    muse::dock::IDockWindow* window = dockWindowProvider()->window();
     if (!window) {
         return;
     }
 
-    // the whole left column (Palettes, Layout, Properties); they can still be opened from the
-    // View menu, and come back when the MuseScore interface is chosen
+    // the whole left column (Palettes, Layout, Properties); Properties comes back as a floating
+    // window (onMakamProperties); all come back docked when the MuseScore interface is chosen
     const bool open = !finale;
     for (const DockName& name : { PALETTES_PANEL_NAME, LAYOUT_PANEL_NAME, INSPECTOR_PANEL_NAME }) {
         if (window->isDockOpen(name) != open) {
             dispatcher()->dispatch("dock-set-open", ActionData::make_arg2<QString, bool>(name, open));
         }
     }
+    if (!finale && window->isDockFloating(INSPECTOR_PANEL_NAME)) {
+        window->toggleDockFloating(INSPECTOR_PANEL_NAME);
+    }
+}
+
+void NotationPageModel::onMakamProperties(const ActionData& args)
+{
+    // args: true = only open it (Söz, Metin), false = open or close it (its button)
+    const bool openOnly = args.count() > 0 && args.arg<bool>(0);
+
+    muse::dock::IDockWindow* window = dockWindowProvider()->window();
+    if (!window) {
+        return;
+    }
+
+    if (window->isDockOpen(INSPECTOR_PANEL_NAME)) {
+        if (!openOnly) {
+            window->setDockOpen(INSPECTOR_PANEL_NAME, false);
+        }
+        return;
+    }
+
+    window->setDockOpen(INSPECTOR_PANEL_NAME, true);
+    QTimer::singleShot(0, this, [this]() {
+        muse::dock::IDockWindow* w = dockWindowProvider()->window();
+        if (w && w->isDockOpen(INSPECTOR_PANEL_NAME) && !w->isDockFloating(INSPECTOR_PANEL_NAME)) {
+            w->toggleDockFloating(INSPECTOR_PANEL_NAME);
+        }
+    });
 }
 
 QString NotationPageModel::notationToolBarName() const

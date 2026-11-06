@@ -70,9 +70,7 @@ QVariantList PaletteRootModel::makamToolPalettes(const QString& tool) const
         { "barline", { Palette::Type::BarLine } },
         { "layout", { Palette::Type::Layout } },
         { "articulation", { Palette::Type::Articulation } },
-        { "ornament", { Palette::Type::Ornament, Palette::Type::Breath } },
         { "dynamics", { Palette::Type::Dynamic } },
-        { "tempo", { Palette::Type::Tempo } },
         { "text", { Palette::Type::Text } },
         { "repeat", { Palette::Type::Repeat } },
     };

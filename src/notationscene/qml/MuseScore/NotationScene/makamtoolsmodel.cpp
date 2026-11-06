@@ -165,6 +165,12 @@ void MakamToolsModel::showAllPalettes()
     dispatcher()->dispatch("toggle-palettes");
 }
 
+void MakamToolsModel::toggleProperties()
+{
+    // the Properties panel as a floating window (NotationPageModel)
+    dispatcher()->dispatch("makam-properties", muse::actions::ActionData::make_arg1<bool>(false));
+}
+
 void MakamToolsModel::onNotationChanged()
 {
     emit hasNotationChanged();
@@ -204,8 +210,9 @@ void MakamToolsModel::setActiveTool(const QString& tool)
 void MakamToolsModel::selectTool(const QString& tool)
 {
     if (tool == "lyrics") {
-        // lyrics are typed under the selected note: no palette
+        // lyrics are typed under the selected note: no palette, the Properties window for the font
         dispatcher()->dispatch("lyrics");
+        dispatcher()->dispatch("makam-properties", muse::actions::ActionData::make_arg1<bool>(true));
         return;
     }
 
@@ -213,11 +220,9 @@ void MakamToolsModel::selectTool(const QString& tool)
     if ((tool == NOTE_INPUT_TOOL) != isNoteInput()) {
         dispatcher()->dispatch("note-input");
     }
-    setActiveTool(tool);
+    setActiveTool(tool);   // the column of the tool beside the tool bar
 
-    // the note input, makam and usul tools show their column beside the tool bar; the others
-    // open a popup
-    if (tool != SELECTION_TOOL && tool != NOTE_INPUT_TOOL && tool != "makam" && tool != "usul") {
-        emit popupRequested(tool);
+    if (tool == "text") {
+        dispatcher()->dispatch("makam-properties", muse::actions::ActionData::make_arg1<bool>(true));
     }
 }

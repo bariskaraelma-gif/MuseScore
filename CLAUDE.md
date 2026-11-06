@@ -98,13 +98,13 @@ Bizim eklediğimiz her şey `Makam:` yorumuyla işaretlidir. Aramak için: `git 
 
 - **Finale benzeri arayüz** (Tercihler > Görünüm > Arayüz; ayar `makam/interface` = `musescore` | `finale`, varsayılan MuseScore):
   - Notanın solunda iki sütunlu, gruplu araç çubuğu: `src/appshell/qml/MuseScore/AppShell/NotationPage/MakamToolStrip.qml`. `NotationPage.qml` içinde `central` bir Item oldu: araç çubuğu + NotationView.
-  - Gruplar: Seçim | Nota girişi — Makam | Usul, Ölçü çizgisi | Yerleşim — Mızrap ↓ | Mızrap ↑, Artikülasyon | Süsleme (+ nefes), Nüans | Metin, Söz (`lyrics`) | Tekrar — Bütün paletler (palet panelini açar/kapatır). Anahtar ve Tempo aracı yok (tempo üstteki çalma çubuğunda).
-  - Yan sütun: Nota girişi → AEU arızaları (üstte naturel, solda 4 diyez, sağda 4 bemol; `MakamToolsModel::applyAccidental`, nota çubuğundaki arıza düğmeleri gibi). Makam / Usul → donanım / usul paleti iki hücre genişliğinde (`ToolPaletteColumn.qml`, palette modülü). THM arızaları sonra.
-  - Öteki araçlar paletlerini kutuda açar: `ToolPalettePopup.qml` (palette modülü; "Daha fazla" aynı kutuda tam paleti açar). Araç → palet eşlemesi: `PaletteRootModel::makamToolPalettes()` (`src/palette/qml/MuseScore/Palette/internal/paletterootmodel.cpp`). Hepsi kullanıcının kendi (sadeleştirilmiş) paletlerini gösterir.
+  - Gruplar: Seçim | Nota girişi — Makam | Usul, Ölçü çizgisi | Yerleşim — Mızrap ↓ | Mızrap ↑, Artikülasyon | Nüans, Metin | Söz, Tekrar — Özellikler | Bütün paletler. Anahtar, Tempo, Süsleme aracı yok (tempo üstteki çalma çubuğunda).
+  - Her araç çubuğun yanında dikey bir sütun açar (açılır kutu yok): Nota girişi → AEU arızaları (üstte naturel, solda 4 diyez, sağda 4 bemol; `MakamToolsModel::applyAccidental`, nota çubuğundaki arıza düğmeleri gibi). Öteki araçlar → kendi paleti, iki hücre genişliğinde, "Daha fazla" ile tam palet (`ToolPaletteColumn.qml`, palette modülü). THM arızaları sonra.
+  - Araç → palet eşlemesi: `PaletteRootModel::makamToolPalettes()` (`src/palette/qml/MuseScore/Palette/internal/paletterootmodel.cpp`). Kullanıcının kendi (sadeleştirilmiş) paletleri gösterilir.
   - Mızrap: `MakamToolsModel::addMizrap` seçili notalara `guitarStrumDown/Up` artikülasyonu koyar (üstte, `ArticulationAnchor::TOP`; Leland'de yok, Bravura'dan gelir). İkinci tık kaldırır.
   - Simgeler: Makam = ters bemol (koma, U+E280) solda aşağıda + çizgili bemol (bakiye, U+E442) sağda yukarıda; Usul = 5 üstte 8 altta, çizgisiz, palettekiyle aynı rakamlar; Metin = "Metin" yazısı. Nota yazı tipiyle (`ui.theme.musicalFont`); ötekiler MuseScore simge yazı tipinden.
+  - Paneller (`NotationPageModel`, `src/appshell/qml/MuseScore/AppShell/notationpagemodel.cpp`): `applyMakamInterface` Finale kipinde açılışta ve kip seçilince (Tercihler kapandıktan sonra, zamanlayıcıyla) Paletler, Yerleşim, Özellikler'i kapatır; MuseScore seçilince açar ve Özellikler'i yerine takar. `makam-properties` komutu (`onMakamProperties`) Özellikler'i yüzen küçük pencere olarak açar: Özellikler düğmesi açar/kapatır, Söz ve Metin yalnız açar.
   - Model: `makamtoolsmodel.*` (`src/notationscene/qml/MuseScore/NotationScene/`). Notadaki etkileşime (NotationInteraction) dokunulmadı.
-  - Sol sütun (Paletler, Yerleşim, Özellikler): `NotationPageModel::applyMakamInterface` (`dock-set-open`). Finale kipinde açılışta ve kip seçilince (Tercihler kapandıktan sonra, zamanlayıcıyla) kapanır; MuseScore seçilince açılır. Görünüm menüsünden yine açılabilirler.
   - Durum: derlendi ve kuruldu, açılışta QML hatası yok; bu sürümü kullanıcı henüz denemedi.
 
 ## Sıradaki işler

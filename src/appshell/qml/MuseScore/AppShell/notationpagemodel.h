@@ -104,6 +104,7 @@ private:
 
     // Makam: the Finale-like tool bar takes the place of the panels on the left
     void applyMakamInterface(bool finale);
+    void onMakamProperties(const muse::actions::ActionData& args);   // the floating Properties window
 
     bool m_inited = false;
     bool m_updateDrumsetPanelVisibilityScheduled = false;
