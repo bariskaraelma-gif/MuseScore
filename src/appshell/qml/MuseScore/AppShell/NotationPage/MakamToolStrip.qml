@@ -219,7 +219,7 @@ Item {
                                 }
                             }
 
-                            // Usul: 5 over 8, bold, without a fraction line
+                            // Usul: 5 over 8 without a fraction line, the time signature digits of the music font (as in the Usul palette)
                             Item {
                                 anchors.fill: parent
                                 visible: toolButton.tool.drawn === "usul"
@@ -231,7 +231,6 @@ Item {
                                     color: ui.theme.fontPrimaryColor
                                     font.family: ui.theme.musicalFont.family
                                     font.pixelSize: 28
-                                    font.bold: true
                                 }
 
                                 Text {
@@ -241,7 +240,6 @@ Item {
                                     color: ui.theme.fontPrimaryColor
                                     font.family: ui.theme.musicalFont.family
                                     font.pixelSize: 28
-                                    font.bold: true
                                 }
                             }
                         }
