@@ -22,6 +22,9 @@
 #include "projectactionscontroller.h"
 
 #include <QBuffer>
+#include <QDir>
+#include <QFile>
+#include <QStandardPaths>
 #include <QEventLoop>
 #include <QFileInfo>
 #include <QTemporaryFile>
@@ -48,6 +51,7 @@
 #include "engraving/dom/tempotext.h"
 #include "engraving/style/style.h"
 #include "engraving/editing/editahenk.h"
+#include "engraving/editing/makamdizi.h"
 
 #include "projecterrors.h"
 #include "projectextensionpoints.h"
@@ -83,6 +87,7 @@ void ProjectActionsController::init()
     dispatcher()->reg(this, "image-capture", this, &ProjectActionsController::openImageCapture);
     dispatcher()->reg(this, "makam-tuning", this, &ProjectActionsController::openMakamTuning);
     dispatcher()->reg(this, "makam-bona", this, &ProjectActionsController::openBona);
+    dispatcher()->reg(this, "makam-dizi", this, &ProjectActionsController::listenMakamDizi);
     dispatcher()->reg(this, "file-open", this, &ProjectActionsController::openProject);
 
     dispatcher()->reg(this, "file-close", [this]() {
@@ -851,6 +856,83 @@ void ProjectActionsController::openMakamTuning()
         return;
     }
     interactive()->open(MAKAM_TUNING_URI);
+}
+
+//! Makam: "Diziyi dinle" (args: makam id, with the sample seyir). Writes the dizi score of the
+//! makam (makamdizi.h), gives it the ahenk of the open score and the makam tuning, saves it in the
+//! temporary folder and opens it: here when no score is open (and plays it), otherwise in a new
+//! window. When the open score is that dizi score, it is played again (its tuning follows the
+//! "Makam akordu" window).
+void ProjectActionsController::listenMakamDizi(const ActionData& args)
+{
+    if (args.count() < 2) {
+        return;
+    }
+    const std::string makamId = args.arg<QString>(0).toStdString();
+    const bool withSeyir = args.arg<bool>(1);
+    const QString tag = mu::engraving::makam::diziTag(makamId, withSeyir);
+    if (tag.isEmpty()) {
+        return;
+    }
+
+    INotationProjectPtr current = currentNotationProject();
+    mu::engraving::MasterScore* currentScore = current ? current->masterNotation()->masterScore() : nullptr;
+    if (currentScore && currentScore->metaTag(mu::engraving::makam::DIZI_META_TAG).toQString() == tag) {
+        dispatcher()->dispatch("rewind");
+        dispatcher()->dispatch("play");
+        return;
+    }
+
+    const QString title = mu::engraving::makam::diziTitle(makamId);
+    const QString dir = QStandardPaths::writableLocation(QStandardPaths::TempLocation) + "/MakamNota";
+    QDir().mkpath(dir);
+    const QString base = dir + "/" + QString::fromStdString(makamId) + (withSeyir ? "-seyir" : "") + "-dizi";
+    const muse::io::path_t scorePath(base + ".mscz");
+
+    // already open in another window: show it there
+    if (multiwindowsProvider()->isProjectAlreadyOpened(scorePath)) {
+        multiwindowsProvider()->activateWindowWithProject(scorePath);
+        return;
+    }
+
+    const QString mscxPath = base + ".mscx";
+    QFile file(mscxPath);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+        LOGE() << "cannot write " << mscxPath;
+        return;
+    }
+    file.write(mu::engraving::makam::diziMscx(makamId, withSeyir));
+    file.close();
+
+    INotationProjectPtr project = projectCreator()->newProject(iocContext());
+    Ret ret = project ? project->load(muse::io::path_t(mscxPath)) : make_ret(Ret::Code::InternalError);
+    QFile::remove(mscxPath);
+    if (!ret) {
+        LOGE() << "cannot read the dizi score: " << ret.toString();
+        return;
+    }
+
+    mu::engraving::MasterScore* score = project->masterNotation()->masterScore();
+    int ahenk = currentScore ? mu::engraving::makam::ahenkIndex(currentScore) : -1;
+    if (ahenk < 0) {
+        ahenk = mu::engraving::makam::DEFAULT_AHENK;
+    }
+    mu::engraving::makam::setAhenk(score, mu::engraving::makam::ahenkler().at(ahenk));
+
+    // an empty command: the tuning engine runs at its end (Score::endCmd)
+    score->startCmd(muse::TranslatableString("undoableAction", "Makam akordu"));
+    score->endCmd();
+
+    ret = project->save(scorePath, SaveMode::SaveCopy, false);
+    if (!ret) {
+        LOGE() << "cannot save the dizi score: " << ret.toString();
+        return;
+    }
+
+    ret = openProject(scorePath, title);
+    if (ret && !current) {
+        dispatcher()->dispatch("play");
+    }
 }
 
 //! Makam: the "Bona" window (note entry by voice), one at a time

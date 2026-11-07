@@ -897,6 +897,24 @@ std::vector<MakamName> allMakams()
     return list;
 }
 
+bool makamBasics(const std::string& makamId, MakamBasics& result)
+{
+    const MakamDef* makam = makamById(makamId);
+    if (!makam) {
+        return false;
+    }
+    result.id = makam->id;
+    result.name = QString::fromUtf8(makam->name);
+    result.karar = makam->karar;
+    result.donanim.clear();
+    if (!makam->ksLists.empty()) {
+        for (const char* perde : makam->ksLists.front()) {
+            result.donanim.push_back(perde);
+        }
+    }
+    return true;
+}
+
 std::vector<PerdeValues> calibration(const std::string& makamId, bool defaults)
 {
     std::vector<PerdeValues> list;

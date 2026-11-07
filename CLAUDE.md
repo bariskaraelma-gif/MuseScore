@@ -69,6 +69,13 @@ Bizim eklediğimiz her şey `Makam:` yorumuyla işaretlidir. Aramak için: `git 
   - `src/notationscene/qml/MuseScore/NotationScene/makamtuningmodel.*` ve `MakamTuningDialog.qml`.
   - Komut `makam-tuning`; araç çubuğunda düğme ve Araçlar menüsünde öğe var.
   - Ayarlar: `makam/calibration`, `makam/yedenSegah`, `makam/unit`.
+- **Diziyi dinle** (Makam akordu penceresinde düğme, "örnek seyirle" kutusu; eklentideki "Diziyi dinle"):
+  - Partisyon: `src/engraving/editing/makamdizi.{h,cpp}`. Dizi tabloları ve 27 SymbTr örnek seyiri eklentiden aktarıldı. Karar ve donanım `makamBasics()` ile `makamtuner.cpp`'den gelir.
+  - `.mscx` metni Bolahenk'te ve akortsuz yazılır. Başlık "<Makam> dizisi" olduğu için akort motoru makamı başlıktan bulur.
+  - Komut `makam-dizi` (argümanlar: makam kimliği, seyirli mi): `ProjectActionsController::listenMakamDizi`.
+    - Dosyayı arka planda yükler, açık eserin ahengini (`setAhenk`) ve akordu (boş komut) uygular.
+    - `%TEMP%\MakamNota\<id>[-seyir]-dizi.mscz` olarak kaydeder ve açar (eser açıksa yeni pencerede).
+  - Açık eser o dizi ise (meta etiket `makamDizi`) yalnız baştan çalar. Yeni pencerede kendiliğinden çalmaz.
 - **Türk arıza ↑/↓ merdiveni:** `makam::turkishStep()` (`makamtuner.cpp`), çağrıldığı yer `NotationInteraction::movePitch`.
 - **Usullü metronom:** usul ölçülerinde metronom düm/tek çalar, sayım bir usul ölçüsüdür. Kod: `src/engraving/playback/playbackeventsrenderer.cpp`.
 - **Görüntü yakalama** (kamera düğmesi): `share/plugins/imagecapture/` içine gömülü eklenti, komut `image-capture`.
@@ -116,7 +123,7 @@ Bizim eklediğimiz her şey `Makam:` yorumuyla işaretlidir. Aramak için: `git 
 1. **Sesle nota girişi**:
    - Bona 1. aşama (ritim) yapıldı; yukarıya bakın. Sırada: "Gecikmeyi ölç" düğmesi, 2. aşama hece tanıma (do-re-mi → perde).
    - Sonra Ezgili solfej (perde takibi), aynı kayıt ve nicemleme altyapısıyla.
-2. Makam akordu için "Bu esere kaydet" ve makam başına "▶ Dinle".
+2. Makam akordu için "Bu esere kaydet". (Makam başına "Diziyi dinle" yapıldı; sırada: yeni pencerede kendiliğinden çalma.)
 3. Sağ sütunda Claude paneli (sonra).
 4. Daha sonrası:
    - THM (halk müziği) donanımları

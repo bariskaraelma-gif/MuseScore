@@ -23,6 +23,7 @@
 #include "types/translatablestring.h"
 
 #include "engraving/dom/masterscore.h"
+#include "engraving/editing/makamdizi.h"
 #include "engraving/editing/makamtuner.h"
 
 using namespace mu::notation;
@@ -196,6 +197,16 @@ void MakamTuningModel::resetCurrentMakam()
     mu::engraving::makam::resetCalibration(m_currentMakam.toStdString());
     emit valuesChanged();
     retune();
+}
+
+bool MakamTuningModel::hasSeyir() const
+{
+    return mu::engraving::makam::hasSeyir(m_currentMakam.toStdString());
+}
+
+void MakamTuningModel::listenDizi(bool withSeyir)
+{
+    dispatcher()->dispatch("makam-dizi", muse::actions::ActionData::make_arg2<QString, bool>(m_currentMakam, withSeyir));
 }
 
 // The engine runs at the end of every command: an empty command retunes the open score

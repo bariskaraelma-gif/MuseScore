@@ -59,6 +59,17 @@ struct ScoreMakam {
 };
 
 std::vector<MakamName> allMakams();
+
+// Name, karar and donanım of a makam (for the dizi score, makamdizi.h)
+struct MakamBasics {
+    std::string id;
+    QString name;
+    std::string karar;                  // final perde, e.g. "A0", "B-1" (Segah), "F4" (Irak)
+    std::vector<std::string> donanim;   // perdes of the donanım it is written with, e.g. { "B-1", "F4" }
+};
+
+// false for an unknown makam id
+bool makamBasics(const std::string& makamId, MakamBasics& result);
 std::vector<PerdeValues> calibration(const std::string& makamId, bool defaults = false);
 void setCalibration(const std::string& makamId, const PerdeValues& values);
 void resetCalibration(const std::string& makamId);   // empty id: all makams

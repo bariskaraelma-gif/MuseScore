@@ -77,6 +77,15 @@ const UiActionList ProjectUiActions::m_actions = {
              TranslatableString("action", "Bona: do-re-mi hecelerini okuyarak nota yaz"),
              IconCode::Code::MICROPHONE
              ),
+    // Makam: the dizi (and a sample seyir) of a makam, tuned (button of the "Makam akordu" window;
+    // args: makam id, with the seyir)
+    UiAction("makam-dizi",
+             mu::context::UiCtxAny,
+             mu::context::CTX_ANY,
+             TranslatableString("action", "Diziyi dinle"),
+             TranslatableString("action", "Makamın dizisini ve örnek seyirini akortlu çal"),
+             IconCode::Code::PLAY
+             ),
     // Makam: built-in Image Capture tool (toolbar button)
     UiAction("image-capture",
              mu::context::UiCtxAny,

@@ -131,6 +131,7 @@ private:
     void openImageCapture();
     void openMakamTuning();
     void openBona();
+    void listenMakamDizi(const muse::actions::ActionData& args);   // Makam: "Diziyi dinle"
 
     void openProject(const muse::actions::ActionData& args);
     muse::Ret openProject(const muse::io::path_t& path, const QString& displayNameOverride = QString());

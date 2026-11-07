@@ -45,6 +45,7 @@ StyledDialogView {
     }
 
     readonly property string unitSymbol: tuningModel.unit === "cent" ? "sent" : "mandal"
+    property bool diziSeyir: true
     readonly property int valueWidth: 116
 
     ColumnLayout {
@@ -94,6 +95,38 @@ StyledDialogView {
                 onActivated: function(index, value) {
                     tuningModel.unit = value
                 }
+            }
+        }
+
+        // Makam: the dizi (up and down) and a sample seyir of the makam, tuned like the scores
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: 12
+
+            FlatButton {
+                icon: IconCode.PLAY
+                text: "Diziyi dinle"
+                orientation: Qt.Horizontal
+                onClicked: {
+                    tuningModel.listenDizi(root.diziSeyir && tuningModel.hasSeyir)
+                }
+            }
+
+            CheckBox {
+                text: "örnek seyirle"
+                visible: tuningModel.hasSeyir
+                checked: root.diziSeyir
+                onClicked: {
+                    root.diziSeyir = !root.diziSeyir
+                }
+            }
+
+            StyledTextLabel {
+                Layout.fillWidth: true
+                text: "Yeni pencerede açılır; orada boşluk tuşuyla çalınır. Orada da bu pencere açılıp değerler değiştirilebilir, düğme diziyi yeniden çalar."
+                horizontalAlignment: Text.AlignLeft
+                wrapMode: Text.WordWrap
+                opacity: 0.7
             }
         }
 

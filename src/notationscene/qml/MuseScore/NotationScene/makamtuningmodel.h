@@ -23,6 +23,7 @@
 #include <qqmlintegration.h>
 
 #include "modularity/ioc.h"
+#include "actions/iactionsdispatcher.h"
 #include "context/iglobalcontext.h"
 
 namespace mu::notation {
@@ -37,8 +38,10 @@ class MakamTuningModel : public QObject, public muse::Contextable
     Q_PROPERTY(QString unit READ unit WRITE setUnit NOTIFY valuesChanged)
     Q_PROPERTY(double yeden READ yeden NOTIFY valuesChanged)
     Q_PROPERTY(QString scoreInfo READ scoreInfo NOTIFY scoreInfoChanged)
+    Q_PROPERTY(bool hasSeyir READ hasSeyir NOTIFY currentMakamChanged)
 
     muse::ContextInject<context::IGlobalContext> globalContext = { this };
+    muse::ContextInject<muse::actions::IActionsDispatcher> dispatcher = { this };
 
 public:
     explicit MakamTuningModel(QObject* parent = nullptr);
@@ -49,8 +52,10 @@ public:
     QString unit() const;
     double yeden() const;
     QString scoreInfo() const;
+    bool hasSeyir() const;
 
     Q_INVOKABLE void load();
+    Q_INVOKABLE void listenDizi(bool withSeyir);   // the dizi score of the current makam (action "makam-dizi")
     Q_INVOKABLE void setValue(const QString& perde, const QString& field, double value);
     Q_INVOKABLE void setYeden(double value);
     Q_INVOKABLE void resetCurrentMakam();
