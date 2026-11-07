@@ -502,7 +502,10 @@ std::vector<DiziMeasure> diziMeasures(const std::vector<DiziPart>& parts, const 
             const int expected = shown.count(key) ? shown[key] : (keyKoma.count(n.letter) ? keyKoma[n.letter] : 0);
             QString acc;
             if (n.koma != expected) {
-                acc = QString("              <Accidental>\n                <subtype>%1</subtype>\n                </Accidental>\n")
+                // role 1 = USER: the layout keeps it (a natural against a microtonal donanım would
+                // otherwise be dropped)
+                acc = QString("              <Accidental>\n                <role>1</role>\n                <subtype>%1</subtype>\n"
+                              "                </Accidental>\n")
                       .arg(accidentalName(n.koma));
                 shown[key] = n.koma;
             }
