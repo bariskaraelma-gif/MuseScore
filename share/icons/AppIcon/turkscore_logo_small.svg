@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="-100 -100 200 200">
+<!-- TurkScore logo: the crescent and star (Turkish flag proportions, G = 200) facing up-right, gold on navy -->
+<defs>
+<linearGradient id="nv" x1="0" y1="-100" x2="0" y2="100" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#16304D"/><stop offset="1" stop-color="#0B1626"/></linearGradient>
+<mask id="cres" maskUnits="userSpaceOnUse" x="-100" y="-100" width="200" height="200"><rect x="-100" y="-100" width="200" height="200" fill="#fff"/><circle cx="12.5" cy="0" r="40" fill="#000"/></mask>
+</defs>
+<rect x="-96" y="-96" width="192" height="192" rx="40" fill="url(#nv)"/>
+
+<g fill="#C9A45C" transform="translate(-6 6) rotate(-45) scale(1.32)">
+<circle r="50" mask="url(#cres)"/>
+<polygon transform="translate(46 0) rotate(-90)" points="0,-25 5.878,-8.09 23.776,-7.725 9.511,3.09 14.695,20.225 0,10 -14.695,20.225 -9.511,3.09 -23.776,-7.725 -5.878,-8.09"/>
+</g>
+</svg>
