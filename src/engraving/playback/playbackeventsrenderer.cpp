@@ -91,13 +91,13 @@ static muse::mpe::NoteEvent buildMetronomeEvent(const TimeSigFrac& timeSig, cons
 }
 
 //! Makam: the usul of the time signature at tick (time signatures from the usul palette), or nullptr
-static const makam::Usul* makamUsulAt(const Score* score, const int tick)
+static std::optional<makam::Usul> makamUsulAt(const Score* score, const int tick)
 {
     if (!score || score->nstaves() == 0) {
-        return nullptr;
+        return std::nullopt;
     }
     const TimeSig* ts = score->staff(0)->timeSig(Fraction::fromTicks(tick));
-    return ts ? makam::usulOfGroups(ts->groups(), ts->sig()) : nullptr;
+    return ts ? makam::usulOfGroups(ts->groups(), ts->sig()) : std::nullopt;
 }
 
 //! Makam: one stroke of an usul on the metronome track (standard drum kit): düm = Bass Drum 1,
@@ -264,7 +264,7 @@ void PlaybackEventsRenderer::renderMetronome(const Score* score, const Measure* 
                ? timeSignatureFraction.beatTicks() : timeSignatureFraction.dUnitTicks();
 
     // Makam: a measure in an usul plays the usul's strokes (düm / tek) instead of the beats
-    const makam::Usul* usul = makamUsulAt(score, measureStartTick);
+    const std::optional<makam::Usul> usul = makamUsulAt(score, measureStartTick);
     if (usul && !measure->isAnacrusis() && measure->ticks() == Fraction(usul->n, usul->d)) {
         int t = measureStartTick;
         for (const makam::Darb& darb : usul->darb) {
@@ -305,7 +305,7 @@ void PlaybackEventsRenderer::renderMetronome(const Score* score, const int tick,
     BeatsPerSecond bps = score->tempomap()->multipliedTempo(tick);
 
     // Makam: in an usul, only the strokes sound (a stroke starting at this tick, else nothing)
-    if (const makam::Usul* usul = makamUsulAt(score, tick)) {
+    if (const std::optional<makam::Usul> usul = makamUsulAt(score, tick)) {
         const Measure* measure = score->tick2measure(Fraction::fromTicks(tick));
         if (measure && measure->ticks() == Fraction(usul->n, usul->d)) {
             int t = measure->tick().ticks();
@@ -347,7 +347,7 @@ void PlaybackEventsRenderer::renderCountIn(const Score* score, const int startTi
     duration_t stepDuration = durationFromTempoAndTicks(bps.val, step);
 
     // Makam: in an usul the count-in is one measure of the usul's strokes
-    if (const makam::Usul* usul = makamUsulAt(score, measureStartTick)) {
+    if (const std::optional<makam::Usul> usul = makamUsulAt(score, measureStartTick)) {
         if (Fraction::fromTicks(ticksPerMeasure) == Fraction(usul->n, usul->d)) {
             int t = 0;
             for (const makam::Darb& darb : usul->darb) {

@@ -100,6 +100,14 @@ public:
     //! palette model (a palette the user has hidden or removed is left out)
     Q_INVOKABLE QVariantList makamToolPalettes(const QString& tool) const;
 
+    //! Makam: "Oluştur" of the Makam and Usul tools. A new cell at the end of the user's Key
+    //! signatures / Time signatures palette (kept with the palettes), applied at once to the
+    //! selection if there is one. Returns an error text, or "" when the cell was added.
+    //! accidentals: [{ letter: "B", koma: -1 }, …] in the order they are written (makamdata.h)
+    Q_INVOKABLE QString makamCreateDonanim(const QString& name, const QVariantList& accidentals);
+    //! darbs: [{ dum: true, len: 2 }, …], lengths in 1/denominator, adding up to the numerator
+    Q_INVOKABLE QString makamCreateUsul(const QString& name, int numerator, int denominator, const QVariantList& darbs);
+
 signals:
     void paletteSearchRequested();
     void applyCurrentPaletteElementRequested();
@@ -108,5 +116,7 @@ private:
     void classBegin() override;
     void componentComplete() override {}
     void init();
+
+    QString makamAddCell(const QString& tool, mu::engraving::ElementPtr element, const QString& name);
 };
 }

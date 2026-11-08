@@ -189,9 +189,8 @@ void MakamToolsModel::setActiveTool(const QString& tool)
 void MakamToolsModel::selectTool(const QString& tool)
 {
     if (tool == "lyrics") {
-        // lyrics are typed under the selected note: no palette, the Properties window for the font
+        // lyrics are typed under the selected note: no palette (Properties only by its own button)
         dispatcher()->dispatch("lyrics");
-        dispatcher()->dispatch("makam-properties", muse::actions::ActionData::make_arg1<bool>(true));
         return;
     }
 
@@ -200,8 +199,4 @@ void MakamToolsModel::selectTool(const QString& tool)
         dispatcher()->dispatch("note-input");
     }
     setActiveTool(tool);   // the column of the tool beside the tool bar
-
-    if (tool == "text") {
-        dispatcher()->dispatch("makam-properties", muse::actions::ActionData::make_arg1<bool>(true));
-    }
 }

@@ -56,9 +56,9 @@ Item {
         ],
         [
             { id: "makam", title: "Makam", drawn: "makam",
-              description: "Makam donanımları yanda açılır. Ölçüyü seçip donanıma tıklayın" },
+              description: "Makam donanımları yanda açılır. Ölçüyü seçip donanıma tıklayın; Oluştur ile yenisini yapın" },
             { id: "usul", title: "Usul", drawn: "usul",
-              description: "Usuller yanda açılır. Ölçüyü seçip usule tıklayın" },
+              description: "Usuller yanda açılır. Ölçüyü seçip usule tıklayın; Oluştur ile yenisini yapın" },
             { id: "barline", title: "Ölçü çizgisi", icon: IconCode.DOUBLE_BAR_LINE,
               description: "Ölçü çizgileri" },
             { id: "layout", title: "Yerleşim", icon: IconCode.LINE_BREAK,
@@ -70,9 +70,9 @@ Item {
             { id: "dynamics", title: "Nüans", icon: IconCode.DYNAMIC_FORTE,
               description: "Nüanslar, kreşendo ve dekreşendo" },
             { id: "text", title: "Metin", drawn: "label",
-              description: "Metinler (Hane, Teslim, Saz…); Özellikler penceresi de açılır" },
+              description: "Metinler (Hane, Teslim, Saz…)" },
             { id: "lyrics", title: "Söz", icon: IconCode.LYRICS, action: true,
-              description: "Seçili notanın altına söz yazmaya başlar; Özellikler penceresi de açılır" },
+              description: "Seçili notanın altına söz yazmaya başlar" },
             { id: "repeat", title: "Tekrar", icon: IconCode.REPEAT_START,
               description: "Tekrarlar ve atlamalar" }
         ],

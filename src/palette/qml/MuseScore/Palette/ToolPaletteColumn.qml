@@ -49,6 +49,75 @@ Item {
 
     implicitWidth: Math.max(columns * cellSize.width, 2 * 36 + 4)
 
+    // Makam: "Oluştur" (a new donanım or usul) for the Makam and Usul tools
+    readonly property bool canCreate: tool === "makam" || tool === "usul"
+    property string newName: ""
+    property var newAccs: []      // [{ letter, koma }] (makamdata.h)
+    property var newDarbs: []     // [{ dum, len }]
+    property int newUnit: 8
+    property string createError: ""
+
+    readonly property var letterOptions: [
+        { text: "Do", value: "C" }, { text: "Re", value: "D" }, { text: "Mi", value: "E" },
+        { text: "Fa", value: "F" }, { text: "Sol", value: "G" }, { text: "La", value: "A" },
+        { text: "Si", value: "B" }
+    ]
+    readonly property var komaOptions: [
+        { text: "Koma bemol", value: -1 },
+        { text: "Bakiye bemol", value: -4 },
+        { text: "Küçük mücennep bemol (♭)", value: -5 },
+        { text: "Büyük mücennep bemol", value: -8 },
+        { text: "Koma diyez", value: 1 },
+        { text: "Bakiye diyez (♯)", value: 4 },
+        { text: "Küçük mücennep diyez", value: 5 },
+        { text: "Büyük mücennep diyez", value: 8 }
+    ]
+
+    function resetCreateForm() {
+        newName = ""
+        createError = ""
+        newAccs = [{ letter: "B", koma: -1 }]
+        newDarbs = [{ dum: true, len: 2 }, { dum: false, len: 1 }]
+        newUnit = 8
+    }
+
+    // the next accidental: the first note not used yet, in the order flats are written
+    function addAcc() {
+        const order = ["B", "E", "A", "D", "G", "C", "F"]
+        const used = newAccs.map(a => a.letter)
+        const letter = order.find(l => !used.includes(l))
+        if (letter === undefined) {
+            return
+        }
+        let list = newAccs.slice()
+        list.push({ letter: letter, koma: -1 })
+        newAccs = list
+    }
+
+    function setAcc(i, key, value) {
+        let list = newAccs.slice()
+        let acc = Object.assign({}, list[i])
+        acc[key] = value
+        list[i] = acc
+        newAccs = list
+    }
+
+    function setDarb(i, key, value) {
+        let list = newDarbs.slice()
+        let darb = Object.assign({}, list[i])
+        darb[key] = value
+        list[i] = darb
+        newDarbs = list
+    }
+
+    function darbTotal() {
+        let total = 0
+        for (const d of newDarbs) {
+            total += d.len
+        }
+        return total
+    }
+
     function updatePalette() {
         const indices = root.tool !== "" ? rootModel.makamToolPalettes(root.tool) : []
         root.paletteIndex = indices.length > 0 ? indices[0] : null
@@ -89,6 +158,277 @@ Item {
             font: ui.theme.bodyBoldFont
             horizontalAlignment: Text.AlignLeft
             elide: Text.ElideRight
+        }
+
+        // Makam: a new donanım or usul of the user's own, added to the end of this palette
+        FlatButton {
+            id: createButton
+
+            width: parent.width
+            height: 24
+            visible: Boolean(root.paletteIndex) && root.canCreate
+            text: "Oluştur…"
+            buttonType: FlatButton.TextOnly
+            transparent: true
+
+            onClicked: {
+                if (!createPopup.isOpened) {
+                    root.resetCreateForm()
+                }
+                createPopup.toggleOpened()
+            }
+
+            StyledPopupView {
+                id: createPopup
+
+                contentWidth: 320
+                contentHeight: createForm.implicitHeight
+                placementPolicies: PopupView.PreferRight
+
+                Column {
+                    id: createForm
+
+                    width: 320
+                    spacing: 8
+
+                    StyledTextLabel {
+                        width: parent.width
+                        text: root.tool === "makam" ? "Yeni donanım" : "Yeni usul"
+                        font: ui.theme.bodyBoldFont
+                        horizontalAlignment: Text.AlignLeft
+                    }
+
+                    StyledTextLabel {
+                        width: parent.width
+                        text: root.tool === "makam" ? "Ad (hücrede görünür, ör. makamın adı)" : "Usulün adı (ölçünün üstüne yazılır)"
+                        horizontalAlignment: Text.AlignLeft
+                    }
+
+                    TextInputField {
+                        id: nameField
+
+                        width: parent.width
+                        currentText: root.newName
+                        onTextChanged: function(newTextValue) {
+                            root.newName = newTextValue
+                        }
+                    }
+
+                    // the donanım: one row per accidental, in the order they are written
+                    Column {
+                        width: parent.width
+                        spacing: 6
+                        visible: root.tool === "makam"
+
+                        StyledTextLabel {
+                            width: parent.width
+                            text: "Arızalar (yazılış sırasıyla)"
+                            horizontalAlignment: Text.AlignLeft
+                        }
+
+                        Repeater {
+                            model: root.newAccs
+
+                            delegate: Row {
+                                id: accRow
+
+                                required property var modelData
+                                required property int index
+
+                                spacing: 6
+
+                                StyledDropdown {
+                                    width: 80
+                                    model: root.letterOptions
+                                    currentIndex: indexOfValue(accRow.modelData.letter)
+                                    onActivated: function(index, value) {
+                                        root.setAcc(accRow.index, "letter", value)
+                                    }
+                                }
+
+                                StyledDropdown {
+                                    width: 190
+                                    model: root.komaOptions
+                                    currentIndex: indexOfValue(accRow.modelData.koma)
+                                    onActivated: function(index, value) {
+                                        root.setAcc(accRow.index, "koma", value)
+                                    }
+                                }
+
+                                FlatButton {
+                                    width: 30
+                                    height: 30
+                                    icon: IconCode.CLOSE_X_ROUNDED
+                                    transparent: true
+                                    toolTipTitle: "Bu arızayı sil"
+                                    onClicked: {
+                                        let list = root.newAccs.slice()
+                                        list.splice(accRow.index, 1)
+                                        root.newAccs = list
+                                    }
+                                }
+                            }
+                        }
+
+                        FlatButton {
+                            icon: IconCode.PLUS
+                            text: "Arıza ekle"
+                            orientation: Qt.Horizontal
+                            enabled: root.newAccs.length < 7
+                            onClicked: {
+                                root.addAcc()
+                            }
+                        }
+                    }
+
+                    // the usul: the unit, then one row per stroke (düm / tek and its length)
+                    Column {
+                        width: parent.width
+                        spacing: 6
+                        visible: root.tool === "usul"
+
+                        Row {
+                            spacing: 8
+
+                            StyledTextLabel {
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: "Birim:"
+                            }
+
+                            StyledDropdown {
+                                width: 120
+                                model: [
+                                    { text: "2'lik", value: 2 },
+                                    { text: "4'lük", value: 4 },
+                                    { text: "8'lik", value: 8 },
+                                    { text: "16'lık", value: 16 }
+                                ]
+                                currentIndex: indexOfValue(root.newUnit)
+                                onActivated: function(index, value) {
+                                    root.newUnit = value
+                                }
+                            }
+
+                            StyledTextLabel {
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: "Ölçü: " + root.darbTotal() + "/" + root.newUnit
+                                font: ui.theme.bodyBoldFont
+                            }
+                        }
+
+                        StyledTextLabel {
+                            width: parent.width
+                            text: "Darblar (süre, birim cinsinden)"
+                            horizontalAlignment: Text.AlignLeft
+                        }
+
+                        Repeater {
+                            model: root.newDarbs
+
+                            delegate: Row {
+                                id: darbRow
+
+                                required property var modelData
+                                required property int index
+
+                                spacing: 6
+
+                                StyledDropdown {
+                                    width: 100
+                                    model: [
+                                        { text: "Düm", value: true },
+                                        { text: "Tek", value: false }
+                                    ]
+                                    currentIndex: darbRow.modelData.dum ? 0 : 1
+                                    onActivated: function(index, value) {
+                                        root.setDarb(darbRow.index, "dum", value)
+                                    }
+                                }
+
+                                IncrementalPropertyControl {
+                                    width: 100
+                                    currentValue: darbRow.modelData.len
+                                    step: 1
+                                    decimals: 0
+                                    minValue: 1
+                                    maxValue: 16
+                                    onValueEdited: function(newValue) {
+                                        root.setDarb(darbRow.index, "len", newValue)
+                                    }
+                                }
+
+                                FlatButton {
+                                    width: 30
+                                    height: 30
+                                    icon: IconCode.CLOSE_X_ROUNDED
+                                    transparent: true
+                                    toolTipTitle: "Bu darbı sil"
+                                    onClicked: {
+                                        let list = root.newDarbs.slice()
+                                        list.splice(darbRow.index, 1)
+                                        root.newDarbs = list
+                                    }
+                                }
+                            }
+                        }
+
+                        FlatButton {
+                            icon: IconCode.PLUS
+                            text: "Darb ekle"
+                            orientation: Qt.Horizontal
+                            enabled: root.newDarbs.length < 32
+                            onClicked: {
+                                let list = root.newDarbs.slice()
+                                list.push({ dum: false, len: 1 })
+                                root.newDarbs = list
+                            }
+                        }
+                    }
+
+                    StyledTextLabel {
+                        width: parent.width
+                        visible: root.createError !== ""
+                        text: root.createError
+                        color: "#d9534f"
+                        wrapMode: Text.WordWrap
+                        horizontalAlignment: Text.AlignLeft
+                    }
+
+                    StyledTextLabel {
+                        width: parent.width
+                        text: "Yeni hücre paletin sonuna eklenir; ölçü seçiliyse hemen uygulanır. Silmek için hücreye sağ tıklayın (palet panelinde)."
+                        wrapMode: Text.WordWrap
+                        horizontalAlignment: Text.AlignLeft
+                        opacity: 0.7
+                    }
+
+                    Row {
+                        anchors.right: parent.right
+                        spacing: 8
+
+                        FlatButton {
+                            text: "Vazgeç"
+                            onClicked: {
+                                createPopup.close()
+                            }
+                        }
+
+                        FlatButton {
+                            text: "Oluştur"
+                            accentButton: true
+                            onClicked: {
+                                root.createError = root.tool === "makam"
+                                        ? rootModel.makamCreateDonanim(root.newName, root.newAccs)
+                                        : rootModel.makamCreateUsul(root.newName, root.darbTotal(), root.newUnit, root.newDarbs)
+                                if (root.createError === "") {
+                                    root.showAll = false
+                                    createPopup.close()
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         FlatButton {

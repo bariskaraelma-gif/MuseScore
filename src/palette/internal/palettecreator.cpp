@@ -1672,7 +1672,7 @@ PalettePtr PaletteCreator::newTimePalette(bool defaultPalette)
         auto timeSignature = Factory::makeTimeSig(gpaletteScore->dummy()->segment());
         timeSignature->setSig(Fraction(usul.n, usul.d), TimeSigType::NORMAL);
         timeSignature->setGroups(makam::usulGroups(usul));
-        sp->appendElement(timeSignature, QString::fromUtf8(usul.name) + QString(" (%1/%2)").arg(usul.n).arg(usul.d));
+        sp->appendElement(timeSignature, QString::fromUtf8(usul.name.c_str()) + QString(" (%1/%2)").arg(usul.n).arg(usul.d));
     }
 
     return sp;

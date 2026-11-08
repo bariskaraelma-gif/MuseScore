@@ -18,6 +18,8 @@
  */
 #pragma once
 
+#include <optional>
+#include <string>
 #include <vector>
 
 #include "../types/fraction.h"
@@ -39,7 +41,7 @@ struct Darb {
 
 struct Usul {
     int code = 0;              // stable number, stored in the time signature (see usulGroups)
-    const char* name = "";
+    std::string name;          // UTF-8
     int n = 4;
     int d = 4;
     std::vector<Darb> darb;
@@ -84,7 +86,18 @@ inline const std::vector<Usul>& usuller()
     return list;
 }
 
-// Beam groups of an usul's time signature, with the usul marker as the last node
+// An usul the user created ("Oluştur" in the Usul tool) has the marker code USUL_CUSTOM_CODE and
+// carries itself in more nodes after the marker, also far beyond any measure (Groups::beamMode
+// stops at the first node past the note, so they never change the beaming):
+//   pos = USUL_DARB_BASE + i, action = len * 2 + (düm ? 1 : 0)   the strokes, in order
+//   pos = USUL_NAME_BASE + i, action = byte                        the name, UTF-8
+// So the score file, the palette cell and a copy on another computer all know the usul.
+static constexpr int USUL_CUSTOM_CODE = 1000;
+static constexpr int USUL_DARB_BASE = 20000;
+static constexpr int USUL_NAME_BASE = 30000;
+static constexpr int USUL_MAX_ITEMS = 9999;
+
+// Beam groups of an usul's time signature, with the usul marker after the beam nodes
 inline Groups usulGroups(const Usul& usul)
 {
     GroupNodes nodes;
@@ -98,22 +111,63 @@ inline Groups usulGroups(const Usul& usul)
         }
     }
     nodes.push_back(GroupNode { USUL_MARKER_BASE + usul.code, 0 });
+
+    if (usul.code == USUL_CUSTOM_CODE) {
+        for (size_t i = 0; i < usul.darb.size() && i < USUL_MAX_ITEMS; ++i) {
+            nodes.push_back(GroupNode { USUL_DARB_BASE + int(i), usul.darb[i].len * 2 + (usul.darb[i].dum ? 1 : 0) });
+        }
+        for (size_t i = 0; i < usul.name.size() && i < USUL_MAX_ITEMS; ++i) {
+            nodes.push_back(GroupNode { USUL_NAME_BASE + int(i), int(static_cast<unsigned char>(usul.name[i])) });
+        }
+    }
     return Groups(nodes);
 }
 
-// The usul of a time signature, from its marker node; nullptr if it is not an usul
-inline const Usul* usulOfGroups(const Groups& groups, const Fraction& sig)
+// The usul of a time signature, from its marker node; nothing if it is not an usul
+inline std::optional<Usul> usulOfGroups(const Groups& groups, const Fraction& sig)
 {
-    if (groups.empty()) {
-        return nullptr;
-    }
-    const int code = groups.nodes().back().pos - USUL_MARKER_BASE;
-    for (const Usul& usul : usuller()) {
-        if (usul.code == code && Fraction(usul.n, usul.d).identical(sig)) {
-            return &usul;
+    const GroupNode* marker = nullptr;
+    for (const GroupNode& node : groups.nodes()) {
+        if (node.pos >= USUL_MARKER_BASE && node.pos < USUL_DARB_BASE) {
+            marker = &node;
+            break;
         }
     }
-    return nullptr;
+    if (!marker) {
+        return std::nullopt;
+    }
+
+    const int code = marker->pos - USUL_MARKER_BASE;
+    if (code != USUL_CUSTOM_CODE) {
+        for (const Usul& usul : usuller()) {
+            if (usul.code == code && Fraction(usul.n, usul.d).identical(sig)) {
+                return usul;
+            }
+        }
+        return std::nullopt;
+    }
+
+    Usul usul;
+    usul.code = USUL_CUSTOM_CODE;
+    usul.n = sig.numerator();
+    usul.d = sig.denominator();
+    int total = 0;
+    for (const GroupNode& node : groups.nodes()) {
+        if (node.pos >= USUL_DARB_BASE && node.pos < USUL_DARB_BASE + USUL_MAX_ITEMS) {
+            const Darb darb { (node.action & 1) != 0, node.action / 2 };
+            if (darb.len <= 0) {
+                return std::nullopt;
+            }
+            usul.darb.push_back(darb);
+            total += darb.len;
+        } else if (node.pos >= USUL_NAME_BASE && node.pos < USUL_NAME_BASE + USUL_MAX_ITEMS) {
+            usul.name.push_back(char(node.action & 0xff));
+        }
+    }
+    if (usul.darb.empty() || total != usul.n) {
+        return std::nullopt;
+    }
+    return usul;
 }
 
 // The tempo marking at the start of a new score: ♩ = 80, or ♪ = 90 once its first usul counts in

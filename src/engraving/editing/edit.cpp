@@ -1488,18 +1488,22 @@ static void makamFillUsulStaves(MasterScore* ms, const Fraction& tick, const mak
 //    that is not an usul).
 //---------------------------------------------------------
 
-static bool makamIsUsulName(const String& text)
+// oldName: the name of the usul being replaced (a user's usul is in no list)
+static bool makamIsUsulName(const String& text, const String& oldName)
 {
     const String t = text.trimmed();
+    if (!oldName.isEmpty() && t == oldName) {
+        return true;
+    }
     for (const makam::Usul& usul : makam::usuller()) {
-        if (t == String::fromUtf8(usul.name)) {
+        if (t == String::fromUtf8(usul.name.c_str())) {
             return true;
         }
     }
     return false;
 }
 
-static void makamSetUsulName(MasterScore* ms, const Fraction& tick, const makam::Usul* usul)
+static void makamSetUsulName(MasterScore* ms, const Fraction& tick, const makam::Usul* usul, const String& oldName)
 {
     Measure* m = ms->tick2measure(tick);
     Segment* seg = m ? m->findSegment(SegmentType::ChordRest, tick) : nullptr;
@@ -1509,7 +1513,7 @@ static void makamSetUsulName(MasterScore* ms, const Fraction& tick, const makam:
 
     const std::vector<EngravingItem*> annotations = seg->annotations();
     for (EngravingItem* e : annotations) {
-        if (e->isSystemText() && makamIsUsulName(toSystemText(e)->plainText())) {
+        if (e->isSystemText() && makamIsUsulName(toSystemText(e)->plainText(), oldName)) {
             ms->undoRemoveElement(e);
         }
     }
@@ -1519,7 +1523,7 @@ static void makamSetUsulName(MasterScore* ms, const Fraction& tick, const makam:
         return;
     }
     SystemText* text = Factory::createSystemText(ms->dummy()->segment(), TextStyleType::SYSTEM);
-    text->setXmlText(String::fromUtf8(usul->name));
+    text->setXmlText(String::fromUtf8(usul->name.c_str()));
     toChordRest(el)->undoAddAnnotation(text);
 }
 
@@ -1582,7 +1586,8 @@ void Score::cmdAddTimeSig(Measure* fm, staff_idx_t staffIdx, TimeSig* ts, bool l
     Fraction tick = fm->tick();
 
     // Makam: an usul from the time signature palette also fills the usul staves
-    const makam::Usul* usul = makam::usulOfGroups(ts->groups(), ns);
+    const std::optional<makam::Usul> usulData = makam::usulOfGroups(ts->groups(), ns);
+    const makam::Usul* usul = usulData ? &*usulData : nullptr;
     if (local) {
         Fraction stretch = (ns / fm->timesig()).reduced();
         ts->setStretch(stretch);
@@ -1599,6 +1604,14 @@ void Score::cmdAddTimeSig(Measure* fm, staff_idx_t staffIdx, TimeSig* ts, bool l
         ots = seg ? toTimeSig(seg->element(track)) : nullptr;
     }
 
+    // Makam: the name of the usul replaced here, so that its name above the measure goes too
+    String makamOldUsulName;
+    if (ots) {
+        if (const std::optional<makam::Usul> old = makam::usulOfGroups(ots->groups(), ots->sig())) {
+            makamOldUsulName = String::fromUtf8(old->name.c_str());
+        }
+    }
+
     if (ots && (*ots == *ts)) {
         //
         //  ignore if there is already a timesig
@@ -1606,7 +1619,7 @@ void Score::cmdAddTimeSig(Measure* fm, staff_idx_t staffIdx, TimeSig* ts, bool l
         //
         if (usul) {
             makamFillUsulStaves(masterScore(), tick, *usul);   // Makam: write the strokes again
-            makamSetUsulName(masterScore(), tick, usul);
+            makamSetUsulName(masterScore(), tick, usul, makamOldUsulName);
             makamSetDefaultTempo(masterScore(), tick, usul);
         }
         delete ts;
@@ -1764,7 +1777,7 @@ void Score::cmdAddTimeSig(Measure* fm, staff_idx_t staffIdx, TimeSig* ts, bool l
         makamFillUsulStaves(masterScore(), tick, *usul);   // Makam
     }
     if (!local) {
-        makamSetUsulName(masterScore(), tick, usul);       // Makam: the usul's name above the measure
+        makamSetUsulName(masterScore(), tick, usul, makamOldUsulName);   // Makam: the usul's name above the measure
         makamSetDefaultTempo(masterScore(), tick, usul);   // Makam: ♩ = 80 or ♪ = 90
     }
     delete ts;
