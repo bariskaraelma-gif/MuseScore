@@ -35,13 +35,18 @@ static const QString imagePath(":/resources/LoadingScreen.svg");
 
 static constexpr QSize loadingScreenSize(800, 380);
 
-static const QColor messageColor("#F1F1EE");
+// Makam: the TurkScore loading screen. The background (LoadingScreen.svg: navy, a gold
+// geometric rosette, faint staff lines, the gold rule under the subtitle) is drawn first,
+// then the texts in the UI font.
+static const QColor titleColor("#F3E9D2");
+static const QColor accentColor("#C9A45C");
 
-static const QString website("www.musescore.org");
-static constexpr QRectF websiteRect(loadingScreenSize.width() - 48, loadingScreenSize.height() - 48, 0, 0);
+static const QString title("TurkScore");
+static const QString subtitle = QString::fromUtf8("Türk makam müziği nota yazım programı");
+static const QString basedOn = QString::fromUtf8("MuseScore Studio 4.7.6 tabanlı · GPL-3.0");
 
-static const QColor versionNumberColor("#19F3FF");
-static constexpr qreal versionNumberSpacing = 5.0;
+static constexpr qreal sideMargin = 56.0;
+static constexpr qreal bottomMargin = 48.0;
 
 LoadingScreenView::LoadingScreenView(QWidget* parent)
     : QWidget(parent), muse::Contextable(muse::iocCtxForQWidget(this)),
@@ -69,26 +74,35 @@ void LoadingScreenView::draw(QPainter* painter)
     // Draw background
     m_backgroundRenderer->render(painter);
 
-    // Draw message
-    QFont font(QString::fromStdString(uiConfiguration()->fontFamily()));
-    font.setPixelSize(uiConfiguration()->fontSize());
+    // Makam: the texts of the TurkScore screen (always left to right, as the design)
+    const QString family = QString::fromStdString(uiConfiguration()->fontFamily());
+    const qreal w = loadingScreenSize.width();
+    const qreal h = loadingScreenSize.height();
 
-    painter->setFont(font);
+    QFont titleFont(family);
+    titleFont.setPixelSize(52);
+    titleFont.setBold(true);
+    titleFont.setLetterSpacing(QFont::AbsoluteSpacing, 0.5);
+    painter->setFont(titleFont);
+    painter->setPen(titleColor);
+    painter->drawText(QRectF(sideMargin, 120.0, 440.0, 70.0), Qt::AlignLeft | Qt::AlignTop | Qt::TextDontClip, title);
 
-    QPen pen(messageColor);
-    painter->setPen(pen);
+    QFont subtitleFont(family);
+    subtitleFont.setPixelSize(18);
+    painter->setFont(subtitleFont);
+    painter->setPen(accentColor);
+    painter->drawText(QRectF(sideMargin, 190.0, 440.0, 28.0), Qt::AlignLeft | Qt::AlignTop | Qt::TextDontClip, subtitle);
 
-    Qt::AlignmentFlag alignment = layoutDirection() == Qt::RightToLeft ? Qt::AlignLeft : Qt::AlignRight;
+    QFont smallFont(family);
+    smallFont.setPixelSize(12);
+    painter->setFont(smallFont);
 
-    // Draw website URL
-    QRectF websiteBoundingRect;
-    painter->drawText(websiteRect, Qt::AlignBottom | alignment | Qt::TextDontClip, website, &websiteBoundingRect);
+    QColor basedOnColor(titleColor);
+    basedOnColor.setAlphaF(0.55);
+    painter->setPen(basedOnColor);
+    painter->drawText(QRectF(sideMargin, h - bottomMargin, 0.0, 0.0), Qt::AlignLeft | Qt::AlignBottom | Qt::TextDontClip, basedOn);
 
-    // Draw version number
-    pen.setColor(versionNumberColor);
-    painter->setPen(pen);
-
-    painter->drawText(websiteRect.translated(0.0, -websiteBoundingRect.height() - versionNumberSpacing),
-                      Qt::AlignBottom | alignment | Qt::TextDontClip,
-                      muse::qtrc("appshell", "Version %1").arg(application()->fullVersion().toString()));
+    painter->setPen(accentColor);
+    painter->drawText(QRectF(w - bottomMargin, h - bottomMargin, 0.0, 0.0), Qt::AlignRight | Qt::AlignBottom | Qt::TextDontClip,
+                      QString::fromUtf8("Sürüm %1").arg(application()->fullVersion().toString()));
 }

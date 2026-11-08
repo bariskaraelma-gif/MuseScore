@@ -78,6 +78,7 @@ Bizim eklediğimiz her şey `Makam:` yorumuyla işaretlidir. Aramak için: `git 
   - Açık eser o dizi ise (meta etiket `makamDizi`) yalnız baştan çalar. Yeni pencerede kendiliğinden çalmaz.
 - **Türk arıza ↑/↓ merdiveni:** `makam::turkishStep()` (`makamtuner.cpp`), çağrıldığı yer `NotationInteraction::movePitch`.
 - **Usullü metronom:** usul ölçülerinde metronom düm/tek çalar, sayım bir usul ölçüsüdür. Kod: `src/engraving/playback/playbackeventsrenderer.cpp`.
+- **Yükleniyor ekranı** "TurkScore" (kullanıcı seçti; programın öteki yerlerinde ad henüz değişmedi): arka plan `src/appshell/resources/LoadingScreen.svg` (lacivert, altın geometrik süsleme, soluk dizek çizgileri), yazılar `src/appshell/widgets/splashscreen/loadingscreenview.cpp` içinde UI yazı tipiyle çizilir (başlık, alt yazı, "MuseScore Studio 4.7.6 tabanlı · GPL-3.0", "Sürüm …"). MuseScore logosu ve web adresi kaldırıldı.
 - **Görüntü yakalama** (kamera düğmesi): `share/plugins/imagecapture/` içine gömülü eklenti, komut `image-capture`.
 - Paletlerden Batı'ya özgü olanlar gizlendi: anahtar, perde, klavye paletleri ve İtalyanca tempo terimleri.
 - **Palet düzeni** (`palettecreator.cpp`):
