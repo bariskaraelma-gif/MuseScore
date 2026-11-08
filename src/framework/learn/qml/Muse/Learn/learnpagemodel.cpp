@@ -23,10 +23,103 @@
 
 #include <QVariant>
 #include <QDateTime>
+#include <QDir>
+#include <QFile>
+#include <QRegularExpression>
+#include <QUrl>
 
 #include "translation.h"
 
 using namespace muse::learn;
+
+// Makam: the training tab ("Makam Eğitimi"). Each folder in <app data>/makam-egitim is a section,
+// each .mscz / .mscx in it a lesson; folders and files are sorted by name and a leading number
+// ("1-", "01_") is not shown. A lesson may have a text file of the same name (the beste2mscx
+// source format): its "# title:", "# altbaslik:" (else "# makam:", "# form:", "# usul:") and
+// "# notlar:" lines give the card's title and texts. Without it the file name is the title.
+static QString makamDisplayName(QString name)
+{
+    static const QRegularExpression numberPrefix("^\\d+[-_ .]*");
+    name.remove(numberPrefix);
+    name.replace('_', ' ');
+    return name.trimmed();
+}
+
+static QVariantMap makamLessonInfo(const QFileInfo& file)
+{
+    QVariantMap lesson;
+    lesson["title"] = makamDisplayName(file.completeBaseName());
+    lesson["path"] = file.absoluteFilePath();
+
+    QFile meta(file.absolutePath() + "/" + file.completeBaseName() + ".txt");
+    if (!meta.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        return lesson;
+    }
+
+    static const QRegularExpression line("^#\\s*(\\w+):\\s*(.*)$");
+    QMap<QString, QString> tags;
+    QString lastKey;
+    for (const QString& text : QString::fromUtf8(meta.readAll()).split('\n')) {
+        const QString trimmed = text.trimmed();
+        if (trimmed.startsWith("m") && !trimmed.startsWith("#")) {
+            break; // the measures begin
+        }
+        const QRegularExpressionMatch m = line.match(trimmed);
+        if (m.hasMatch()) {
+            lastKey = m.captured(1);
+            tags[lastKey] = m.captured(2).trimmed();
+        } else if (lastKey == "notlar" && trimmed.startsWith("#") && trimmed.size() > 1) {
+            tags[lastKey] += " " + trimmed.mid(1).trimmed(); // continued notes
+        } else {
+            lastKey.clear();
+        }
+    }
+
+    if (!tags.value("title").isEmpty()) {
+        lesson["title"] = tags.value("title");
+    }
+
+    QStringList sub;
+    for (const char* key : { "makam", "form", "usul" }) {
+        if (!tags.value(key).isEmpty()) {
+            sub << tags.value(key);
+        }
+    }
+    lesson["subtitle"] = tags.value("altbaslik", sub.join(" · "));
+    lesson["notes"] = tags.value("notlar");
+    return lesson;
+}
+
+QVariantList LearnPageModel::makamLessons() const
+{
+    QVariantList sections;
+    const QDir root(globalConfiguration()->appDataPath().toQString() + "/makam-egitim");
+    const QStringList scoreFilters { "*.mscz", "*.mscx" };
+
+    for (const QFileInfo& dir : root.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot, QDir::Name)) {
+        QVariantList lessons;
+        for (const QFileInfo& file : QDir(dir.absoluteFilePath()).entryInfoList(scoreFilters, QDir::Files, QDir::Name)) {
+            lessons << makamLessonInfo(file);
+        }
+        if (lessons.isEmpty()) {
+            continue;
+        }
+
+        QVariantMap section;
+        section["title"] = makamDisplayName(dir.fileName());
+        section["lessons"] = lessons;
+        sections << section;
+    }
+
+    return sections;
+}
+
+void LearnPageModel::openMakamLesson(const QString& path, const QString& title)
+{
+    // NotationProject::load treats a file in makam-egitim as new: saving asks for a place, the
+    // lesson itself is never overwritten
+    dispatcher()->dispatch("file-open", actions::ActionData::make_arg2<QUrl, QString>(QUrl::fromLocalFile(path), title));
+}
 
 LearnPageModel::LearnPageModel(QObject* parent)
     : QObject(parent), Contextable(muse::iocCtxForQmlObject(this))

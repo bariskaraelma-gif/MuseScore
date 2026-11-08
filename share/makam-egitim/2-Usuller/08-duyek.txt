@@ -1,0 +1,9 @@
+# title: Düyek Usulü
+# altbaslik: 8/8 · 8 zamanlı
+# source: TurkScore eğitim
+# notlar: Vuruşlar (sekizlik cinsinden): Düm (1) · Tek (2) · Tek (1) · Düm (2) · Tek (2). Usul dizeğinde alt çizgi düm, üst çizgi tek. Oynatırken usullü metronom da bu vuruşları çalar.
+
+m1 [usul=Düyek, tempo=200] : Es:96
+m2 : Es:96
+m3 : Es:96
+m4 [final] : Es:96

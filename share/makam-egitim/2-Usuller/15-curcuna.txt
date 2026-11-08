@@ -1,0 +1,9 @@
+# title: Curcuna Usulü
+# altbaslik: 10/8 · 10 zamanlı
+# source: TurkScore eğitim
+# notlar: Vuruşlar (sekizlik cinsinden): Düm (2) · Düm (1) · Tek (2) · Düm (2) · Tek (2) · Tek (1). Usul dizeğinde alt çizgi düm, üst çizgi tek. Oynatırken usullü metronom da bu vuruşları çalar.
+
+m1 [usul=Curcuna, tempo=240] : Es:96 Es:24
+m2 : Es:96 Es:24
+m3 : Es:96 Es:24
+m4 [final] : Es:96 Es:24

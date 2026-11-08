@@ -1,0 +1,332 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<museScore version="4.70">
+  <Score>
+    <Division>480</Division>
+    <metaTag name="workTitle">Raks Aksağı Usulü</metaTag>
+    <metaTag name="composer"></metaTag>
+    <metaTag name="source">TurkScore eğitim</metaTag>
+    <Part>
+      <Staff id="1">
+        <StaffType group="pitched">
+          <name>stdNormal</name>
+          </StaffType>
+        </Staff>
+      <trackName>Türk Müziği</trackName>
+      <Instrument id="turk-muzigi">
+        <longName>Türk Müziği</longName>
+        <shortName>T.M.</shortName>
+        <trackName>Türk Müziği</trackName>
+        <minPitchP>40</minPitchP>
+        <maxPitchP>93</maxPitchP>
+        <minPitchA>40</minPitchA>
+        <maxPitchA>93</maxPitchA>
+        <transposeDiatonic>-6</transposeDiatonic>
+        <transposeChromatic>-10</transposeChromatic>
+        <instrumentId>pluck.guitar.nylon-string</instrumentId>
+        <Channel name="open">
+          <program value="24"/>
+          <synti>Fluid</synti>
+          </Channel>
+        </Instrument>
+      </Part>
+    <Part>
+      <Staff id="2">
+        <StaffType group="percussion">
+          <name>perc2Line</name>
+          <lines>2</lines>
+          <lineDistance>4</lineDistance>
+          </StaffType>
+        <defaultClef>PERC</defaultClef>
+        </Staff>
+      <trackName>Usul</trackName>
+      <Instrument id="usul">
+        <longName>Usul</longName>
+        <shortName>Usul</shortName>
+        <trackName>Usul</trackName>
+        <instrumentId>drum.group.set</instrumentId>
+        <useDrumset>1</useDrumset>
+        <Drum pitch="36">
+          <head>normal</head>
+          <line>2</line>
+          <voice>0</voice>
+          <name>Düm</name>
+          <stem>2</stem>
+          <shortcut>D</shortcut>
+          </Drum>
+        <Drum pitch="43">
+          <head>normal</head>
+          <line>0</line>
+          <voice>0</voice>
+          <name>Tek</name>
+          <stem>1</stem>
+          <shortcut>T</shortcut>
+          </Drum>
+        <Channel>
+          <controller ctrl="0" value="1"/>
+          <program value="0"/>
+          <synti>Fluid</synti>
+          </Channel>
+        </Instrument>
+      </Part>
+    <Staff id="1">
+      <VBox>
+        <height>18</height>
+        <Text>
+          <style>title</style>
+          <text>Raks Aksağı Usulü</text>
+          </Text>
+        <Text>
+          <style>subtitle</style>
+          <text>9/8 · 9 zamanlı</text>
+          </Text>
+        </VBox>
+      <Measure>
+        <voice>
+          <KeySig>
+            <concertKey>2</concertKey>
+            <actualKey>0</actualKey>
+            </KeySig>
+          <TimeSig>
+            <sigN>9</sigN>
+            <sigD>8</sigD>
+            <Groups>
+              <Node pos="8" action="273"/>
+              <Node pos="16" action="273"/>
+              <Node pos="24" action="273"/>
+              <Node pos="10012" action="0"/>
+              </Groups>
+            </TimeSig>
+          <Tempo>
+            <tempo>1.666667</tempo>
+            <followText>1</followText>
+            <text><sym>metNote8thUp</sym> = 200</text>
+            </Tempo>
+          <SystemText>
+            <text>Raks Aksağı</text>
+            </SystemText>
+          <Rest>
+            <durationType>whole</durationType>
+            </Rest>
+          <Rest>
+            <durationType>eighth</durationType>
+            </Rest>
+          </voice>
+        </Measure>
+      <Measure>
+        <voice>
+          <Rest>
+            <durationType>whole</durationType>
+            </Rest>
+          <Rest>
+            <durationType>eighth</durationType>
+            </Rest>
+          </voice>
+        </Measure>
+      <Measure>
+        <voice>
+          <Rest>
+            <durationType>whole</durationType>
+            </Rest>
+          <Rest>
+            <durationType>eighth</durationType>
+            </Rest>
+          </voice>
+        </Measure>
+      <Measure>
+        <voice>
+          <Rest>
+            <durationType>whole</durationType>
+            </Rest>
+          <Rest>
+            <durationType>eighth</durationType>
+            </Rest>
+          <BarLine>
+            <subtype>end</subtype>
+            </BarLine>
+          </voice>
+        </Measure>
+      </Staff>
+    <Staff id="2">
+      <Measure>
+        <voice>
+          <KeySig>
+            <concertKey>0</concertKey>
+            </KeySig>
+          <TimeSig>
+            <sigN>9</sigN>
+            <sigD>8</sigD>
+            <Groups>
+              <Node pos="8" action="273"/>
+              <Node pos="16" action="273"/>
+              <Node pos="24" action="273"/>
+              <Node pos="10012" action="0"/>
+              </Groups>
+            </TimeSig>
+          <Chord>
+            <durationType>quarter</durationType>
+            <BeamMode>no</BeamMode>
+            <StemDirection>down</StemDirection>
+            <Note>
+              <pitch>36</pitch>
+              <tpc>14</tpc>
+              </Note>
+            </Chord>
+          <Chord>
+            <dots>1</dots>
+            <durationType>quarter</durationType>
+            <BeamMode>no</BeamMode>
+            <StemDirection>up</StemDirection>
+            <Note>
+              <pitch>43</pitch>
+              <tpc>15</tpc>
+              </Note>
+            </Chord>
+          <Chord>
+            <durationType>quarter</durationType>
+            <BeamMode>no</BeamMode>
+            <StemDirection>down</StemDirection>
+            <Note>
+              <pitch>36</pitch>
+              <tpc>14</tpc>
+              </Note>
+            </Chord>
+          <Chord>
+            <durationType>quarter</durationType>
+            <BeamMode>no</BeamMode>
+            <StemDirection>up</StemDirection>
+            <Note>
+              <pitch>43</pitch>
+              <tpc>15</tpc>
+              </Note>
+            </Chord>
+          </voice>
+        </Measure>
+      <Measure>
+        <voice>
+          <Chord>
+            <durationType>quarter</durationType>
+            <BeamMode>no</BeamMode>
+            <StemDirection>down</StemDirection>
+            <Note>
+              <pitch>36</pitch>
+              <tpc>14</tpc>
+              </Note>
+            </Chord>
+          <Chord>
+            <dots>1</dots>
+            <durationType>quarter</durationType>
+            <BeamMode>no</BeamMode>
+            <StemDirection>up</StemDirection>
+            <Note>
+              <pitch>43</pitch>
+              <tpc>15</tpc>
+              </Note>
+            </Chord>
+          <Chord>
+            <durationType>quarter</durationType>
+            <BeamMode>no</BeamMode>
+            <StemDirection>down</StemDirection>
+            <Note>
+              <pitch>36</pitch>
+              <tpc>14</tpc>
+              </Note>
+            </Chord>
+          <Chord>
+            <durationType>quarter</durationType>
+            <BeamMode>no</BeamMode>
+            <StemDirection>up</StemDirection>
+            <Note>
+              <pitch>43</pitch>
+              <tpc>15</tpc>
+              </Note>
+            </Chord>
+          </voice>
+        </Measure>
+      <Measure>
+        <voice>
+          <Chord>
+            <durationType>quarter</durationType>
+            <BeamMode>no</BeamMode>
+            <StemDirection>down</StemDirection>
+            <Note>
+              <pitch>36</pitch>
+              <tpc>14</tpc>
+              </Note>
+            </Chord>
+          <Chord>
+            <dots>1</dots>
+            <durationType>quarter</durationType>
+            <BeamMode>no</BeamMode>
+            <StemDirection>up</StemDirection>
+            <Note>
+              <pitch>43</pitch>
+              <tpc>15</tpc>
+              </Note>
+            </Chord>
+          <Chord>
+            <durationType>quarter</durationType>
+            <BeamMode>no</BeamMode>
+            <StemDirection>down</StemDirection>
+            <Note>
+              <pitch>36</pitch>
+              <tpc>14</tpc>
+              </Note>
+            </Chord>
+          <Chord>
+            <durationType>quarter</durationType>
+            <BeamMode>no</BeamMode>
+            <StemDirection>up</StemDirection>
+            <Note>
+              <pitch>43</pitch>
+              <tpc>15</tpc>
+              </Note>
+            </Chord>
+          </voice>
+        </Measure>
+      <Measure>
+        <voice>
+          <Chord>
+            <durationType>quarter</durationType>
+            <BeamMode>no</BeamMode>
+            <StemDirection>down</StemDirection>
+            <Note>
+              <pitch>36</pitch>
+              <tpc>14</tpc>
+              </Note>
+            </Chord>
+          <Chord>
+            <dots>1</dots>
+            <durationType>quarter</durationType>
+            <BeamMode>no</BeamMode>
+            <StemDirection>up</StemDirection>
+            <Note>
+              <pitch>43</pitch>
+              <tpc>15</tpc>
+              </Note>
+            </Chord>
+          <Chord>
+            <durationType>quarter</durationType>
+            <BeamMode>no</BeamMode>
+            <StemDirection>down</StemDirection>
+            <Note>
+              <pitch>36</pitch>
+              <tpc>14</tpc>
+              </Note>
+            </Chord>
+          <Chord>
+            <durationType>quarter</durationType>
+            <BeamMode>no</BeamMode>
+            <StemDirection>up</StemDirection>
+            <Note>
+              <pitch>43</pitch>
+              <tpc>15</tpc>
+              </Note>
+            </Chord>
+          <BarLine>
+            <subtype>end</subtype>
+            </BarLine>
+          </voice>
+        </Measure>
+      </Staff>
+    </Score>
+  </museScore>

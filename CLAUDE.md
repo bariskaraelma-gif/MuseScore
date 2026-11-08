@@ -122,6 +122,13 @@ Bizim eklediğimiz her şey `Makam:` yorumuyla işaretlidir. Aramak için: `git 
   - Uzun ince sap + küçük açık uç, ~3 aralık: kodla çizilir. Ölçüler `src/engraving/rendering/score/makammizrap.h`; şekil `TLayout::fillArticulationShape`, çizim `TDraw::draw(const Articulation*)`. Boşluk boyu `mag() * style().spatium()` (magS() değil: o oran).
   - Yerleşim `ChordLayout`: ANCHOR AUTO iken hep üstte; aynı akorda iki ok yan yana, konulma sırasıyla, çift ortalanmış (`layoutArticulations2`).
   - Komut satırından deneme: `MuseScore4.exe -o out.png test.mscx` (kurulu program). Kurulumdan sonra programı açıp zorla kapatma: palet sürümü sıfırlanmış sayılır ama palet kaydedilmez (`MAKAM_PALETTE_VERSION` bu yüzden 4).
+- **Makam Eğitimi** (Başlangıç > Öğrenin, ilk sekme; kullanıcının seçtiği "hazır ders notaları" yolu, ileride usuller için sayfa içi vuruş çizimi eklenebilir):
+  - Dersler `share/makam-egitim/<n-Bölüm>/<ders>.mscx|.mscz`, kurulumda `<program>/makam-egitim`. Klasör = bölüm, dosya = kart; baştaki numara gösterilmez. Aynı adlı `.txt` (beste metni) kartın başlığını (`# title:`), altyazısını (`# altbaslik:`, yoksa makam · form · usul) ve notunu (`# notlar:`, ipucunda tamamı) verir.
+  - Kod: `LearnPageModel::makamLessons` / `openMakamLesson` (`src/framework/learn/qml/Muse/Learn/learnpagemodel.cpp`), görünüm `internal/MakamLessonsPage.qml`, sekme `LearnPage.qml` ("makam" sayfası).
+  - Ders `file-open` ile Nota sekmesinde açılır, programın çalıcısıyla dinlenir. `NotationProject::load` yolunda `/makam-egitim/` olan dosyayı yeni eser sayar: Kaydet yer sorar, ders dosyası değişmez.
+  - Üretim: `python -I -X utf8 makam/egitim/dersleri_uret.py` her `.txt`'den `.mscx` yapar (`makam/egitim/beste2mscx.py`, kullanıcının dönüştürücüsünün kopyası: bütün usuller, `# altbaslik:`, x/4'te dörtlüklü tempo yazısı). `--kaynak` dizi (Rast, Uşşak, Hüseynî, Hicaz) ve 16 usul dersinin `.txt`'lerini baştan yazar.
+  - İlk içerik: 4 makam dizisi, 16 usul, Örnek Eserler'de Hicaz Saz Semâîsi. Sırada: kullanıcının kendi besteleri (çoğu kendi bestesi) ve SymbTr örnekleri (lisansı CC BY-NC-SA 4.0: kaynak gösterilir, ticari olmayan kullanım).
+  - Durum: derlendi; dersler kart olarak görünüyor, tıklanınca açılıp çalıyor (2026-11-08).
 
 ## Sıradaki işler
 

@@ -1,0 +1,11 @@
+# title: Rast Dizisi
+# makam: Rast
+# altbaslik: Durak Rast (Sol) · Güçlü Nevâ (Re)
+# key: B-1 F4
+# source: TurkScore eğitim
+# notlar: Rast beşlisi (Rast perdesinde) ve Rast dörtlüsü (Nevâ'da). Durak Rast (Sol), güçlü Nevâ (Re). Çıkışta Eviç (Fa diyez), inişte çoğunlukla Acem (Fa natürel).
+
+m1 [section=Çıkış, meter=4/4, tempo=160] : Sol4:24 La4:24 Si4b1:24 Do5:24
+m2 : Re5:24 Mi5:24 Fa5#4:24 Sol5:24
+m3 [section=İniş] : Sol5:24 Fa5:24 Mi5:24 Re5:24
+m4 [final] : Do5:12 Si4b1:12 La4:24 Sol4:48

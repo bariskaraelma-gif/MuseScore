@@ -29,6 +29,7 @@ qt_add_qml_module(muse_learn_qml
     QML_FILES
         LearnPage.qml
         internal/ClassesPage.qml
+        internal/MakamLessonsPage.qml
         internal/Playlist.qml
         internal/PlaylistItem.qml
     RESOURCES

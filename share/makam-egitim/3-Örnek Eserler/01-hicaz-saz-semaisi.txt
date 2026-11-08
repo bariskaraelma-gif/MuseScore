@@ -1,0 +1,50 @@
+# title: Hicaz Saz Semâîsi
+# makam: Hicaz
+# form: saz semâîsi
+# usul: Aksak Semâî (4. hane Yürük Semâî)
+# key: B-4 C4
+# beste: Claude (Barış Karaelma için)
+# source: Makam eklentisinin Hicaz profili (makamlar/hicaz.md, SymbTr 157 eser) üzerine beste
+# notlar: Donanım Si bakiye bemol + Do diyez. Hicaz dörtlüsü Dügâh'ta, Rast beşlisi Nevâ'da;
+#   çıkışta Fa♯ (Eviç), inişte Fa natürel (Acem). 1. hane Nevâ'da, 2. hane Hüseynî'de,
+#   3. hane Muhayyer'de asma karar (3. hanede tizde Bûselik rengi: Si ve Do natürel);
+#   teslim Dügâh'ta karar (Rast yedeniyle). Teslim her haneden sonra açık yazıldı. 4. hane tekrarlı.
+#
+# Biçim: m<no> [işaretler] : notalar   (süre 1/96: 16'lık=6, 8'lik=12, 4'lük=24, 2'lik=48; Es = es)
+#   Aksak Semâî 10/8 = 3+2+2+3 sekizlik; Yürük Semâî 6/8 = 3+3
+m1 [section=1. Hane, usul=Aksak Semâî, tempo=180] : La4:24 Si4b4:6 Do5#4:6 Re5:12 Mi5:12 Fa5:12 Mi5:12 Re5:12 Do5#4:12 Re5:12
+m2 : Mi5:12 Fa5#4:12 Sol5:12 La5:24 Sol5:6 Fa5#4:6 Mi5:12 Re5:36
+m3 : Re5:12 Mi5:6 Fa5:6 Mi5:12 Re5:12 Do5#4:12 Si4b4:12 Do5#4:12 Re5:24 Mi5:12
+m4 : Fa5:12 Sol5:12 Fa5:12 Mi5:12 Re5:12 Do5#4:6 Re5:6 Mi5:12 Re5:24 Es:12
+m5 [section=Teslim] : Mi5:18 Fa5:6 Mi5:12 Re5:12 Do5#4:12 Re5:12 Mi5:12 Fa5#4:12 Sol5:12 La5:12
+m6 : Sol5:12 Fa5:12 Mi5:12 Fa5:6 Mi5:6 Re5:12 Mi5:12 Re5:12 Do5#4:24 Re5:12
+m7 : Mi5:12 Re5:12 Do5#4:12 Si4b4:12 Do5#4:12 Re5:12 Mi5:12 Re5:12 Do5#4:12 Si4b4:12
+m8 : Do5#4:12 Si4b4:12 La4:12 Sol4:12 Si4b4:12 La4:48 Es:12
+m9 [section=2. Hane] : Mi5:24 Fa5#4:12 Sol5:12 La5:12 Sol5:12 Fa5#4:12 Mi5:24 Re5:12
+m10 : Mi5:12 Fa5#4:6 Sol5:6 La5:12 Si5b4:12 La5:12 Sol5:6 La5:6 Sol5:6 Fa5:6 Mi5:36
+m11 : Re5:12 Mi5:12 Fa5:12 Sol5:24 Fa5:12 Mi5:12 Re5:12 Do5#4:12 Re5:12
+m12 : Mi5:12 Re5:12 Mi5:12 Fa5#4:12 Sol5:12 Fa5#4:12 Mi5:12 Mi5:24 Es:12
+m13 [section=Teslim] : Mi5:18 Fa5:6 Mi5:12 Re5:12 Do5#4:12 Re5:12 Mi5:12 Fa5#4:12 Sol5:12 La5:12
+m14 : Sol5:12 Fa5:12 Mi5:12 Fa5:6 Mi5:6 Re5:12 Mi5:12 Re5:12 Do5#4:24 Re5:12
+m15 : Mi5:12 Re5:12 Do5#4:12 Si4b4:12 Do5#4:12 Re5:12 Mi5:12 Re5:12 Do5#4:12 Si4b4:12
+m16 : Do5#4:12 Si4b4:12 La4:12 Sol4:12 Si4b4:12 La4:48 Es:12
+m17 [section=3. Hane] : La5:24 Si5:12 Do6:12 Re6:12 Do6:6 Si5:6 La5:12 Si5:12 La5:12 Sol5:12
+m18 : La5:12 Si5:6 Do6:6 Re6:12 Mi6:24 Re6:12 Do6:12 Si5:12 La5:24
+m19 : Sol5:12 La5:12 Si5b4:12 La5:12 Sol5:12 Fa5#4:12 Sol5:12 La5:12 Sol5:6 Fa5:6 Mi5:12
+m20 : Fa5:12 Sol5:12 La5:12 Si5b4:12 La5:12 Sol5:12 Fa5#4:12 La5:24 Es:12
+m21 [section=Teslim] : Mi5:18 Fa5:6 Mi5:12 Re5:12 Do5#4:12 Re5:12 Mi5:12 Fa5#4:12 Sol5:12 La5:12
+m22 : Sol5:12 Fa5:12 Mi5:12 Fa5:6 Mi5:6 Re5:12 Mi5:12 Re5:12 Do5#4:24 Re5:12
+m23 : Mi5:12 Re5:12 Do5#4:12 Si4b4:12 Do5#4:12 Re5:12 Mi5:12 Re5:12 Do5#4:12 Si4b4:12
+m24 : Do5#4:12 Si4b4:12 La4:12 Sol4:12 Si4b4:12 La4:48 Es:12
+m25 [section=4. Hane, meter=6/8, usul=Yürük Semâî, tempo=240, startRepeat] : La4:12 Do5#4:12 Re5:12 Mi5:24 Re5:12
+m26 : Fa5:12 Mi5:12 Re5:12 Do5#4:36
+m27 : Re5:12 Mi5:12 Fa5#4:12 Sol5:24 La5:12
+m28 : Si5b4:12 La5:12 Sol5:12 La5:36
+m29 : La5:12 Sol5:12 Fa5:12 Mi5:12 Fa5:12 Sol5:12
+m30 : Fa5:12 Mi5:12 Re5:12 Mi5:36
+m31 : Mi5:12 Re5:12 Do5#4:12 Re5:12 Do5#4:12 Si4b4:12
+m32 [endRepeat] : Do5#4:12 Si4b4:12 Sol4:12 La4:36
+m33 [section=Teslim, meter=10/8, usul=Aksak Semâî, tempo=180] : Mi5:18 Fa5:6 Mi5:12 Re5:12 Do5#4:12 Re5:12 Mi5:12 Fa5#4:12 Sol5:12 La5:12
+m34 : Sol5:12 Fa5:12 Mi5:12 Fa5:6 Mi5:6 Re5:12 Mi5:12 Re5:12 Do5#4:24 Re5:12
+m35 : Mi5:12 Re5:12 Do5#4:12 Si4b4:12 Do5#4:12 Re5:12 Mi5:12 Re5:12 Do5#4:12 Si4b4:12
+m36 [final] : Do5#4:12 Si4b4:12 La4:12 Sol4:12 Si4b4:12 La4:48 Es:12

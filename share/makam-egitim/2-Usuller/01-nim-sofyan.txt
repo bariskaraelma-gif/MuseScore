@@ -1,0 +1,9 @@
+# title: Nim Sofyan Usulü
+# altbaslik: 2/4 · 2 zamanlı
+# source: TurkScore eğitim
+# notlar: Vuruşlar (dörtlük cinsinden): Düm (1) · Tek (1). Usul dizeğinde alt çizgi düm, üst çizgi tek. Oynatırken usullü metronom da bu vuruşları çalar.
+
+m1 [usul=Nim Sofyan, tempo=160] : Es:48
+m2 : Es:48
+m3 : Es:48
+m4 [final] : Es:48

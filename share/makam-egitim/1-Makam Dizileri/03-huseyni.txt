@@ -1,0 +1,11 @@
+# title: Hüseynî Dizisi
+# makam: Hüseynî
+# altbaslik: Durak Dügâh (La) · Güçlü Hüseynî (Mi)
+# key: B-1 F4
+# source: TurkScore eğitim
+# notlar: Hüseynî beşlisi (Dügâh'ta) ve Uşşak dörtlüsü (Hüseynî'de). Durak Dügâh (La), güçlü Hüseynî (Mi). Eviç (Fa diyez) çıkışta tam, inişte biraz pes basılır.
+
+m1 [section=Çıkış, meter=4/4, tempo=160] : La4:24 Si4b1:24 Do5:24 Re5:24
+m2 : Mi5:24 Fa5#4:24 Sol5:24 La5:24
+m3 [section=İniş] : La5:24 Sol5:24 Fa5#4:24 Mi5:24
+m4 [final] : Re5:12 Do5:12 Si4b1:24 La4:48

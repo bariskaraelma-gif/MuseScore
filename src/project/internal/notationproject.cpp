@@ -133,10 +133,14 @@ Ret NotationProject::load(const muse::io::path_t& path, const OpenParams& openPa
 
     bool treatAsImported = (m_masterNotation->mscVersion() < 400 && !isCloudProject()) || format == MSCZ_BACKUP;
 
+    // Makam: a lesson of the training tab (LearnPageModel::openMakamLesson) opens like a new
+    // score: Save asks where to save, the lesson file stays as it is
+    const bool isMakamLesson = path.toQString().replace('\\', '/').contains("/makam-egitim/");
+
     listenIfNeedSaveChanges();
     setNeedSave(treatAsImported);
 
-    m_isNewlyCreated = treatAsImported;
+    m_isNewlyCreated = treatAsImported || isMakamLesson;
     m_isImported = treatAsImported;
 
     return ret;

@@ -114,7 +114,7 @@ FocusScope {
             navigation.panel: navSearchPanel
             navigation.order: 1
 
-            visible: tabBar.currentIndex !== 1 // Not visible for Classes tab
+            visible: tabBar.currentIndex === 1 // Makam: only the Get started tab has a search
 
             onSearchTextChanged: {
                 pageModel.setSearchText(searchText)
@@ -132,12 +132,14 @@ FocusScope {
         anchors.right: parent.right
         anchors.rightMargin: prv.sideMargin
 
+        // Makam: the training tab is the first one
         function pageIndex(pageName) {
             switch (pageName) {
-            case "get-started": return 0
+            case "makam": return 0
+            case "get-started": return 1
             //! NOTE: see https://github.com/musescore/MuseScore/issues/14886
             //case "advanced": return 1
-            case "classes": return 1
+            case "classes": return 2
             }
 
             return 0
@@ -161,6 +163,14 @@ FocusScope {
                     event.setData("controlName", tabBar.currentItem.navigation.name)
                 }
             }
+        }
+
+        StyledTabButton {
+            text: "Makam Eğitimi"
+
+            navigation.name: "MakamEgitimi"
+            navigation.panel: navTabPanel
+            navigation.column: 0
         }
 
         StyledTabButton {
@@ -201,6 +211,18 @@ FocusScope {
         anchors.bottom: parent.bottom
 
         currentIndex: tabBar.currentIndex
+
+        MakamLessonsPage {
+            id: makamComp
+
+            sections: pageModel.makamLessons()
+            backgroundColor: root.color
+            sideMargin: prv.sideMargin
+
+            onLessonClicked: function(path, title) {
+                pageModel.openMakamLesson(path, title)
+            }
+        }
 
         Playlist {
             id: getStartedComp

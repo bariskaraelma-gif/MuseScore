@@ -30,6 +30,8 @@
 #include "async/asyncable.h"
 
 #include "modularity/ioc.h"
+#include "global/iglobalconfiguration.h"
+#include "actions/iactionsdispatcher.h"
 #include "ilearnservice.h"
 #include "ilearnconfiguration.h"
 
@@ -44,6 +46,8 @@ class LearnPageModel : public QObject, public Contextable, public async::Asyncab
 
     GlobalInject<ILearnConfiguration> learnConfiguration;
     ContextInject<ILearnService> learnService = { this };
+    GlobalInject<IGlobalConfiguration> globalConfiguration;
+    ContextInject<actions::IActionsDispatcher> dispatcher = { this };
 
 public:
     explicit LearnPageModel(QObject* parent = nullptr);
@@ -55,6 +59,11 @@ public:
     Q_INVOKABLE void setSearchText(const QString& text);
     Q_INVOKABLE QVariantMap classesAuthor() const;
     Q_INVOKABLE bool classesEnabled();
+
+    // Makam: the training tab. Lessons are scores in <app data>/makam-egitim/<section>/; see
+    // learnpagemodel.cpp. makamLessons() returns [{ title, lessons: [{ title, subtitle, notes, path }] }].
+    Q_INVOKABLE QVariantList makamLessons() const;
+    Q_INVOKABLE void openMakamLesson(const QString& path, const QString& title);
 
 private slots:
     void setStartedPlaylist(Playlist startedPlaylist);
