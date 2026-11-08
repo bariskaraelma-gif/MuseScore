@@ -210,7 +210,7 @@ inline const std::vector<Donanim>& donanimlar()
         { { { 'B', -5 } }, "Kürdi, Muhayyerkürdi, Acemkürdi, Acemaşiran", "Si bemol" },
         { { { 'B', -5 }, { 'E', -5 } }, "Nihavend", "Si bemol, Mi bemol" },
         { { { 'B', -5 }, { 'E', -5 }, { 'A', -5 } }, "Kürdilihicazkâr", "Si bemol, Mi bemol, La bemol" },
-        { { { 'B', -4 }, { 'C', 4 } }, "Hicaz, Hicaz Uzzal", "Si bakiye bemol, Do diyez" },
+        { { { 'B', -4 }, { 'C', 4 } }, "Hicaz, Hicaz Uzzal, Sultaniyegâh", "Si bakiye bemol, Do diyez" },
         { { { 'B', -4 }, { 'C', 4 }, { 'F', 4 } }, "Hicaz", "Si bakiye bemol, Do diyez, Fa diyez" },
         { { { 'B', -4 }, { 'C', 4 }, { 'G', 4 } }, "Zirgüleli Hicaz", "Si bakiye bemol, Do diyez, Sol diyez" },
         { { { 'B', -1 } }, "Uşşak, Bayati", "Si koma bemol" },

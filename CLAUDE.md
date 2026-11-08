@@ -84,7 +84,7 @@ Bizim eklediğimiz her şey `Makam:` yorumuyla işaretlidir. Aramak için: `git 
   - Donanım hücrelerinde yalnız makam adları var. Ölçü göstergeleri paletinin adı "Usûl".
   - Metin paletinde legato, arco, distort, overdrive, caz tonu ve dizek/sistem metin çizgileri yok. 1.–4. Hane, Teslim, Saz, Ara Saz sistem metni olarak eklendi.
   - Varsayılan palette yalnız p, mf, f ve kreşendo/dekreşendo var. Büyük mücennep diyez/bemol yalnız "Daha fazla" bölümünde.
-  - Kayıtlı paletler çalışma alanında (`Default.mws`) durur. Palet tanımı değişince `paletteworkspacesetup.cpp` içindeki `MAKAM_PALETTE_VERSION` bir artırılır; kayıtlı paletler bir kez varsayılana döner.
+  - Kayıtlı paletler çalışma alanında (`Default.mws`) durur. Palet tanımı değişince `paletteworkspacesetup.cpp` içindeki `MAKAM_PALETTE_VERSION` bir artırılır. `MAKAM_PALETTE_RESET_VERSION` da o sürüme getirilirse kayıtlı paletler bir kez varsayılana döner (kullanıcının "Oluştur" hücreleri de gider). Yalnız donanım adı değiştiyse RESET sürümüne dokunulmaz: `makamRenameDonanimCells` kayıtlı paletlerdeki yerleşik donanım hücrelerine `makamdata.h`'deki adı verir, gerisi kalır (sürüm 5: "Hicaz, Hicaz Uzzal, Sultaniyegâh").
 - **Nota araç çubuğu:** çift diyez/bemol, marcato, accent, tenuto varsayılan olarak gizli (`defaultNoteInputBarConfig`).
 - **Ahenk listesi:** en üstte "Yazıldığı gibi (Batı)", sonra Bolâhenk'ten Dâvut Mâbeyni'ne 12 ney ahengi, yarımşar ses aşağı. Varsayılan Kız (4 ses), `DEFAULT_AHENK`.
 - **Tempo:**

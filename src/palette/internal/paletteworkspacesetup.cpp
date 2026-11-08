@@ -27,6 +27,8 @@
 #include "palettecreator.h"
 #include "../palettetypes.h"
 
+#include "engraving/dom/keysig.h"
+#include "engraving/dom/makamdata.h"
 #include "engraving/dom/masterscore.h"
 #include "engraving/rw/xmlreader.h"
 #include "engraving/rw/xmlwriter.h"
@@ -44,7 +46,43 @@ static const AsciiStringView PALETTE_XML_TAG("PaletteBox");
 // Makam: raised when the Makam palettes change, so that palettes saved in the workspace by an
 // earlier version are replaced once by the new default palettes
 static const Settings::Key MAKAM_PALETTE_VERSION_KEY("palette", "makam/paletteVersion");
-static constexpr int MAKAM_PALETTE_VERSION = 4;   // 2: line end in the Layout palette, 3-4: mızrap arrows
+static constexpr int MAKAM_PALETTE_VERSION = 5;   // 2: line end in the Layout palette, 3-4: mızrap arrows,
+                                                  // 5: Sultaniyegâh in a donanım's name
+// The last version whose palettes replace the saved ones. A later version only renames the
+// built-in donanım cells (makamRenameDonanimCells), so the user's own cells ("Oluştur") and
+// changes to the palettes stay.
+static constexpr int MAKAM_PALETTE_RESET_VERSION = 4;
+
+// Makam: the built-in donanım cells of saved palettes get the names of makamdata.h
+static void makamRenameDonanimCells(const PaletteTreePtr& tree)
+{
+    for (const PalettePtr& palette : tree->palettes) {
+        if (palette->type() != Palette::Type::KeySig) {
+            continue;
+        }
+        for (const PaletteCellPtr& cell : palette->cells()) {
+            if (cell->custom || !cell->element || !cell->element->isKeySig()) {
+                continue;
+            }
+            const engraving::KeySigEvent saved = engraving::toKeySig(cell->element.get())->keySigEvent();
+            for (const engraving::makam::Donanim& donanim : engraving::makam::donanimlar()) {
+                const engraving::KeySigEvent builtIn = engraving::makam::donanimKeySigEvent(donanim);
+                if (!builtIn.custom() || !saved.custom() || builtIn.customKeyDefs().size() != saved.customKeyDefs().size()) {
+                    continue;
+                }
+                bool same = true;
+                for (size_t i = 0; i < builtIn.customKeyDefs().size(); ++i) {
+                    same = same && builtIn.customKeyDefs()[i].degree == saved.customKeyDefs()[i].degree
+                           && builtIn.customKeyDefs()[i].sym == saved.customKeyDefs()[i].sym;
+                }
+                if (same) {
+                    cell->name = QString::fromUtf8(donanim.makamlar);
+                    break;
+                }
+            }
+        }
+    }
+}
 
 PaletteTreePtr PaletteWorkspaceSetup::readPalette(const ByteArray& data, const muse::modularity::ContextPtr& iocCtx)
 {
@@ -108,13 +146,18 @@ void PaletteWorkspaceSetup::setup()
 
     auto loadData = [this, saveData]() {
         RetVal<QByteArray> data = workspacesDataProvider()->rawData(WS_Palettes);
-        const bool makamOutdated = settings()->value(MAKAM_PALETTE_VERSION_KEY).toInt() < MAKAM_PALETTE_VERSION;
+        const int makamSavedVersion = settings()->value(MAKAM_PALETTE_VERSION_KEY).toInt();
+        const bool makamOutdated = makamSavedVersion < MAKAM_PALETTE_VERSION;
         PaletteTreePtr tree;
-        if (data.ret && !data.val.isEmpty() && !makamOutdated) {
+        if (data.ret && !data.val.isEmpty() && makamSavedVersion >= MAKAM_PALETTE_RESET_VERSION) {
             LOGD() << "there is palette data in the workspace, we will use it";
             ByteArray ba = ByteArray::fromQByteArrayNoCopy(data.val);
             tree = readPalette(ba, iocContext());
-        } else {
+            if (tree && makamOutdated) {
+                makamRenameDonanimCells(tree);
+            }
+        }
+        if (!tree) {
             LOGD() << "no palette data in workspace, will use default";
             tree = PaletteCreator(iocContext()).newDefaultPaletteTree();
         }
