@@ -153,6 +153,12 @@
     <autorepeat>0</autorepeat>
     </SC>
   <SC>
+    <!-- Makam: Image Capture - Quick Copy -->
+    <key>image-capture-quick</key>
+    <seq>Ctrl+Alt+C</seq>
+    <autorepeat>0</autorepeat>
+    </SC>
+  <SC>
     <key>paste</key>
     <seq>Ctrl+V</seq>
     </SC>

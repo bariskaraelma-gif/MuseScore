@@ -128,7 +128,7 @@ private:
     };
     void newProject(BlankScoreKind kind = BlankScoreKind::Single);
     muse::Ret createBlankProject(BlankScoreKind kind);
-    void openImageCapture();
+    void openImageCapture(const QString& pluginFile);
     void openMakamTuning();
     void openBona();
     void listenMakamDizi(const muse::actions::ActionData& args);   // Makam: "Diziyi dinle"

@@ -94,6 +94,14 @@ const UiActionList ProjectUiActions::m_actions = {
              TranslatableString("action", "Görüntü yakala: notanın bir bölümünü resim olarak kaydet"),
              IconCode::Code::CAMERA
              ),
+    // Makam: Image Capture – Quick Copy, without a dialog (default shortcut Ctrl+Alt+C)
+    UiAction("image-capture-quick",
+             mu::context::UiCtxAny,
+             mu::context::CTX_ANY,
+             TranslatableString("action", "Görüntüyü panoya kopyala"),
+             TranslatableString("action", "Seçili ölçüleri (seçim yoksa sayfayı) resim olarak panoya kopyala"),
+             IconCode::Code::COPY
+             ),
     UiAction("file-close",
              mu::context::UiCtxAny,
              mu::context::CTX_ANY,

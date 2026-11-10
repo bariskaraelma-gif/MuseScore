@@ -68,8 +68,9 @@ static const muse::Uri NOTATION_PAGE_URI("musescore://notation");
 static const muse::Uri NOTATION_REVIEW_PAGE_URI("musescore://notation/review");
 static const muse::Uri HOME_PAGE_URI("musescore://home");
 // Makam: "file-new" opens a blank score directly, the New Score dialog is not used
-// Makam: file name of the built-in Image Capture plugin (share/plugins/imagecapture)
+// Makam: file names of the built-in Image Capture plugins (share/plugins/imagecapture)
 static const QString IMAGE_CAPTURE_PLUGIN_FILE("imagecapture.qml");
+static const QString IMAGE_CAPTURE_QUICK_PLUGIN_FILE("imagecapturequickcopy.qml");
 static const muse::Uri PROJECT_PROPERTIES_URI("musescore://project/properties");
 static const muse::Uri UPLOAD_PROGRESS_URI("musescore://project/upload/progress");
 
@@ -84,7 +85,8 @@ void ProjectActionsController::init()
     dispatcher()->reg(this, "file-new", [this]() { newProject(BlankScoreKind::Single); });
     dispatcher()->reg(this, "file-new-with-usul", [this]() { newProject(BlankScoreKind::WithUsul); });
     dispatcher()->reg(this, "file-new-usul", [this]() { newProject(BlankScoreKind::UsulOnly); });
-    dispatcher()->reg(this, "image-capture", this, &ProjectActionsController::openImageCapture);
+    dispatcher()->reg(this, "image-capture", [this]() { openImageCapture(IMAGE_CAPTURE_PLUGIN_FILE); });
+    dispatcher()->reg(this, "image-capture-quick", [this]() { openImageCapture(IMAGE_CAPTURE_QUICK_PLUGIN_FILE); });
     dispatcher()->reg(this, "makam-tuning", this, &ProjectActionsController::openMakamTuning);
     dispatcher()->reg(this, "makam-bona", this, &ProjectActionsController::openBona);
     dispatcher()->reg(this, "makam-dizi", this, &ProjectActionsController::listenMakamDizi);
@@ -945,9 +947,10 @@ void ProjectActionsController::openBona()
     interactive()->open(BONA_URI);
 }
 
-//! Makam: the Image Capture tool is a built-in plugin (share/plugins/imagecapture),
-//! started from the toolbar button whether or not it is enabled in the plugin manager
-void ProjectActionsController::openImageCapture()
+//! Makam: the Image Capture tools are built-in plugins (share/plugins/imagecapture), started from
+//! the toolbar button / File menu / default shortcut whether or not they are enabled in the plugin
+//! manager. pluginFile: lower-case file name of the plugin's .qml
+void ProjectActionsController::openImageCapture(const QString& pluginFile)
 {
     if (!currentNotationProject()) {
         return;
@@ -956,7 +959,7 @@ void ProjectActionsController::openImageCapture()
     // Prefer the built-in copy; a copy in the user's plugins folder is used only if there is none
     muse::Uri uri;
     for (const muse::extensions::Manifest& m : extensionsProvider()->manifestList()) {
-        if (!m.legacyPlugin || io::filename(m.path).toQString().toLower() != IMAGE_CAPTURE_PLUGIN_FILE) {
+        if (!m.legacyPlugin || io::filename(m.path).toQString().toLower() != pluginFile) {
             continue;
         }
         if (!uri.isValid() || !m.isRemovable) {
@@ -968,7 +971,7 @@ void ProjectActionsController::openImageCapture()
     }
 
     if (!uri.isValid()) {
-        LOGE() << "Image Capture plugin not found";
+        LOGE() << "Image Capture plugin not found: " << pluginFile;
         return;
     }
 

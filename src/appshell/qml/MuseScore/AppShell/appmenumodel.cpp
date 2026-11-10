@@ -218,6 +218,7 @@ MenuItem* AppMenuModel::makeFileMenu()
         makeSeparator(),
         makeMenuItem("print"),
         makeMenuItem("image-capture"),
+        makeMenuItem("image-capture-quick"),
         makeSeparator(),
         makeMenuItem("quit", MenuItemRole::QuitRole)
     };
