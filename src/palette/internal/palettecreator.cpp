@@ -184,6 +184,7 @@ PaletteTreePtr PaletteCreator::newDefaultPaletteTree()
     PaletteTreePtr defaultPalette = std::make_shared<PaletteTree>();
 
     defaultPalette->append(newKeySigPalette());
+    defaultPalette->append(newThmKeySigPalette());   // Makam
     defaultPalette->append(newTimePalette(true));
     defaultPalette->append(newTempoPalette(true));
     defaultPalette->append(newAccidentalsPalette(true));
@@ -294,6 +295,26 @@ PalettePtr PaletteCreator::newKeySigPalette()
         auto k = Factory::makeKeySig(mu::engraving::gpaletteScore->dummy()->segment());
         k->setKeySigEvent(makam::donanimKeySigEvent(donanim));
         sp->appendElement(k, QString::fromUtf8(donanim.makamlar));
+    }
+
+    return sp;
+}
+
+// Makam: the donanıms of Turkish folk music (THM) as TRT writes them, for the THM tool. Its name
+// tells it from the AEU donanım palette (same type); see PaletteRootModel::makamToolPalettes.
+PalettePtr PaletteCreator::newThmKeySigPalette()
+{
+    PalettePtr sp = std::make_shared<Palette>(iocContext(), Palette::Type::KeySig);
+    sp->setName(QString::fromUtf8(makam::THM_PALETTE_NAME));
+    sp->setMag(0.8);
+    sp->setGridSize(56, 47);
+    sp->setDrawGrid(true);
+    sp->setYOffset(1.0);
+
+    for (const makam::ThmDonanim& donanim : makam::thmDonanimlar()) {
+        auto k = Factory::makeKeySig(mu::engraving::gpaletteScore->dummy()->segment());
+        k->setKeySigEvent(makam::thmDonanimKeySigEvent(donanim));
+        sp->appendElement(k, QString::fromStdString(makam::thmDonanimName(donanim)));
     }
 
     return sp;

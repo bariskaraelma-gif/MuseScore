@@ -246,16 +246,127 @@ inline SymId komaSym(int koma)
     return SymId::noSym;
 }
 
-// The key signature event of a donanım: a custom key signature in C, as the Makam plugin writes it
-inline KeySigEvent donanimKeySigEvent(const Donanim& donanim)
+//---------------------------------------------------------
+//   Makam: donanıms of Turkish folk music (THM), as TRT writes them
+//---------------------------------------------------------
+
+// A number after ♭/♯ gives the komas (♭2 = 2 koma bemol). ♭ alone is 5 komas and ♯ alone 4,
+// as in the SMuFL "Turkish folk music accidentals" (Bravura E450–E457; MuseScore draws them
+// from Bravura when the score font lacks them).
+// The name of the THM donanım palette, which tells it from the AEU donanım palette (same type)
+inline constexpr const char* THM_PALETTE_NAME = "THM donanımları";
+
+struct ThmDonanim {
+    std::vector<DonanimAcc> acc;    // in the order they are written
+    const char* ornek = "";         // examples from the TRT repertoire (the user's list)
+};
+
+inline const std::vector<ThmDonanim>& thmDonanimlar()
+{
+    static const std::vector<ThmDonanim> list {
+        // flats
+        { { { 'B', -1 } }, "" },
+        { { { 'B', -2 } }, "" },
+        { { { 'B', -3 } }, "" },
+        { { { 'B', -4 } }, "" },
+        { { { 'B', -5 } }, "" },
+        { { { 'B', -5 }, { 'C', 4 } }, "1403" },
+        { { { 'B', -1 }, { 'E', -5 } }, "1863" },
+        { { { 'B', -2 }, { 'E', -5 } }, "1059" },
+        { { { 'B', -2 }, { 'E', -2 } }, "889" },
+        { { { 'B', -5 }, { 'E', -4 } }, "Fidayda" },
+        { { { 'E', -5 } }, "1298" },
+        { { { 'E', -3 } }, "1400" },
+        { { { 'B', -2 }, { 'D', -2 } }, "1423" },
+        { { { 'B', -2 }, { 'D', -3 } }, "1415" },
+        { { { 'D', -1 }, { 'B', -2 } }, "1972" },
+        // sharps
+        { { { 'F', 4 } }, "548" },
+        { { { 'F', 2 } }, "758" },
+        { { { 'F', 3 } }, "565" },
+        { { { 'C', 4 } }, "1994" },
+        { { { 'F', 4 }, { 'C', 4 } }, "" },
+        { { { 'F', 4 }, { 'C', 2 } }, "172" },
+        { { { 'F', 3 }, { 'C', 4 } }, "891" },
+        // flats and sharps
+        { { { 'F', 4 }, { 'B', -2 } }, "983, 2569" },
+        { { { 'F', 3 }, { 'B', -2 } }, "2912, 2973" },
+        { { { 'B', -3 }, { 'F', 4 } }, "136 Yozgat Sürmelisi, 2468, 2489" },
+        { { { 'F', 4 }, { 'E', -5 } }, "2506" },
+        { { { 'B', -2 }, { 'C', 4 } }, "2853" },
+        { { { 'B', -2 }, { 'E', -5 }, { 'F', 4 } }, "2866" },
+        { { { 'F', 4 }, { 'C', 4 }, { 'B', -5 } }, "2644" },
+    };
+    return list;
+}
+
+// Glyph of a THM koma shift
+inline SymId thmKomaSym(int koma)
+{
+    switch (koma) {
+    case -1: return SymId::accidental1CommaFlat;
+    case -2: return SymId::accidental2CommaFlat;
+    case -3: return SymId::accidental3CommaFlat;
+    case -4: return SymId::accidental4CommaFlat;
+    case -5: return SymId::accidentalFlat;
+    case 1:  return SymId::accidental1CommaSharp;
+    case 2:  return SymId::accidental2CommaSharp;
+    case 3:  return SymId::accidental3CommaSharp;
+    case 4:  return SymId::accidentalSharp;
+    case 5:  return SymId::accidental5CommaSharp;
+    default: break;
+    }
+    return SymId::noSym;
+}
+
+// The cell name of a THM donanım: "Si ♭2, Mi ♭ (1059)"
+inline std::string thmDonanimName(const ThmDonanim& donanim)
+{
+    std::string name;
+    for (const DonanimAcc& a : donanim.acc) {
+        if (!name.empty()) {
+            name += ", ";
+        }
+        switch (a.letter) {
+        case 'C': name += "Do";
+            break;
+        case 'D': name += "Re";
+            break;
+        case 'E': name += "Mi";
+            break;
+        case 'F': name += "Fa";
+            break;
+        case 'G': name += "Sol";
+            break;
+        case 'A': name += "La";
+            break;
+        case 'B': name += "Si";
+            break;
+        default: break;
+        }
+        name += a.koma < 0 ? " ♭" : " ♯";
+        const int n = a.koma < 0 ? -a.koma : a.koma;
+        if (n != (a.koma < 0 ? 5 : 4)) {
+            name += std::to_string(n);
+        }
+    }
+    if (donanim.ornek[0]) {
+        name += std::string(" (") + donanim.ornek + ")";
+    }
+    return name;
+}
+
+// The key signature event of accidentals (letter, koma) drawn with a glyph function: a custom key
+// signature in C, as the Makam plugin writes it
+inline KeySigEvent komaKeySigEvent(const std::vector<DonanimAcc>& accs, SymId (*sym)(int))
 {
     KeySigEvent ke;
     ke.setConcertKey(Key::C);
-    if (donanim.acc.empty()) {
+    if (accs.empty()) {
         return ke;
     }
     ke.setCustom(true);
-    for (const DonanimAcc& a : donanim.acc) {
+    for (const DonanimAcc& a : accs) {
         CustDef cd;
         switch (a.letter) {
         case 'C': cd.degree = 0;
@@ -274,9 +385,55 @@ inline KeySigEvent donanimKeySigEvent(const Donanim& donanim)
             break;
         default: break;
         }
-        cd.sym = komaSym(a.koma);
+        cd.sym = sym(a.koma);
         ke.customKeyDefs().push_back(cd);
     }
     return ke;
+}
+
+// The key signature event of an AEU donanım
+inline KeySigEvent donanimKeySigEvent(const Donanim& donanim)
+{
+    return komaKeySigEvent(donanim.acc, komaSym);
+}
+
+// The mode that marks a key signature from the THM palette: "Si ♭" or "Fa ♯" of THM look the same
+// as AEU donanıms, but note input then offers the THM accidentals (MakamToolsModel). The mode is
+// saved with the key signature and changes nothing else in Makam Nota.
+inline constexpr KeyMode THM_KEY_MODE = KeyMode::IONIAN;
+
+// The key signature event of a THM donanım
+inline KeySigEvent thmDonanimKeySigEvent(const ThmDonanim& donanim)
+{
+    KeySigEvent ke = komaKeySigEvent(donanim.acc, thmKomaSym);
+    ke.setMode(THM_KEY_MODE);
+    return ke;
+}
+
+// A THM donanım: marked by the THM palette, or written with THM accidentals (♭1…♭4, ♯1, ♯2, ♯3, ♯5)
+inline bool isThmKeySig(const KeySigEvent& ke)
+{
+    if (ke.mode() == THM_KEY_MODE) {
+        return true;
+    }
+    if (!ke.custom()) {
+        return false;
+    }
+    for (const CustDef& cd : ke.customKeyDefs()) {
+        switch (cd.sym) {
+        case SymId::accidental1CommaFlat:
+        case SymId::accidental2CommaFlat:
+        case SymId::accidental3CommaFlat:
+        case SymId::accidental4CommaFlat:
+        case SymId::accidental1CommaSharp:
+        case SymId::accidental2CommaSharp:
+        case SymId::accidental3CommaSharp:
+        case SymId::accidental5CommaSharp:
+            return true;
+        default:
+            break;
+        }
+    }
+    return false;
 }
 }

@@ -109,7 +109,7 @@ Bizim eklediğimiz her şey `Makam:` yorumuyla işaretlidir. Aramak için: `git 
 - **Finale benzeri arayüz** (Tercihler > Görünüm > Arayüz; ayar `makam/interface` = `musescore` | `finale`, varsayılan MuseScore):
   - Notanın solunda iki sütunlu, gruplu araç çubuğu: `src/appshell/qml/MuseScore/AppShell/NotationPage/MakamToolStrip.qml`. `NotationPage.qml` içinde `central` bir Item oldu: araç çubuğu + NotationView.
   - Gruplar: Seçim | Nota girişi — Makam | Usul, Ölçü çizgisi | Yerleşim — Artikülasyon | Nüans, Metin | Söz, Tekrar — Özellikler | Bütün paletler. Anahtar, Tempo, Süsleme aracı yok (tempo üstteki çalma çubuğunda).
-  - Her araç çubuğun yanında dikey bir sütun açar (açılır kutu yok): Nota girişi → AEU arızaları (üstte naturel, solda 4 diyez, sağda 4 bemol; `MakamToolsModel::applyAccidental`, nota çubuğundaki arıza düğmeleri gibi). Öteki araçlar → kendi paleti, iki hücre genişliğinde, "Daha fazla" ile tam palet (`ToolPaletteColumn.qml`, palette modülü). THM arızaları sonra.
+  - Her araç çubuğun yanında dikey bir sütun açar (açılır kutu yok): Nota girişi → AEU arızaları (üstte naturel, solda 4 diyez, sağda 4 bemol; `MakamToolsModel::applyAccidental`, nota çubuğundaki arıza düğmeleri gibi). Öteki araçlar → kendi paleti, iki hücre genişliğinde, "Daha fazla" ile tam palet (`ToolPaletteColumn.qml`, palette modülü). THM donanımında THM arızaları (aşağıya bakın).
   - **Oluştur…** (Makam ve Usul sütunlarında, `ToolPaletteColumn.qml` içinde açılır pencere): kullanıcı kendi donanımını (ad + nota/arıza satırları) ya da usulünü (ad + birim + düm/tek darbları; ölçü = darb toplamı/birim) yapar. `PaletteRootModel::makamCreateDonanim` / `makamCreateUsul` hücreyi kullanıcının paletinin sonuna, palete eleman bırakılmış gibi (`dropMimeData`, özel hücre) ekler ve ölçü seçiliyse uygular. Paletler çalışma alanıyla kaydedilir.
     - Kullanıcı usulü kendini ölçü göstergesinde taşır (`makamdata.h`): işaret kodu `USUL_CUSTOM_CODE` (1000), işaretten sonra darblar (`pos = 20000 + i`, `action = len*2 + düm`) ve UTF-8 ad (`pos = 30000 + i`). Böylece dosya başka bilgisayarda da usulü bilir (usul dizeği, metronom, ad yazısı). `usulOfGroups` artık `std::optional<Usul>` döndürür, `Usul::name` `std::string`.
     - Durum: kullanıcı yeni makam ve usul oluşturmayı denedi, çalışıyor (2026-11-08).
@@ -118,6 +118,13 @@ Bizim eklediğimiz her şey `Makam:` yorumuyla işaretlidir. Aramak için: `git 
   - Paneller (`NotationPageModel`, `src/appshell/qml/MuseScore/AppShell/notationpagemodel.cpp`): `applyMakamInterface` Finale kipinde açılışta ve kip seçilince (Tercihler kapandıktan sonra, zamanlayıcıyla) Paletler, Yerleşim, Özellikler'i kapatır; MuseScore seçilince açar ve Özellikler'i yerine takar. `makam-properties` komutu (`onMakamProperties`) Özellikler'i yüzen küçük pencere olarak açar: yalnız Özellikler düğmesi açar/kapatır. Metin ve Söz açmaz (kullanıcı istedi).
   - Model: `makamtoolsmodel.*` (`src/notationscene/qml/MuseScore/NotationScene/`). Notadaki etkileşime (NotationInteraction) dokunulmadı.
   - Durum: derlendi ve kuruldu; kullanıcı deniyor.
+- **THM donanımları** (TRT halk müziği; kullanıcının "trt thm donanimlari.docx" listesinden, 2026-11-11):
+  - Finale araç çubuğunda Makam'ın yanında THM düğmesi (simge: sol altta Si ♭2, sağ üstte Fa ♯3; Bravura, `MakamToolsModel::thmFontFamily` yazı tipini yükler); yan sütunda "THM donanımları" paleti (Daha fazla / Oluştur yok). Sıra kullanıcının isteğiyle: 6. hücre "Si ♭, Do ♯".
+  - Glifler SMuFL "Turkish folk music accidentals" (Bravura E450–E457: ♯1 ♯2 ♯3 ♯5, ♭1 ♭2 ♭3 ♭4). ♭ yalnız = 5 koma, ♯ yalnız = 4 koma (♯4 ayrı glif değil). Leland'da yoklar; MuseScore Bravura'dan çizer.
+  - Veri `thmDonanimlar()` / `thmKomaSym()` (`makamdata.h`), 29 farklı donanım (belgedeki 36 görselden, aynı arızalılar birleşti; 2569 "hatalı" atlandı). Hücre adı arızalar + belgedeki örnek numaraları.
+  - Palet `newThmKeySigPalette()` (`palettecreator.cpp`), türü KeySig; AEU donanım paletinden adıyla ayrılır (`THM_PALETTE_NAME`, `makamToolPalettes("thm")`). Kayıtlı paletlere `makamAddThmPalette` ekler ya da THM paletini yenisiyle değiştirir (`MAKAM_THM_PALETTE_VERSION`, şimdi 8; THM sırası değişince ikisi birden artırılır; öteki paletler ve kullanıcının hücreleri kalır).
+  - Akort: `symKoma` / `accidentalKoma` 1–4 koma bemol, 1/2/3/5 koma diyez okur. THM perdesi (`NoteInfo::thm`: THM arızası ya da THM donanımındaki rakamlı arıza) makam kalibrasyonu ve yedenli Segah kuralı olmadan, kullanıcının tablosundaki sabit değeri çalar: koma × 1200/53 (♭1 −22.64, ♭2 −45.28, ♭3 −67.92, ♭4 −90.57, ♯1 22.64, ♯2 45.28, ♯3 67.92, ♯5 113.2), 0,01 sente yuvarlı. Notanın `tuning` değeri, MuseScore'un arızaya verdiği sentin (22,2'nin katları) üstüne eklenen farktır.
+  - Nota girişi sütunu THM donanımında THM arızalarını gösterir (naturel; ♯1 ♯2 ♯3 ♯ ♯5 | ♭1 ♭2 ♭3 ♭4 ♭): `MakamToolsModel::updateThm` nota girişi konumundaki, yoksa seçimin başındaki donanıma bakar (`makam::isThmKeySig`). THM paletinin donanımları `THM_KEY_MODE` (KeyMode::IONIAN) ile işaretli, çünkü düz "Si ♭", "Fa ♯" AEU'dakilerle aynı; THM glifli donanımlar işaretsiz de tanınır. Palet sürümü 8.
 - **Mızrap okları** (`guitarStrumDown/Up` artikülasyonu; dosya standart MuseScore dosyası kalır, asıl MuseScore'da kısa ok görünür):
   - Artikülasyon paletinin en başında (Bağ'dan önce): "Mızrap aşağı", "Mızrap yukarı" (`palettecreator.cpp`). İkinci tık kaldırır.
   - Uzun ince sap + küçük açık uç, ~3 aralık: kodla çizilir. Ölçüler `src/engraving/rendering/score/makammizrap.h`; şekil `TLayout::fillArticulationShape`, çizim `TDraw::draw(const Articulation*)`. Boşluk boyu `mag() * style().spatium()` (magS() değil: o oran).
@@ -139,7 +146,7 @@ Bizim eklediğimiz her şey `Makam:` yorumuyla işaretlidir. Aramak için: `git 
 2. Makam akordu için "Bu esere kaydet". (Makam başına "Diziyi dinle" yapıldı; sırada: yeni pencerede kendiliğinden çalma.)
 3. Sağ sütunda Claude paneli (sonra).
 4. Daha sonrası:
-   - THM (halk müziği) donanımları
+   - THM arızaları için ↑/↓ merdiveni (nota girişi sütunu yapıldı)
    - Program adı ve simgesi
    - Kurulum paketi
    - Çeviriler

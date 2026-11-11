@@ -48,6 +48,7 @@
 #include "../dom/accidental.h"
 #include "../dom/chord.h"
 #include "../dom/key.h"
+#include "../dom/makamdata.h"
 #include "../dom/masterscore.h"
 #include "../dom/measure.h"
 #include "../dom/measurebase.h"
@@ -429,6 +430,23 @@ bool accidentalKoma(AccidentalType type, int& koma)
         return true;
     case AccidentalType::SHARP_SLASH2: koma = 8;           // büyük mücennep diyez
         return true;
+    // Makam: THM (TRT) accidentals, ♭/♯ with the number of komas
+    case AccidentalType::ONE_COMMA_FLAT: koma = -1;
+        return true;
+    case AccidentalType::TWO_COMMA_FLAT: koma = -2;
+        return true;
+    case AccidentalType::THREE_COMMA_FLAT: koma = -3;
+        return true;
+    case AccidentalType::FOUR_COMMA_FLAT: koma = -4;
+        return true;
+    case AccidentalType::ONE_COMMA_SHARP: koma = 1;
+        return true;
+    case AccidentalType::TWO_COMMA_SHARP: koma = 2;
+        return true;
+    case AccidentalType::THREE_COMMA_SHARP: koma = 3;
+        return true;
+    case AccidentalType::FIVE_COMMA_SHARP: koma = 5;
+        return true;
     default:
         break;
     }
@@ -458,6 +476,23 @@ bool symKoma(SymId sym, int& koma)
     case SymId::accidentalBuyukMucennebSharp: koma = 8;
         return true;
     case SymId::accidentalNatural: koma = 0;
+        return true;
+    // Makam: THM (TRT) donanıms
+    case SymId::accidental1CommaFlat: koma = -1;
+        return true;
+    case SymId::accidental2CommaFlat: koma = -2;
+        return true;
+    case SymId::accidental3CommaFlat: koma = -3;
+        return true;
+    case SymId::accidental4CommaFlat: koma = -4;
+        return true;
+    case SymId::accidental1CommaSharp: koma = 1;
+        return true;
+    case SymId::accidental2CommaSharp: koma = 2;
+        return true;
+    case SymId::accidental3CommaSharp: koma = 3;
+        return true;
+    case SymId::accidental5CommaSharp: koma = 5;
         return true;
     default:
         break;
@@ -496,12 +531,34 @@ struct NoteInfo {
     bool micro = false;    // not an equal-tempered perde
     double aeu = 0.0;      // AEU position, cents from the written equal-tempered note
     double pos = 0.0;      // pitch position for the melodic direction
+    bool thm = false;      // a THM perde (♭1…♭4, ♯1, ♯2, ♯3, ♯5): koma × 1200/53 cents, no makam calibration
 };
 
 struct ReadState {
     std::map<int, int> carry;               // natural pitch -> koma of an accidental earlier in the measure
     std::map<const Note*, int> tied;        // first note of a tie chain -> koma
+    std::map<int, bool> carryThm;           // the same, THM or not
+    std::map<const Note*, bool> tiedThm;
 };
+
+// Makam: the THM (TRT) accidentals with a number of komas
+bool isThmAccidental(AccidentalType type)
+{
+    switch (type) {
+    case AccidentalType::ONE_COMMA_FLAT:
+    case AccidentalType::TWO_COMMA_FLAT:
+    case AccidentalType::THREE_COMMA_FLAT:
+    case AccidentalType::FOUR_COMMA_FLAT:
+    case AccidentalType::ONE_COMMA_SHARP:
+    case AccidentalType::TWO_COMMA_SHARP:
+    case AccidentalType::THREE_COMMA_SHARP:
+    case AccidentalType::FIVE_COMMA_SHARP:
+        return true;
+    default:
+        break;
+    }
+    return false;
+}
 
 NoteInfo noteInfo(Note* note, ReadState& state)
 {
@@ -513,20 +570,25 @@ NoteInfo noteInfo(Note* note, ReadState& state)
 
     NoteInfo info;
     int k = 0;
+    bool thm = false;
     const AccidentalType accType = note->accidentalType();
     const Note* first = note->firstTiedNote();
     if (accType != AccidentalType::NONE) {
         if (accidentalKoma(accType, k)) {
             info.builtin = Accidental::subtype2centOffset(accType);
+            thm = isThmAccidental(accType);
         } else {
             info.known = false;
             k = 0;
         }
         state.carry[natPitch] = k;                                 // until the end of the measure
+        state.carryThm[natPitch] = thm;
     } else if (first && first != note && state.tied.count(first)) {
         k = state.tied[first];                                     // tie continuation: same perde
+        thm = state.tiedThm[first];
     } else if (state.carry.count(natPitch)) {
         k = state.carry[natPitch];
+        thm = state.carryThm[natPitch];
     } else if (alter != 0) {
         k = alter > 0 ? 4 : -5;
     } else {
@@ -535,8 +597,11 @@ NoteInfo noteInfo(Note* note, ReadState& state)
         const std::vector<int> komas = keyKomas(ke);
         const int kk = komas[std::string("CDEFGAB").find(letter)];
         k = (kk == 4 || kk == -5) ? 0 : kk;                        // ♯/♭ of the key are in the pitch
+        thm = k != 0 && isThmKeySig(ke);                          // ♭2 etc. of a THM donanım
     }
     state.tied[note] = k;
+    state.tiedThm[note] = thm;
+    info.thm = thm;
 
     const int etK = alter > 0 ? 4 : alter < 0 ? -5 : 0;
     info.perde = std::string(1, letter) + std::to_string(k);
@@ -803,6 +868,7 @@ Voices readVoices(MasterScore* score)
         for (Event& ev : events) {
             if (ev.measureIndex != carryMeasure) {
                 state.carry.clear();                   // accidentals end at the barline
+                state.carryThm.clear();
                 carryMeasure = ev.measureIndex;
             }
             for (Note* note : ev.chord->notes()) {
@@ -866,6 +932,16 @@ void tuneScore(MasterScore* score)
                 Calib c;
                 const bool hasSegah = info.known && calibOf(makam, "B-1", segah);
                 const bool hasCalib = info.known && calibOf(makam, info.perde, c);
+                if (info.known && info.thm) {
+                    // Makam: THM perdes have fixed values (koma × 1200/53: ♭1 −22.64 … ♯5 113.21),
+                    // to the hundredth of a cent, whatever the makam
+                    cents = std::round((info.aeu - info.builtin) * 100.0) / 100.0;
+                    Note* note = notes[n];
+                    if (std::abs(note->tuning() - cents) > 0.005) {
+                        note->undoChangeProperty(Pid::TUNING, cents);
+                    }
+                    continue;
+                }
                 if (hasSegah && (info.perde == "A4" || (info.perde == "B-1" && yeden[i]))) {
                     cents = yedenSegah - info.builtin;             // yedenli Segah, La♯ 6 mandal below it
                 } else if (hasCalib) {

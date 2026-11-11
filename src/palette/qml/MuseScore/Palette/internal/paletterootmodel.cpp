@@ -76,6 +76,7 @@ QVariantList PaletteRootModel::makamToolPalettes(const QString& tool) const
 {
     static const std::map<QString, std::vector<Palette::Type> > TOOL_PALETTES = {
         { "makam", { Palette::Type::KeySig } },
+        { "thm", { Palette::Type::KeySig } },     // the THM donanım palette, told apart by its name
         { "usul", { Palette::Type::TimeSig } },
         { "barline", { Palette::Type::BarLine } },
         { "layout", { Palette::Type::Layout } },
@@ -97,10 +98,13 @@ QVariantList PaletteRootModel::makamToolPalettes(const QString& tool) const
     if (!model) {
         return result;
     }
+    // the Makam and THM tools share the key signature type: the THM palette is the one with its name
+    const QString thmName = QString::fromUtf8(mu::engraving::makam::THM_PALETTE_NAME);
     for (Palette::Type type : it->second) {
         for (int row = 0; row < model->rowCount(); ++row) {
             const QModelIndex index = model->index(row, 0);
-            if (index.data(PaletteTreeModel::PaletteTypeRole).value<Palette::Type>() == type) {
+            const bool isThm = type == Palette::Type::KeySig && index.data(Qt::DisplayRole).toString() == thmName;
+            if (index.data(PaletteTreeModel::PaletteTypeRole).value<Palette::Type>() == type && isThm == (tool == "thm")) {
                 result << QVariant::fromValue(index);
                 break;
             }

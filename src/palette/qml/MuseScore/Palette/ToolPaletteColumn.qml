@@ -434,7 +434,8 @@ Item {
         FlatButton {
             width: parent.width
             height: 24
-            visible: Boolean(root.paletteIndex)
+            // Makam: the THM palette has no fuller palette of its own (the key signature pool is AEU)
+            visible: Boolean(root.paletteIndex) && root.tool !== "thm"
             text: root.showAll ? "Daha az" : "Daha fazla"
             buttonType: FlatButton.TextOnly
             transparent: true

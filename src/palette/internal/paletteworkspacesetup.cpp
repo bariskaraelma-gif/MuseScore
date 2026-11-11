@@ -21,6 +21,8 @@
  */
 #include "paletteworkspacesetup.h"
 
+#include <optional>
+
 #include "io/buffer.h"
 #include "settings.h"
 
@@ -46,18 +48,26 @@ static const AsciiStringView PALETTE_XML_TAG("PaletteBox");
 // Makam: raised when the Makam palettes change, so that palettes saved in the workspace by an
 // earlier version are replaced once by the new default palettes
 static const Settings::Key MAKAM_PALETTE_VERSION_KEY("palette", "makam/paletteVersion");
-static constexpr int MAKAM_PALETTE_VERSION = 5;   // 2: line end in the Layout palette, 3-4: mızrap arrows,
-                                                  // 5: Sultaniyegâh in a donanım's name
+static constexpr int MAKAM_PALETTE_VERSION = 8;   // 2: line end in the Layout palette, 3-4: mızrap arrows,
+                                                  // 5: Sultaniyegâh in a donanım's name, 6: THM donanıms,
+                                                  // 7: order of the THM donanıms, 8: THM mark (THM_KEY_MODE)
+// The last version whose THM palette replaces the saved one (it has no cells of the user's own)
+static constexpr int MAKAM_THM_PALETTE_VERSION = 8;
 // The last version whose palettes replace the saved ones. A later version only renames the
 // built-in donanım cells (makamRenameDonanimCells), so the user's own cells ("Oluştur") and
 // changes to the palettes stay.
 static constexpr int MAKAM_PALETTE_RESET_VERSION = 4;
 
+static bool makamIsThmPalette(const PalettePtr& palette)
+{
+    return palette->type() == Palette::Type::KeySig && palette->name() == QString::fromUtf8(engraving::makam::THM_PALETTE_NAME);
+}
+
 // Makam: the built-in donanım cells of saved palettes get the names of makamdata.h
 static void makamRenameDonanimCells(const PaletteTreePtr& tree)
 {
     for (const PalettePtr& palette : tree->palettes) {
-        if (palette->type() != Palette::Type::KeySig) {
+        if (palette->type() != Palette::Type::KeySig || makamIsThmPalette(palette)) {
             continue;
         }
         for (const PaletteCellPtr& cell : palette->cells()) {
@@ -82,6 +92,27 @@ static void makamRenameDonanimCells(const PaletteTreePtr& tree)
             }
         }
     }
+}
+
+// Makam: palettes saved before the current THM donanıms get the new THM palette in place of the
+// old one, or after the donanım palette
+static void makamAddThmPalette(const PaletteTreePtr& tree, const muse::modularity::ContextPtr& iocCtx)
+{
+    std::optional<size_t> at;
+    for (size_t i = 0; i < tree->palettes.size(); ++i) {
+        if (makamIsThmPalette(tree->palettes[i])) {
+            const bool visible = tree->palettes[i]->isVisible();
+            const bool expanded = tree->palettes[i]->isExpanded();
+            tree->palettes[i] = PaletteCreator(iocCtx).newThmKeySigPalette();
+            tree->palettes[i]->setVisible(visible);
+            tree->palettes[i]->setExpanded(expanded);
+            return;
+        }
+        if (!at && tree->palettes[i]->type() == Palette::Type::KeySig) {
+            at = i + 1;
+        }
+    }
+    tree->insert(at.value_or(0), PaletteCreator(iocCtx).newThmKeySigPalette());
 }
 
 PaletteTreePtr PaletteWorkspaceSetup::readPalette(const ByteArray& data, const muse::modularity::ContextPtr& iocCtx)
@@ -155,6 +186,9 @@ void PaletteWorkspaceSetup::setup()
             tree = readPalette(ba, iocContext());
             if (tree && makamOutdated) {
                 makamRenameDonanimCells(tree);
+                if (makamSavedVersion < MAKAM_THM_PALETTE_VERSION) {
+                    makamAddThmPalette(tree, iocContext());
+                }
             }
         }
         if (!tree) {

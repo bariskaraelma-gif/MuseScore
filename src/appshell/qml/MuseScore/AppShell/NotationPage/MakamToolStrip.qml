@@ -3,9 +3,9 @@
  *
  * Makam: the Finale-like tool bar on the left of the score, shown when Preferences >
  * Appearance > Arayüz is "Finale benzeri". Two columns of tools in groups. Each tool shows a
- * column beside the bar: the AEU accidentals for note input, its palette for the others (the
- * mızrap arrows are at the top of the Artikülasyon palette); Özellikler floats the Properties
- * panel as a small window.
+ * column beside the bar: the AEU accidentals for note input (the THM ones on a THM donanım),
+ * its palette for the others (the mızrap arrows are at the top of the Artikülasyon palette);
+ * Özellikler floats the Properties panel as a small window.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as
@@ -42,10 +42,12 @@ Item {
     // SMuFL code points of the drawn icons
     readonly property string reversedFlat: ""   // koma bemol
     readonly property string slashedFlat: ""    // bakiye bemol
+    readonly property string flat2Comma: ""     // THM ♭2 (Bravura)
+    readonly property string sharp3Comma: ""    // THM ♯3 (Bravura)
     readonly property string timeSig5: ""
     readonly property string timeSig8: ""
 
-    // icon: an IconCode; drawn: "makam" or "usul" (music font glyphs) or "label" (the title);
+    // icon: an IconCode; drawn: "makam", "thm" or "usul" (music font glyphs) or "label" (the title);
     // action: a button that does something at once instead of choosing a tool
     readonly property var toolGroups: [
         [
@@ -57,6 +59,8 @@ Item {
         [
             { id: "makam", title: "Makam", drawn: "makam",
               description: "Makam donanımları yanda açılır. Ölçüyü seçip donanıma tıklayın; Oluştur ile yenisini yapın" },
+            { id: "thm", title: "THM", drawn: "thm",
+              description: "Halk müziği (TRT) donanımları yanda açılır: rakam koma sayısıdır (♭2 = 2 koma bemol). Ölçüyü seçip donanıma tıklayın" },
             { id: "usul", title: "Usul", drawn: "usul",
               description: "Usuller yanda açılır. Ölçüyü seçip usule tıklayın; Oluştur ile yenisini yapın" },
             { id: "barline", title: "Ölçü çizgisi", icon: IconCode.DOUBLE_BAR_LINE,
@@ -198,6 +202,31 @@ Item {
                                 }
                             }
 
+                            // THM: Si ♭2 low on the left, Fa ♯3 high on the right (Bravura: Leland
+                            // has no THM accidentals)
+                            Item {
+                                anchors.fill: parent
+                                visible: toolButton.tool.drawn === "thm"
+
+                                Text {
+                                    x: 6
+                                    y: 27 - baselineOffset
+                                    text: root.flat2Comma
+                                    color: ui.theme.fontPrimaryColor
+                                    font.family: toolsModel.thmFontFamily
+                                    font.pixelSize: 24
+                                }
+
+                                Text {
+                                    x: 19
+                                    y: 18 - baselineOffset
+                                    text: root.sharp3Comma
+                                    color: ui.theme.fontPrimaryColor
+                                    font.family: toolsModel.thmFontFamily
+                                    font.pixelSize: 24
+                                }
+                            }
+
                             // Usul: 5 over 8 without a fraction line, the time signature digits of the
                             // music font (as in the Usul palette)
                             Item {
@@ -311,7 +340,9 @@ Item {
                         y: 23 - baselineOffset
                         text: accidentalButton.modelData ? accidentalButton.modelData.glyph : ""
                         color: ui.theme.fontPrimaryColor
-                        font.family: ui.theme.musicalFont.family
+                        // Makam: the THM accidentals (THM donanım) are Bravura glyphs
+                        font.family: accidentalButton.modelData && accidentalButton.modelData.bravura
+                                     ? toolsModel.thmFontFamily : ui.theme.musicalFont.family
                         font.pixelSize: 26
                     }
                 }
