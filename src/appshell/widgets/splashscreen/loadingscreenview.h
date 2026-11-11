@@ -46,6 +46,7 @@ public:
 private:
     bool event(QEvent* event) override;
     void draw(QPainter* painter);
+    void drawStaffSigns(QPainter* painter);   // Makam: Hüzzam donanım and THM accidentals
 
     QSvgRenderer* m_backgroundRenderer = nullptr;
 };

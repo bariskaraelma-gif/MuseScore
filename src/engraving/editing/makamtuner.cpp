@@ -1105,11 +1105,15 @@ std::vector<ScoreMakam> scoreMakams(MasterScore* score)
 //   4 komas apart: Mi ↑ Mi♯ ↑ Fa, Si ↑ Do. Koma diyez only on Fa. Going down: Fa ↓ Mi♯, Do ↓ Si.
 //   An accidental is written only where the step differs from the key signature or from an
 //   earlier accidental on the same note in the measure.
+//   THM: on a THM donanım (or a note with a THM accidental) ↑/↓ go by equal-tempered semitones:
+//   Si♭2 ↑ Si (naturel) ↑ Do, Si♭2 ↓ Si♭ ↓ La; a THM perde (♭1…♭4, ♯1…♯3, ♯5) is a step of its own
+//   (THM_STEP_BASE + koma) so that the naturel, ♯ or ♭ beside it is written.
 //---------------------------------------------------------
 
 namespace mu::engraving::makam {
 namespace {
 constexpr int NO_STEP = 99;
+constexpr int THM_STEP_BASE = 10;   // THM perdes and other komas off the AEU ladder: 10 + koma
 
 const std::string LADDER_LETTERS = "CDEFGAB";
 constexpr int NAT_TPC[7] = { 14, 16, 18, 13, 15, 17, 19 };   // C D E F G A B
@@ -1164,7 +1168,26 @@ int stepOfAccidental(AccidentalType type)
     case AccidentalType::SHARP_SLASH3: return 3;
     default: break;
     }
+    int koma = 0;
+    if (isThmAccidental(type) && accidentalKoma(type, koma)) {
+        return THM_STEP_BASE + koma;
+    }
     return NO_STEP;
+}
+
+// The koma of a step (stepOfAccidental, stepOfKoma)
+int komaOfStep(int step)
+{
+    switch (step) {
+    case -3: return -5;
+    case -2: return -4;
+    case -1: return -1;
+    case 1: return 1;
+    case 2: return 4;
+    case 3: return 5;
+    default: break;
+    }
+    return step >= THM_STEP_BASE - 5 && step <= THM_STEP_BASE + 5 ? step - THM_STEP_BASE : 0;
 }
 
 AccidentalType accidentalOfStep(int step)
@@ -1177,6 +1200,15 @@ AccidentalType accidentalOfStep(int step)
     case 1: return AccidentalType::SHARP_SLASH;        // koma diyez
     case 2: return AccidentalType::SHARP;
     case 3: return AccidentalType::SHARP_SLASH3;       // küçük mücennep diyez
+    // THM perdes (THM_STEP_BASE + koma)
+    case THM_STEP_BASE - 1: return AccidentalType::ONE_COMMA_FLAT;
+    case THM_STEP_BASE - 2: return AccidentalType::TWO_COMMA_FLAT;
+    case THM_STEP_BASE - 3: return AccidentalType::THREE_COMMA_FLAT;
+    case THM_STEP_BASE - 4: return AccidentalType::FOUR_COMMA_FLAT;
+    case THM_STEP_BASE + 1: return AccidentalType::ONE_COMMA_SHARP;
+    case THM_STEP_BASE + 2: return AccidentalType::TWO_COMMA_SHARP;
+    case THM_STEP_BASE + 3: return AccidentalType::THREE_COMMA_SHARP;
+    case THM_STEP_BASE + 5: return AccidentalType::FIVE_COMMA_SHARP;
     default: break;
     }
     return AccidentalType::NONE;
@@ -1193,7 +1225,7 @@ int stepOfKoma(int koma)
     case 5: return 3;
     default: break;
     }
-    return 0;
+    return koma == 0 ? 0 : THM_STEP_BASE + koma;   // THM ♭2, ♭3, ♯2, ♯3 of the key signature
 }
 
 // The written ♯/♭ (equal-tempered) of a step
@@ -1285,7 +1317,7 @@ void setNoteStep(Score* score, Note* note, char letter, int natWritten, int step
 
     removeAccidental(note);
     score->undoChangePitch(note, pitch, tpc1, tpc2);
-    if (ks != step) {
+    if (komaOfStep(ks) != komaOfStep(step)) {                     // THM ♭1 = AEU koma bemol, etc.
         for (EngravingObject* obj : note->linkList()) {
             Note* ln = toNote(obj);
             Accidental* acc = Factory::createAccidental(ln);
@@ -1302,6 +1334,110 @@ void setNoteStep(Score* score, Note* note, char letter, int natWritten, int step
         removeAccidental(n);
         score->undoChangePitch(n, pitch, tpc1, tpc2);
     }
+}
+}
+
+namespace {
+// THM: position of a perde in cents (♯ and ♭ alone: a tempered semitone; ♯5 its THM value)
+double thmPosition(int natWritten, int koma)
+{
+    return natWritten * 100.0 + (koma == 4 ? 100.0 : koma == -5 ? -100.0 : koma * KOMA);
+}
+
+// THM: the equal-tempered semitone above or below a note (letter, natural written pitch, koma),
+// as letter + step (−3 ♭, 0, 2 ♯)
+void temperedNeighbour(int direction, int k, char& letter, int& natWritten, int& step)
+{
+    // a THM perde: to the tempered note next to it on the same letter
+    if (k != 0 && k != 4 && k != -5 && k > -5 && k < 4) {
+        step = direction > 0 ? (k < 0 ? 0 : 2) : (k < 0 ? -3 : 0);
+        return;
+    }
+
+    int alt = k >= 4 ? 1 : k <= -5 ? -1 : 0;   // ♯5 counts as ♯ here
+    const char from = letter;
+    size_t index = LADDER_LETTERS.find(letter);
+    if (direction > 0) {
+        if (alt < 0) {
+            alt = 0;                                       // Si♭ ↑ Si
+        } else if (alt == 0 && from != 'E' && from != 'B') {
+            alt = 1;                                       // La ↑ La♯
+        } else {
+            natWritten += SEMIS_UP[index];                 // La♯ ↑ Si, Mi ↑ Fa, Mi♯ ↑ Fa♯
+            index = (index + 1) % 7;
+            alt = alt == 1 && (from == 'E' || from == 'B') ? 1 : 0;
+        }
+    } else {
+        if (alt > 0) {
+            alt = 0;                                       // Fa♯ ↓ Fa
+        } else if (alt == 0 && from != 'C' && from != 'F') {
+            alt = -1;                                      // Si ↓ Si♭
+        } else {
+            const bool fromFlat = alt == -1;               // Si♭ ↓ La, Do ↓ Si, Do♭ ↓ Si♭
+            index = (index + 6) % 7;
+            natWritten -= SEMIS_UP[index];
+            alt = fromFlat && (from == 'C' || from == 'F') ? -1 : 0;
+        }
+    }
+    letter = LADDER_LETTERS[index];
+    step = alt > 0 ? 2 : alt < 0 ? -3 : 0;
+}
+
+// THM: the next step above or below the note: the tempered semitone, or a THM perde of the key
+// signature on the way (Si ↓ Si♭2 ↓ Si♭, La♯ ↑ Si♭2 ↑ Si on a Si♭2 donanım)
+void thmTemperedStep(Note* note, int direction, char& letter, int& natWritten, int& step)
+{
+    static const int LETTER_SEMIS[7] = { 0, 2, 4, 5, 7, 9, 11 };   // C D E F G A B
+
+    char l = 'C';
+    int alter = 0;
+    letterOfTpc(note->tpc2(), l, alter);
+    letter = l;
+    natWritten = writtenPitch(note) - alter;
+    int s = note->accidentalType() != AccidentalType::NONE ? stepOfAccidental(note->accidentalType()) : NO_STEP;
+    if (s == NO_STEP) {
+        s = currentStep(note, letter, natWritten);
+    }
+    const int k = komaOfStep(s);
+    const double from = thmPosition(natWritten, k);
+
+    temperedNeighbour(direction, k, letter, natWritten, step);
+    double best = thmPosition(natWritten, komaOfStep(step));
+
+    const Staff* staff = note->staff();
+    if (!staff) {
+        return;
+    }
+    const std::vector<int> komas = keyKomas(staff->keySigEvent(note->tick()));
+    for (size_t li = 0; li < 7; ++li) {
+        const int kk = komas[li];
+        if (kk == 0 || kk == 4 || kk == -5) {
+            continue;                                      // not a THM perde
+        }
+        const int octave = static_cast<int>(std::floor(from / 1200.0));
+        for (int o = octave - 1; o <= octave + 1; ++o) {
+            const int nat = 12 * o + LETTER_SEMIS[li];
+            const double q = thmPosition(nat, kk);
+            const bool between = direction > 0 ? (q > from + 0.5 && q < best - 0.5)
+                                 : (q < from - 0.5 && q > best + 0.5);
+            if (between) {
+                best = q;
+                letter = LADDER_LETTERS[li];
+                natWritten = nat;
+                step = THM_STEP_BASE + kk;                 // written with the THM glyph if needed
+            }
+        }
+    }
+}
+
+// THM: a note on a THM donanım or with a THM accidental of its own
+bool isThmNote(const Note* note)
+{
+    if (isThmAccidental(note->accidentalType())) {
+        return true;
+    }
+    const Staff* staff = note->staff();
+    return staff && isThmKeySig(staff->keySigEvent(note->tick()));
 }
 }
 
@@ -1326,6 +1462,14 @@ bool turkishStep(Score* score, int direction)
     }
 
     for (Note* note : notes) {
+        if (isThmNote(note)) {
+            char letter = 'C';
+            int natWritten = 0;
+            int step = 0;
+            thmTemperedStep(note, direction, letter, natWritten, step);
+            setNoteStep(score, note, letter, natWritten, step);
+            continue;
+        }
         char letter = 'C';
         int alter = 0;
         letterOfTpc(note->tpc2(), letter, alter);

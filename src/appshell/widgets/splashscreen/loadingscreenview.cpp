@@ -23,6 +23,7 @@
 #include "loadingscreenview.h"
 
 #include <QApplication>
+#include <QFontDatabase>
 #include <QPainter>
 #include <QScreen>
 #include <QSvgRenderer>
@@ -47,6 +48,27 @@ static const QString basedOn = QString::fromUtf8("MuseScore Studio 4.7.6 tabanl�
 
 static constexpr qreal sideMargin = 56.0;
 static constexpr qreal bottomMargin = 48.0;
+
+// Makam: on the faint staff of LoadingScreen.svg (lines y = 262 … 294, 8 px apart) a G clef, the
+// Hüzzam donanım (Si koma bemol, Mi bakiye bemol, Fa diyez) and the accidentals of the THM button
+// (Si ♭2, Fa ♯3). The music fonts are the program's own (Qt resources of the engraving module);
+// Leland has no THM accidentals, they are Bravura's.
+static constexpr qreal staffTop = 262.0;          // Fa (top line)
+static constexpr qreal staffSpace = 8.0;
+static constexpr qreal musicFontSize = 4 * staffSpace;   // SMuFL: the em is 4 staff spaces
+
+static QString musicFontFamily(const QString& resource, const QString& fallback)
+{
+    const int id = QFontDatabase::addApplicationFont(resource);
+    const QStringList families = id >= 0 ? QFontDatabase::applicationFontFamilies(id) : QStringList();
+    return families.isEmpty() ? fallback : families.first();
+}
+
+// y of a note: steps (half staff spaces) below the top line (Fa 0, Mi 1, Re 2, Do 3, Si 4, La 5, Sol 6)
+static qreal noteY(int stepsBelowTop)
+{
+    return staffTop + stepsBelowTop * staffSpace / 2.0;
+}
 
 LoadingScreenView::LoadingScreenView(QWidget* parent)
     : QWidget(parent), muse::Contextable(muse::iocCtxForQWidget(this)),
@@ -105,4 +127,43 @@ void LoadingScreenView::draw(QPainter* painter)
     painter->setPen(accentColor);
     painter->drawText(QRectF(w - bottomMargin, h - bottomMargin, 0.0, 0.0), Qt::AlignRight | Qt::AlignBottom | Qt::TextDontClip,
                       QString::fromUtf8("Sürüm %1").arg(application()->fullVersion().toString()));
+
+    drawStaffSigns(painter);
+}
+
+void LoadingScreenView::drawStaffSigns(QPainter* painter)
+{
+    static const QString leland = musicFontFamily(":/fonts/leland/Leland.otf", "Leland");
+    static const QString bravura = musicFontFamily(":/fonts/bravura/Bravura.otf", "Bravura");
+
+    QFont lelandFont(leland);
+    lelandFont.setPixelSize(musicFontSize);
+    QFont bravuraFont(bravura);
+    bravuraFont.setPixelSize(musicFontSize);
+
+    auto glyph = [painter](const QFont& font, qreal x, qreal y, char16_t code) {
+        painter->setFont(font);
+        painter->drawText(QPointF(x, y), QString(QChar(code)));
+    };
+
+    QColor clefColor(titleColor);
+    clefColor.setAlphaF(0.55);
+    painter->setPen(clefColor);
+    glyph(lelandFont, 62.0, noteY(6), 0xE050);           // G clef on the Sol line
+
+    painter->setPen(accentColor);
+    // Hüzzam (AEU): Si koma bemol (ters bemol), Mi bakiye bemol, Fa diyez
+    glyph(lelandFont, 96.0, noteY(4), 0xE280);
+    glyph(lelandFont, 107.0, noteY(1), 0xE442);
+    glyph(lelandFont, 119.0, noteY(0), 0xE262);
+
+    // a bar line, then the THM button's accidentals: Si ♭2, Fa ♯3
+    QColor barColor(titleColor);
+    barColor.setAlphaF(0.35);
+    painter->setPen(QPen(barColor, 1.0));
+    painter->drawLine(QPointF(142.5, noteY(0)), QPointF(142.5, noteY(8)));
+
+    painter->setPen(accentColor);
+    glyph(bravuraFont, 156.0, noteY(4), 0xE455);
+    glyph(bravuraFont, 171.0, noteY(0), 0xE452);
 }

@@ -76,9 +76,9 @@ Bizim eklediğimiz her şey `Makam:` yorumuyla işaretlidir. Aramak için: `git 
     - Dosyayı arka planda yükler, açık eserin ahengini (`setAhenk`) ve akordu (boş komut) uygular.
     - `%TEMP%\MakamNota\<id>[-seyir]-dizi.mscz` olarak kaydeder ve açar (eser açıksa yeni pencerede).
   - Açık eser o dizi ise (meta etiket `makamDizi`) yalnız baştan çalar. Yeni pencerede kendiliğinden çalmaz.
-- **Türk arıza ↑/↓ merdiveni:** `makam::turkishStep()` (`makamtuner.cpp`), çağrıldığı yer `NotationInteraction::movePitch`.
+- **Türk arıza ↑/↓ merdiveni:** `makam::turkishStep()` (`makamtuner.cpp`), çağrıldığı yer `NotationInteraction::movePitch`. THM donanımında ya da THM arızalı notada ↑/↓ 12 eşit aralıklı yarım ses gider, yolda donanımın THM perdesine uğrar (kullanıcı istedi; Si♭2 donanımında: La♯ ↑ Si♭2 ↑ Si ↑ Do, Si ↓ Si♭2 ↓ Si♭ ↓ La; `thmTemperedStep`, `temperedNeighbour`). THM perdeleri merdivende `THM_STEP_BASE + koma` basamağıdır, böylece yanına gereken naturel/♯/♭ yazılır.
 - **Usullü metronom:** usul ölçülerinde metronom düm/tek çalar, sayım bir usul ölçüsüdür. Kod: `src/engraving/playback/playbackeventsrenderer.cpp`.
-- **Yükleniyor ekranı** "TurkScore" (kullanıcı seçti; programın öteki yerlerinde ad henüz değişmedi): arka plan `src/appshell/resources/LoadingScreen.svg` (lacivert, altın geometrik süsleme, soluk dizek çizgileri), yazılar `src/appshell/widgets/splashscreen/loadingscreenview.cpp` içinde UI yazı tipiyle çizilir (başlık, alt yazı, "MuseScore Studio 4.7.6 tabanlı · GPL-3.0", "Sürüm …"). MuseScore logosu ve web adresi kaldırıldı.
+- **Yükleniyor ekranı** "TurkScore" (kullanıcı seçti; programın öteki yerlerinde ad henüz değişmedi): arka plan `src/appshell/resources/LoadingScreen.svg` (lacivert, altın geometrik süsleme, soluk dizek çizgileri), yazılar `src/appshell/widgets/splashscreen/loadingscreenview.cpp` içinde UI yazı tipiyle çizilir (başlık, alt yazı, "MuseScore Studio 4.7.6 tabanlı · GPL-3.0", "Sürüm …"). Soluk dizeğin üstünde (çizgiler SVG'de kalır) `drawStaffSigns`: sol anahtarı, Hüzzam donanımı (Si ters bemol, Mi bakiye bemol, Fa diyez; Leland), ince ölçü çizgisi, THM düğmesinin arızaları (Si ♭2, Fa ♯3; Bravura). Yazı tipleri engraving modülünün Qt kaynaklarından yüklenir. MuseScore logosu ve web adresi kaldırıldı.
 - **Logo / program simgesi** (kullanıcı B taslağını seçti): lacivert zeminde altın ay yıldız, bayrak oranlarında, ağzı 45° sağ yukarı. Kaynak `share/icons/AppIcon/turkscore_logo.svg` (ince altın çemberli, 48 px ve üstü) ve `turkscore_logo_small.svg` (çembersiz, daha büyük ay yıldız; 16–32 px). `MS4_AppIcon_*.png` ve `MS4_AppIcon.ico` bunlardan üretildi (dosya adları CMake değişmesin diye aynı kaldı; .ico içinde PNG'ler). macOS `.icns` ve `AppIcon.icon` değişmedi. Belge simgeleri (`MsczIcon`, `MscxIcon`) ve `mu_logo.svg` henüz MuseScore'un.
 - **Görüntü yakalama** (kamera düğmesi): `share/plugins/imagecapture/` içine gömülü eklenti, komut `image-capture`.
   - Quick Copy (diyalogsuz panoya kopyalama): komut `image-capture-quick`, Dosya menüsünde, varsayılan kısayol Ctrl+Alt+C (`src/app/configs/data/shortcuts*.xml`). İki komut da eklenti yöneticisinde etkin olmasa da çalışır (`ProjectActionsController::openImageCapture`). Kullanıcı denedi, çalışıyor (2026-11-10).
@@ -146,7 +146,6 @@ Bizim eklediğimiz her şey `Makam:` yorumuyla işaretlidir. Aramak için: `git 
 2. Makam akordu için "Bu esere kaydet". (Makam başına "Diziyi dinle" yapıldı; sırada: yeni pencerede kendiliğinden çalma.)
 3. Sağ sütunda Claude paneli (sonra).
 4. Daha sonrası:
-   - THM arızaları için ↑/↓ merdiveni (nota girişi sütunu yapıldı)
    - Program adı ve simgesi
    - Kurulum paketi
    - Çeviriler
