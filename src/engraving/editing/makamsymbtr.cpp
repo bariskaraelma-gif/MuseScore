@@ -43,7 +43,9 @@
 #include "../dom/note.h"
 #include "../dom/part.h"
 #include "../dom/segment.h"
+#include "../dom/lyrics.h"
 #include "../dom/staff.h"
+#include "../dom/stafftext.h"
 #include "../dom/text.h"
 #include "../dom/textbase.h"
 #include "../dom/timesig.h"
@@ -145,13 +147,28 @@ void writeHeader(MasterScore* score, const Header& h)
     if (parts.isEmpty()) {
         return;
     }
+    // SymbTr's titles are in title case, which makes the izafet "-i" a capital: "Bîgâne-I Hâb"
+    static const QRegularExpression izafet(QStringLiteral("-[Iİ](?=\\s|$)"));
+    const QString workTitle = score->metaTag(u"workTitle").toQString();
+    if (workTitle.contains(izafet)) {
+        score->setMetaTag(u"workTitle", String::fromQString(QString(workTitle).replace(izafet, QStringLiteral("-i"))));
+    }
+
     MeasureBase* first = score->first();
     if (first && first->isVBox()) {
-        // SymbTr writes "?" for an unknown poet or composer
         const ElementList texts = first->el();
         for (EngravingItem* e : texts) {
-            if (e && e->isText() && toText(e)->plainText().trimmed() == u"?") {
-                score->undoRemoveElement(e);
+            if (!e || !e->isText()) {
+                continue;
+            }
+            Text* text = toText(e);
+            if (text->plainText().trimmed() == u"?") {
+                score->undoRemoveElement(e);   // SymbTr writes "?" for an unknown poet or composer
+                continue;
+            }
+            const QString xml = text->xmlText().toQString();
+            if (xml.contains(izafet)) {
+                text->undoChangeProperty(Pid::TEXT, String::fromQString(QString(xml).replace(izafet, QStringLiteral("-i"))));
             }
         }
     }
@@ -165,6 +182,25 @@ void writeHeader(MasterScore* score, const Header& h)
     subtitle->setParent(first);
     subtitle->setXmlText(String::fromQString(parts.join(QStringLiteral(" · ")).toHtmlEscaped()));
     score->undoAddElement(subtitle);
+}
+
+// Beam groups of an x/8 usul as Turkish music writes them: the eighths of an odd number in twos
+// with a three at the end (Aksak 9/8 = 2+2+2+3, 7/8 = 2+2+3, 5/8 = 2+3), the 16ths in twos of
+// eighths (9/8 = 2+2+2+2+1); Düyek 8/8 all in twos. Empty for the others (MuseScore's grouping,
+// or the usul's own beams). Positions in 1/32, an eighth is 4.
+GroupNodes aksakNodes(const Fraction& sig)
+{
+    GroupNodes nodes;
+    const int n = sig.numerator();
+    if (sig.denominator() != 8 || n < 5 || (n % 2 == 0 && n != 8)) {
+        return nodes;
+    }
+    const int lastEighthBreak = n % 2 ? n - 3 : n - 2;   // the eighths' last group is 3 (odd) or 2
+    for (int e = 2; e < n; e += 2) {
+        const bool eighthBreak = e <= lastEighthBreak;
+        nodes.push_back(GroupNode { e * 4, eighthBreak ? 0x111 : 0x110 });   // 0x110: 16ths and 32nds only
+    }
+    return nodes;
 }
 
 // The time signatures of the usul (same name and same n/d) get the usul marker
@@ -182,13 +218,22 @@ void applyUsul(MasterScore* score, const QString& usulName)
                     continue;
                 }
                 TimeSig* ts = toTimeSig(e);
+                const GroupNodes aksak = aksakNodes(ts->sig());
                 bool isUsul = false;
                 for (const Usul& usul : usuller()) {
                     if (!key.isEmpty() && letters(QString::fromStdString(usul.name)) == key && ts->sig().identical(Fraction(usul.n, usul.d))) {
-                        ts->undoChangeProperty(Pid::GROUP_NODES, usulGroups(usul).nodes());
+                        GroupNodes nodes = usulGroups(usul).nodes();
+                        if (usul.beams.empty() && !aksak.empty()) {
+                            nodes = aksak;
+                            nodes.push_back(GroupNode { USUL_MARKER_BASE + usul.code, 0 });
+                        }
+                        ts->undoChangeProperty(Pid::GROUP_NODES, nodes);
                         isUsul = true;
                         break;
                     }
+                }
+                if (!isUsul && ts->groups().empty() && !aksak.empty()) {
+                    ts->undoChangeProperty(Pid::GROUP_NODES, aksak);
                 }
                 // Ağır Aksak 9/4, Ağır Aksak Semâî 10/4, Fahte 20/4…: beams end on every quarter.
                 // (MuseScore's default grouping of a time signature it has no table for comes out
@@ -199,6 +244,42 @@ void applyUsul(MasterScore* score, const QString& usulName)
                         nodes.push_back(GroupNode { 8 * i, 0x111 });
                     }
                     ts->undoChangeProperty(Pid::GROUP_NODES, nodes);
+                }
+            }
+        }
+    }
+}
+
+// SymbTr writes "." under every note of an instrumental passage, and the name of a section
+// ("ARANAĞME", "SAZ") as a lyric: the dots go, the names become staff texts ("Aranağme")
+void cleanLyrics(MasterScore* score)
+{
+    static const QRegularExpression sectionName(QStringLiteral("^[A-ZÇĞİÖŞÜÂÎÛ][A-ZÇĞİÖŞÜÂÎÛ ]{2,}\\.?$"));
+    for (Measure* m = score->firstMeasure(); m; m = m->nextMeasure()) {
+        for (Segment* s = m->first(SegmentType::ChordRest); s; s = s->next(SegmentType::ChordRest)) {
+            for (track_idx_t track = 0; track < score->ntracks(); ++track) {
+                EngravingItem* e = s->element(track);
+                if (!e || !e->isChordRest()) {
+                    continue;
+                }
+                const std::vector<Lyrics*> lyrics = toChordRest(e)->lyrics();
+                for (Lyrics* l : lyrics) {
+                    const QString text = l->plainText().toQString().trimmed();
+                    if (text == u".") {
+                        score->undoRemoveElement(l);
+                    } else if (sectionName.match(text).hasMatch()) {
+                        QString name = text;
+                        if (name.endsWith(u'.')) {
+                            name.chop(1);
+                        }
+                        name = name.left(1) + name.mid(1).replace(u'I', u'ı').replace(u'İ', u'i').toLower();
+                        StaffText* st = Factory::createStaffText(s);
+                        st->setParent(s);
+                        st->setTrack(track);
+                        st->setXmlText(String::fromQString(name.toHtmlEscaped()));
+                        score->undoAddElement(st);
+                        score->undoRemoveElement(l);
+                    }
                 }
             }
         }
@@ -316,6 +397,7 @@ void fixSymbTrScore(MasterScore* score)
     writeHeader(score, *header);
     applyUsul(score, usulName);
     resetBeams(score);
+    cleanLyrics(score);
     useTurkishInstrument(score);
 
     // No instrument name and no indent on the first system: the melody gets the whole width
