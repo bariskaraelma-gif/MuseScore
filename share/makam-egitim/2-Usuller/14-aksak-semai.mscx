@@ -47,18 +47,18 @@
         <useDrumset>1</useDrumset>
         <Drum pitch="36">
           <head>normal</head>
-          <line>2</line>
+          <line>0</line>
           <voice>0</voice>
           <name>Düm</name>
-          <stem>2</stem>
+          <stem>1</stem>
           <shortcut>D</shortcut>
           </Drum>
         <Drum pitch="43">
           <head>normal</head>
-          <line>0</line>
+          <line>2</line>
           <voice>0</voice>
           <name>Tek</name>
-          <stem>1</stem>
+          <stem>2</stem>
           <shortcut>T</shortcut>
           </Drum>
         <Channel>
@@ -90,9 +90,11 @@
             <sigN>10</sigN>
             <sigD>8</sigD>
             <Groups>
+              <Node pos="8" action="273"/>
               <Node pos="12" action="273"/>
               <Node pos="20" action="273"/>
               <Node pos="28" action="273"/>
+              <Node pos="36" action="273"/>
               <Node pos="10014" action="0"/>
               </Groups>
             </TimeSig>
@@ -156,16 +158,17 @@
             <sigN>10</sigN>
             <sigD>8</sigD>
             <Groups>
+              <Node pos="8" action="273"/>
               <Node pos="12" action="273"/>
               <Node pos="20" action="273"/>
               <Node pos="28" action="273"/>
+              <Node pos="36" action="273"/>
               <Node pos="10014" action="0"/>
               </Groups>
             </TimeSig>
           <Chord>
             <durationType>quarter</durationType>
-            <BeamMode>no</BeamMode>
-            <StemDirection>down</StemDirection>
+            <StemDirection>up</StemDirection>
             <Note>
               <pitch>36</pitch>
               <tpc>14</tpc>
@@ -173,8 +176,7 @@
             </Chord>
           <Chord>
             <durationType>eighth</durationType>
-            <BeamMode>no</BeamMode>
-            <StemDirection>down</StemDirection>
+            <StemDirection>up</StemDirection>
             <Note>
               <pitch>36</pitch>
               <tpc>14</tpc>
@@ -182,8 +184,7 @@
             </Chord>
           <Chord>
             <durationType>quarter</durationType>
-            <BeamMode>no</BeamMode>
-            <StemDirection>up</StemDirection>
+            <StemDirection>down</StemDirection>
             <Note>
               <pitch>43</pitch>
               <tpc>15</tpc>
@@ -191,8 +192,7 @@
             </Chord>
           <Chord>
             <durationType>quarter</durationType>
-            <BeamMode>no</BeamMode>
-            <StemDirection>down</StemDirection>
+            <StemDirection>up</StemDirection>
             <Note>
               <pitch>36</pitch>
               <tpc>14</tpc>
@@ -200,8 +200,7 @@
             </Chord>
           <Chord>
             <durationType>quarter</durationType>
-            <BeamMode>no</BeamMode>
-            <StemDirection>up</StemDirection>
+            <StemDirection>down</StemDirection>
             <Note>
               <pitch>43</pitch>
               <tpc>15</tpc>
@@ -209,8 +208,7 @@
             </Chord>
           <Chord>
             <durationType>eighth</durationType>
-            <BeamMode>no</BeamMode>
-            <StemDirection>up</StemDirection>
+            <StemDirection>down</StemDirection>
             <Note>
               <pitch>43</pitch>
               <tpc>15</tpc>
@@ -222,8 +220,7 @@
         <voice>
           <Chord>
             <durationType>quarter</durationType>
-            <BeamMode>no</BeamMode>
-            <StemDirection>down</StemDirection>
+            <StemDirection>up</StemDirection>
             <Note>
               <pitch>36</pitch>
               <tpc>14</tpc>
@@ -231,8 +228,7 @@
             </Chord>
           <Chord>
             <durationType>eighth</durationType>
-            <BeamMode>no</BeamMode>
-            <StemDirection>down</StemDirection>
+            <StemDirection>up</StemDirection>
             <Note>
               <pitch>36</pitch>
               <tpc>14</tpc>
@@ -240,8 +236,7 @@
             </Chord>
           <Chord>
             <durationType>quarter</durationType>
-            <BeamMode>no</BeamMode>
-            <StemDirection>up</StemDirection>
+            <StemDirection>down</StemDirection>
             <Note>
               <pitch>43</pitch>
               <tpc>15</tpc>
@@ -249,8 +244,7 @@
             </Chord>
           <Chord>
             <durationType>quarter</durationType>
-            <BeamMode>no</BeamMode>
-            <StemDirection>down</StemDirection>
+            <StemDirection>up</StemDirection>
             <Note>
               <pitch>36</pitch>
               <tpc>14</tpc>
@@ -258,8 +252,7 @@
             </Chord>
           <Chord>
             <durationType>quarter</durationType>
-            <BeamMode>no</BeamMode>
-            <StemDirection>up</StemDirection>
+            <StemDirection>down</StemDirection>
             <Note>
               <pitch>43</pitch>
               <tpc>15</tpc>
@@ -267,8 +260,7 @@
             </Chord>
           <Chord>
             <durationType>eighth</durationType>
-            <BeamMode>no</BeamMode>
-            <StemDirection>up</StemDirection>
+            <StemDirection>down</StemDirection>
             <Note>
               <pitch>43</pitch>
               <tpc>15</tpc>
@@ -280,8 +272,7 @@
         <voice>
           <Chord>
             <durationType>quarter</durationType>
-            <BeamMode>no</BeamMode>
-            <StemDirection>down</StemDirection>
+            <StemDirection>up</StemDirection>
             <Note>
               <pitch>36</pitch>
               <tpc>14</tpc>
@@ -289,8 +280,7 @@
             </Chord>
           <Chord>
             <durationType>eighth</durationType>
-            <BeamMode>no</BeamMode>
-            <StemDirection>down</StemDirection>
+            <StemDirection>up</StemDirection>
             <Note>
               <pitch>36</pitch>
               <tpc>14</tpc>
@@ -298,8 +288,7 @@
             </Chord>
           <Chord>
             <durationType>quarter</durationType>
-            <BeamMode>no</BeamMode>
-            <StemDirection>up</StemDirection>
+            <StemDirection>down</StemDirection>
             <Note>
               <pitch>43</pitch>
               <tpc>15</tpc>
@@ -307,8 +296,7 @@
             </Chord>
           <Chord>
             <durationType>quarter</durationType>
-            <BeamMode>no</BeamMode>
-            <StemDirection>down</StemDirection>
+            <StemDirection>up</StemDirection>
             <Note>
               <pitch>36</pitch>
               <tpc>14</tpc>
@@ -316,8 +304,7 @@
             </Chord>
           <Chord>
             <durationType>quarter</durationType>
-            <BeamMode>no</BeamMode>
-            <StemDirection>up</StemDirection>
+            <StemDirection>down</StemDirection>
             <Note>
               <pitch>43</pitch>
               <tpc>15</tpc>
@@ -325,8 +312,7 @@
             </Chord>
           <Chord>
             <durationType>eighth</durationType>
-            <BeamMode>no</BeamMode>
-            <StemDirection>up</StemDirection>
+            <StemDirection>down</StemDirection>
             <Note>
               <pitch>43</pitch>
               <tpc>15</tpc>
@@ -338,8 +324,7 @@
         <voice>
           <Chord>
             <durationType>quarter</durationType>
-            <BeamMode>no</BeamMode>
-            <StemDirection>down</StemDirection>
+            <StemDirection>up</StemDirection>
             <Note>
               <pitch>36</pitch>
               <tpc>14</tpc>
@@ -347,8 +332,7 @@
             </Chord>
           <Chord>
             <durationType>eighth</durationType>
-            <BeamMode>no</BeamMode>
-            <StemDirection>down</StemDirection>
+            <StemDirection>up</StemDirection>
             <Note>
               <pitch>36</pitch>
               <tpc>14</tpc>
@@ -356,8 +340,7 @@
             </Chord>
           <Chord>
             <durationType>quarter</durationType>
-            <BeamMode>no</BeamMode>
-            <StemDirection>up</StemDirection>
+            <StemDirection>down</StemDirection>
             <Note>
               <pitch>43</pitch>
               <tpc>15</tpc>
@@ -365,8 +348,7 @@
             </Chord>
           <Chord>
             <durationType>quarter</durationType>
-            <BeamMode>no</BeamMode>
-            <StemDirection>down</StemDirection>
+            <StemDirection>up</StemDirection>
             <Note>
               <pitch>36</pitch>
               <tpc>14</tpc>
@@ -374,8 +356,7 @@
             </Chord>
           <Chord>
             <durationType>quarter</durationType>
-            <BeamMode>no</BeamMode>
-            <StemDirection>up</StemDirection>
+            <StemDirection>down</StemDirection>
             <Note>
               <pitch>43</pitch>
               <tpc>15</tpc>
@@ -383,8 +364,7 @@
             </Chord>
           <Chord>
             <durationType>eighth</durationType>
-            <BeamMode>no</BeamMode>
-            <StemDirection>up</StemDirection>
+            <StemDirection>down</StemDirection>
             <Note>
               <pitch>43</pitch>
               <tpc>15</tpc>

@@ -32,6 +32,7 @@
 #include "engraving/dom/keysig.h"
 #include "engraving/dom/makamdata.h"
 #include "engraving/dom/masterscore.h"
+#include "engraving/dom/timesig.h"
 #include "engraving/rw/xmlreader.h"
 #include "engraving/rw/xmlwriter.h"
 
@@ -48,9 +49,10 @@ static const AsciiStringView PALETTE_XML_TAG("PaletteBox");
 // Makam: raised when the Makam palettes change, so that palettes saved in the workspace by an
 // earlier version are replaced once by the new default palettes
 static const Settings::Key MAKAM_PALETTE_VERSION_KEY("palette", "makam/paletteVersion");
-static constexpr int MAKAM_PALETTE_VERSION = 8;   // 2: line end in the Layout palette, 3-4: mızrap arrows,
+static constexpr int MAKAM_PALETTE_VERSION = 9;   // 2: line end in the Layout palette, 3-4: mızrap arrows,
                                                   // 5: Sultaniyegâh in a donanım's name, 6: THM donanıms,
-                                                  // 7: order of the THM donanıms, 8: THM mark (THM_KEY_MODE)
+                                                  // 7: order of the THM donanıms, 8: THM mark (THM_KEY_MODE),
+                                                  // 9: beams and strokes of the usuls (makamRefreshUsulCells)
 // The last version whose THM palette replaces the saved one (it has no cells of the user's own)
 static constexpr int MAKAM_THM_PALETTE_VERSION = 8;
 // The last version whose palettes replace the saved ones. A later version only renames the
@@ -89,6 +91,24 @@ static void makamRenameDonanimCells(const PaletteTreePtr& tree)
                     cell->name = QString::fromUtf8(donanim.makamlar);
                     break;
                 }
+            }
+        }
+    }
+}
+
+// Makam: the built-in usul cells of saved palettes get the beams and strokes of makamdata.h
+// (an usul is known by the marker in its time signature; the user's own usuls stay as they are)
+static void makamRefreshUsulCells(const PaletteTreePtr& tree)
+{
+    for (const PalettePtr& palette : tree->palettes) {
+        for (const PaletteCellPtr& cell : palette->cells()) {
+            if (!cell->element || !cell->element->isTimeSig()) {
+                continue;
+            }
+            engraving::TimeSig* ts = engraving::toTimeSig(cell->element.get());
+            const std::optional<engraving::makam::Usul> usul = engraving::makam::usulOfGroups(ts->groups(), ts->sig());
+            if (usul && usul->code != engraving::makam::USUL_CUSTOM_CODE) {
+                ts->setGroups(engraving::makam::usulGroups(*usul));
             }
         }
     }
@@ -186,6 +206,7 @@ void PaletteWorkspaceSetup::setup()
             tree = readPalette(ba, iocContext());
             if (tree && makamOutdated) {
                 makamRenameDonanimCells(tree);
+                makamRefreshUsulCells(tree);
                 if (makamSavedVersion < MAKAM_THM_PALETTE_VERSION) {
                     makamAddThmPalette(tree, iocContext());
                 }

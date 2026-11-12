@@ -54,12 +54,13 @@ Bizim eklediğimiz her şey `Makam:` yorumuyla işaretlidir. Aramak için: `git 
   - Başlangıç: `src/appshell/internal/startupscenario.cpp`.
 - **Çalgılar** (`share/instruments/instruments.xml`, "turkish-music" grubu):
   - `turk-muzigi`: sol anahtarı.
-  - `usul`: 2 çizgili vurmalı dizek. Düm = 36 (alt), tek = 43 (üst).
+  - `usul`: 2 çizgili vurmalı dizek. Düm = 36 (güçlü vuruş, üst çizgi, sap yukarı), tek = 43 (zayıf, alt çizgi, sap aşağı). Kullanıcı istedi (2026-11-13); önceden tersiydi. Eski eserde usul bırakılınca `makamFillUsulStaves` partinin drumset'ini çevirir (`ChangeDrumset`, geri alınabilir).
 - **Donanım paleti** (17 AEU donanımı) ve **usul paleti** (17 usul):
   - Veri: `src/engraving/dom/makamdata.h`.
   - Palet: `src/palette/internal/palettecreator.cpp`.
   - Usul kimliği: TimeSig kiriş gruplarının son düğümü `pos = 10000 + usul kodu` (`USUL_MARKER_BASE`).
   - Usul bırakılınca usul dizeği düm/tek ile dolar: `makamFillUsulStaves`, `src/engraving/editing/edit.cpp`.
+  - Kiriş (sap bağlantısı) grupları kullanıcının tanımıyla (2026-11-13), `Usul::beams` (1/d) ve `Usul::breaks16` (yalnız 16'lık/32'lik kesilen yerler, düğüm 0x110): Sofyan 2+2+2+2 (sekizlik), Türk Aksağı 2+2+1, Devr-i Hindi 3+2+2, Devr-i Turan 2+2+3, Düyek 4+2+2 (1+2+1 tek kiriş; 16'lıklar 2 sekizlikte bir), Müsemmen 3+2+3, Aksak 2+2+2+3 (16'lıklar 2+2+2+2+1: son vuruştaki iki 16'lık ayrı), Evfer 2+2+2+1+2 (7. sekizlik tek başına), Raks Aksağı 2+3+2+2, Oynak 3+2+2+2, Cengi Harbi 2+2+3+3. Darblar da kullanıcının hecelerine göre düzeltildi: Sofyan, Aksak, Evfer'de ikinci vuruş tek ("düüm te ke"). Kayıtlı paletlerdeki usul hücreleri `makamRefreshUsulCells` ile yenilenir (palet sürümü 9). Eğitim dersleri aynı tabloyu kullanır (`USUL_BEAMS`, `beste2mscx.py`).
 - **Ahenk** (durum çubuğunda açılır menü; Yerinden / 1 ses / 4 ses / 5 ses / Yazıldığı gibi):
   - Kod: `src/engraving/editing/editahenk.{h,cpp}`. Ahenk = partinin çalgı transpozisyonu.
   - Arayüz: `src/appshell/qml/MuseScore/AppShell/notationstatusbarmodel.*` ve `NotationStatusBar.qml`.
@@ -96,6 +97,7 @@ Bizim eklediğimiz her şey `Makam:` yorumuyla işaretlidir. Aramak için: `git 
 - **Tempo:**
   - Yeni eserin başında ♩ = 80 var. İlk ölçüye 8'lik birimli usul bırakılınca ♪ = 90 olur (`makamSetDefaultTempo`, `edit.cpp`; değerler `makamdata.h`). Elle değişmiş işarete dokunulmaz.
   - Çalma araç çubuğunda hız % değil tempo sayısıdır (`tempoBpm`, `playbacktoolbarmodel`). Gösterge, işaretin birimini kullanır (`NotationPlayback::tempoUnit`).
+  - Kutuya yazılan sayı Enter'da ya da kutudan çıkınca uygulanır (`onValueEditingFinished`). Önce her tuşta uygulanıyordu: 120'nin üstüne "80" yazarken önce 8 olup alt sınıra (×0,1) çarpıyor, kutu atlıyordu.
 - **Elle aralık düzenleme** (`src/engraving/editing/editstaffspacing.{h,cpp}`, etkileşim `NotationInteraction`, fare `NotationViewInputController`):
   - Dizek aralığı: dizeğin solundaki tutamak (⇕) sürüklenir. Ctrl ile yalnız o satır değişir (sabit spacer); Ctrl'siz bütün satırlar değişir (dizek `userDist` ya da `minSystemDistance`). Klavye: Alt+PgUp/PgDown, Ctrl+Alt+PgUp/PgDown. İlk kullanımda dikey yayma kapanır.
   - Satır genişliği: son ölçünün sağındaki tutamak (⇔) satırın sonuna yatay çerçeve + satır sonu koyar ve çerçevenin genişliğini değiştirir. Çift tıklama ya da Yerleşim paletindeki "Satır sonu (yaslamasız)" (`makam-line-end`) satırı doğal genişliğe getirir. Hepsi MuseScore'un kendi öğeleri, dosya uyumlu kalır.
@@ -146,7 +148,7 @@ Bizim eklediğimiz her şey `Makam:` yorumuyla işaretlidir. Aramak için: `git 
   - Usul: adı ve n/d'si TurkScore usullerinden biriyle tutan ölçü göstergelerine usul işareti konur (Aksak, Aksak Semâî, Düyek…). Ağır Aksak, Fahte, Devr-i Kebîr gibi listede olmayanlar düz kalır.
   - Arızalar: SymbTr her notaya kendi perdesini verir (işaret yoksa ve `<alter>` yoksa naturel; bakiye bemol, küçük mücennep diyez gibi işaretlerde `<alter>` hiç yazılmaz, perde işaretten okunur). Süsleme notalarında dönüştürücü işareti de düşürür: orada ölçüdeki önceki aynı nota, yoksa donanım. Yazılı arızalar silinir, sonra Türk okumasına (donanım + ölçü içi taşıma, `noteInfo` ile aynı) göre gereken yere arıza/naturel konur; sonda `readKomas` ile denetlenir, `tuneScore` çalışır. Ayarlayıcıdan açılan yardımcılar: `accidentalKomaShift`, `accidentalOfKoma`, `keySigKomas`, `readKomas` (`makamtuner.h`).
   - Görünüm: SymbTr'nin kirişleri silinir (BeamMode AUTO); usulü tanınan göstergeler usul gruplamasını, x/4 göstergeleri (Ağır Aksak 9/4, Ağır Aksak Semâî 10/4, Fahte 20/4…) her çeyrekte kiriş kesen gruplamayı alır. Not: MuseScore'un `Groups::endings` işlevi tablosunda olmayan bir gösterge için boş gruplama döndürüyor (boş kopyayı listeye ekleyip düğümleri yerel kopyaya yazıyor), bu yüzden bütün ölçü tek kiriş oluyordu; ortak koda dokunulmadı. "Music" adlı bölüm `turk-muzigi` çalgısına çevrilir (ad, kısa ad T.M., gitar sesi).
-  - Kullanıcı isteğiyle (2026-11-12): x/8 usullerde (kendi kiriş tanımı yoksa) sekizlikler 2'şerli, tek sayıda sonu 3 (Aksak 9/8 = 2+2+2+3), onaltılıklar 2 sekizlikte bir kesilir (9/8 = 2+2+2+2+1; düğüm 0x110); Düyek 8/8 hep 2'şerli (`aksakNodes`). Güftedeki "." (saz yerleri) silinir; "ARANAĞME", "SAZ" gibi büyük harfli bölüm adları dizek metnine ("Aranağme") çevrilir. Başlıktaki izafet "-I" → "-i" ("Bîgâne-i").
+  - Kullanıcı isteğiyle (2026-11-12): x/8 usullerde (kendi kiriş tanımı yoksa) sekizlikler 2'şerli, tek sayıda sonu 3 (Aksak 9/8 = 2+2+2+3), onaltılıklar 2 sekizlikte bir kesilir (9/8 = 2+2+2+2+1; düğüm 0x110); Düyek 8/8 hep 2'şerli (`aksakNodes`). 2026-11-13'ten beri bütün x/8 usullerin kendi kiriş tanımı var; `aksakNodes` yalnız usul işareti tanınmayan x/8 göstergelerde kullanılır. Güftedeki "." (saz yerleri) silinir; "ARANAĞME", "SAZ" gibi büyük harfli bölüm adları dizek metnine ("Aranağme") çevrilir. Başlıktaki izafet "-I" → "-i" ("Bîgâne-i").
   - Deneme: MTG/SymbTr'den 17 eser (13 makam), txt ile nota nota karşılaştırma: 8.831 notadan 8.823'ü doğru perdeden okunuyor. Kalan 8: dönüştürücünün düşürdüğü ama aslında naturel olan süsleme notaları.
   - Lenovo'nun makale raporu (2.200 eser): 59 makamda donanım boş, ötekilerde makama göre sabit (ör. Hicaz'da Fa diyez); tekrar/dolap işaretleri hiç yok. Bunlar veride yok; perdeler yine doğru çıkar (boş donanımda her notada arıza).
 

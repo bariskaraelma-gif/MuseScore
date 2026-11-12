@@ -1,7 +1,7 @@
 # title: Müsemmen Usulü
 # altbaslik: 8/8 · 8 zamanlı
 # source: TurkScore eğitim
-# notlar: Vuruşlar (sekizlik cinsinden): Düm (3) · Tek (2) · Tek (3). Usul dizeğinde alt çizgi düm, üst çizgi tek. Oynatırken usullü metronom da bu vuruşları çalar.
+# notlar: Vuruşlar (sekizlik cinsinden): Düm (3) · Tek (2) · Tek (3). Usul dizeğinde üst çizgi düm, alt çizgi tek. Oynatırken usullü metronom da bu vuruşları çalar.
 
 m1 [usul=Müsemmen, tempo=200] : Es:96
 m2 : Es:96

@@ -98,7 +98,7 @@ def kaynak():
             "# title: %s Usulü" % name,
             "# altbaslik: %d/%d · %d zamanlı" % (n, d, n),
             "# source: TurkScore eğitim",
-            "# notlar: Vuruşlar (%s cinsinden): %s. Usul dizeğinde alt çizgi düm, üst çizgi tek. "
+            "# notlar: Vuruşlar (%s cinsinden): %s. Usul dizeğinde üst çizgi düm, alt çizgi tek. "
             "Oynatırken usullü metronom da bu vuruşları çalar." % (unit, darb),
             "",
             "m1 [usul=%s, tempo=%d] : %s" % (name, tempo, bar),

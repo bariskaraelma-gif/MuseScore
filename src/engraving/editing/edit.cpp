@@ -1451,6 +1451,18 @@ static void makamFillUsulStaves(MasterScore* ms, const Fraction& tick, const mak
             continue;
         }
 
+        // A score made before 2026-11-13 has düm on the lower line: the strong stroke goes up now
+        Instrument* instrument = part->instrument(tick);
+        const Drumset* oldDrums = instrument->drumset();
+        if (oldDrums && oldDrums->isValid(makam::USUL_DUM_PITCH) && oldDrums->isValid(makam::USUL_TEK_PITCH)
+            && oldDrums->line(makam::USUL_DUM_PITCH) > oldDrums->line(makam::USUL_TEK_PITCH)) {
+            Drumset drums = *oldDrums;
+            std::swap(drums.drum(makam::USUL_DUM_PITCH).line, drums.drum(makam::USUL_TEK_PITCH).line);
+            drums.drum(makam::USUL_DUM_PITCH).stemDirection = DirectionV::UP;
+            drums.drum(makam::USUL_TEK_PITCH).stemDirection = DirectionV::DOWN;
+            ms->undo(new ChangeDrumset(instrument, drums, part));
+        }
+
         const track_idx_t track = staff->idx() * VOICES;
         for (Measure* m = first; m; m = m->nextMeasure()) {
             if (m != first) {
@@ -1471,7 +1483,7 @@ static void makamFillUsulStaves(MasterScore* ms, const Fraction& tick, const mak
                 }
                 const Fraction len(darb.len, usul.d);
                 NoteVal nval(darb.dum ? makam::USUL_DUM_PITCH : makam::USUL_TEK_PITCH);
-                ms->setNoteRest(seg, track, nval, len, darb.dum ? DirectionV::DOWN : DirectionV::UP);
+                ms->setNoteRest(seg, track, nval, len, darb.dum ? DirectionV::UP : DirectionV::DOWN);
                 t += len;
             }
         }

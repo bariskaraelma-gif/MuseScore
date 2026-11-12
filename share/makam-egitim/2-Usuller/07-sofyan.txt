@@ -1,7 +1,7 @@
 # title: Sofyan Usulü
 # altbaslik: 4/4 · 4 zamanlı
 # source: TurkScore eğitim
-# notlar: Vuruşlar (dörtlük cinsinden): Düm (2) · Düm (1) · Tek (1). Usul dizeğinde alt çizgi düm, üst çizgi tek. Oynatırken usullü metronom da bu vuruşları çalar.
+# notlar: Vuruşlar (dörtlük cinsinden): Düm (2) · Tek (1) · Tek (1). Usul dizeğinde üst çizgi düm, alt çizgi tek. Oynatırken usullü metronom da bu vuruşları çalar.
 
 m1 [usul=Sofyan, tempo=160] : Es:96
 m2 : Es:96

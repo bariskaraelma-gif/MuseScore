@@ -1,7 +1,7 @@
 # title: Raks Aksağı Usulü
 # altbaslik: 9/8 · 9 zamanlı
 # source: TurkScore eğitim
-# notlar: Vuruşlar (sekizlik cinsinden): Düm (2) · Tek (3) · Düm (2) · Tek (2). Usul dizeğinde alt çizgi düm, üst çizgi tek. Oynatırken usullü metronom da bu vuruşları çalar.
+# notlar: Vuruşlar (sekizlik cinsinden): Düm (2) · Tek (3) · Düm (2) · Tek (2). Usul dizeğinde üst çizgi düm, alt çizgi tek. Oynatırken usullü metronom da bu vuruşları çalar.
 
 m1 [usul=Raks Aksağı, tempo=200] : Es:96 Es:12
 m2 : Es:96 Es:12

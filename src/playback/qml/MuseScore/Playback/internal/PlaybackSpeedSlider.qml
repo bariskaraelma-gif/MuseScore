@@ -63,7 +63,9 @@ RowLayout {
         navigation.order: root.navigationOrderStart
         navigation.accessible.name: qsTrc("playback", "Speed")
 
-        onValueEdited: function(newValue) {
+        // Makam: only when the typing is done (Enter, leaving the box) or the arrows are used;
+        // on every key, "80" typed over "120" was set to 8 first and the box jumped
+        onValueEditingFinished: function(newValue) {
             root.playbackModel.tempoBpm = newValue
         }
     }

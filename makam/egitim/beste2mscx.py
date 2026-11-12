@@ -24,15 +24,15 @@ KOMA_CENT = 1200 / 53
 USULS = {
     "Nim Sofyan": (1, 2, 4, [(True, 1), (False, 1)]),
     "Semâî": (2, 3, 4, [(True, 1), (False, 1), (False, 1)]),
-    "Sofyan": (3, 4, 4, [(True, 2), (True, 1), (False, 1)]),
+    "Sofyan": (3, 4, 4, [(True, 2), (False, 1), (False, 1)]),
     "Türk Aksağı": (4, 5, 8, [(True, 2), (False, 2), (False, 1)]),
     "Yürük Semâî": (5, 6, 8, [(True, 1), (False, 1), (False, 1), (True, 1), (False, 2)]),
     "Devr-i Hindî": (6, 7, 8, [(True, 1), (False, 1), (False, 1), (True, 2), (False, 2)]),
     "Devr-i Turan": (7, 7, 8, [(True, 2), (False, 2), (False, 3)]),
     "Düyek": (8, 8, 8, [(True, 1), (False, 2), (False, 1), (True, 2), (False, 2)]),
     "Müsemmen": (9, 8, 8, [(True, 3), (False, 2), (False, 3)]),
-    "Aksak": (10, 9, 8, [(True, 2), (True, 1), (False, 1), (True, 2), (False, 2), (False, 1)]),
-    "Evfer": (11, 9, 8, [(True, 2), (True, 1), (False, 1), (True, 2), (False, 1), (False, 2)]),
+    "Aksak": (10, 9, 8, [(True, 2), (False, 1), (False, 1), (True, 2), (False, 2), (False, 1)]),
+    "Evfer": (11, 9, 8, [(True, 2), (False, 1), (False, 1), (True, 2), (False, 1), (False, 2)]),
     "Raks Aksağı": (12, 9, 8, [(True, 2), (False, 3), (True, 2), (False, 2)]),
     "Oynak": (13, 9, 8, [(True, 1), (False, 1), (False, 1), (True, 2), (False, 2), (False, 2)]),
     "Aksak Semâî": (14, 10, 8, [(True, 2), (True, 1), (False, 2), (True, 2), (False, 2), (False, 1)]),
@@ -40,7 +40,24 @@ USULS = {
     "Cenk-i Harbî": (17, 10, 8, [(True, 1), (False, 1), (True, 1), (False, 1), (True, 1), (False, 1),
                                 (False, 1), (True, 1), (False, 1), (False, 1)]),
 }
-# melody beam groups in eighths
+# beam groups of the usuls in eighths, and the places (in eighths) where only the 16th and 32nd
+# beams break: as in makamdata.h (Usul::beams, Usul::breaks16)
+USUL_BEAMS = {
+    "Sofyan": ([2, 2, 2, 2], []),
+    "Türk Aksağı": ([2, 2, 1], []),
+    "Devr-i Hindî": ([3, 2, 2], []),
+    "Devr-i Turan": ([2, 2, 3], []),
+    "Düyek": ([4, 2, 2], [2]),
+    "Müsemmen": ([3, 2, 3], []),
+    "Aksak": ([2, 2, 2, 3], [8]),
+    "Evfer": ([2, 2, 2, 1, 2], []),
+    "Raks Aksağı": ([2, 3, 2, 2], []),
+    "Oynak": ([3, 2, 2, 2], []),
+    "Aksak Semâî": ([2, 1, 2, 2, 2, 1], []),
+    "Curcuna": ([2, 1, 2, 2, 2, 1], []),
+    "Cenk-i Harbî": ([2, 2, 3, 3], []),
+}
+# melody beam groups in eighths, for the other time signatures
 BEAMS = {(10, 8): [3, 2, 2, 3], (6, 8): [3, 3], (9, 8): [2, 2, 2, 3], (8, 8): [3, 3, 2], (4, 4): [2, 2, 2, 2],
          (5, 8): [2, 3], (7, 8): [3, 2, 2]}
 
@@ -143,10 +160,16 @@ def tune(notes, makam):
 
 
 def groups_xml(usul, n, d, ind):
-    nodes, pos = [], 0
-    for g in BEAMS.get((n, d), [])[:-1]:
-        pos += g * 32 // 8 if d == 8 else g * 32 // 8
-        nodes.append((pos, 273))
+    beams, breaks16 = BEAMS.get((n, d), []), []
+    if usul in USUL_BEAMS and USULS[usul][1:3] == (n, d):
+        beams, breaks16 = USUL_BEAMS[usul]
+    actions, pos = {}, 0
+    for g in beams[:-1]:
+        pos += g * 4                      # 1/32
+        actions[pos] = 0x111              # 8th, 16th and 32nd beams break
+    for e in breaks16:
+        actions.setdefault(e * 4, 0x110)  # only the 16th and 32nd beams
+    nodes = sorted(actions.items())
     if usul:
         nodes.append((10000 + USULS[usul][0], 0))
     if not nodes:
@@ -249,18 +272,18 @@ def main():
         <useDrumset>1</useDrumset>
         <Drum pitch="36">
           <head>normal</head>
-          <line>2</line>
+          <line>0</line>
           <voice>0</voice>
           <name>Düm</name>
-          <stem>2</stem>
+          <stem>1</stem>
           <shortcut>D</shortcut>
           </Drum>
         <Drum pitch="43">
           <head>normal</head>
-          <line>0</line>
+          <line>2</line>
           <voice>0</voice>
           <name>Tek</name>
-          <stem>1</stem>
+          <stem>2</stem>
           <shortcut>T</shortcut>
           </Drum>
         <Channel>
@@ -347,8 +370,8 @@ def main():
             for dum, ln in u[3]:
                 t, dots = DUR[ln * 96 // u[2]]
                 x += "          <Chord>\n" + ("            <dots>1</dots>\n" if dots else "")
-                x += "            <durationType>%s</durationType>\n            <BeamMode>no</BeamMode>\n" % t
-                x += "            <StemDirection>%s</StemDirection>\n            <Note>\n" % ("down" if dum else "up")
+                x += "            <durationType>%s</durationType>\n" % t
+                x += "            <StemDirection>%s</StemDirection>\n            <Note>\n" % ("up" if dum else "down")
                 x += "              <pitch>%d</pitch>\n              <tpc>%d</tpc>\n              </Note>\n            </Chord>\n" % (
                     36 if dum else 43, 14 if dum else 15)
         else:

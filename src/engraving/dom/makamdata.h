@@ -18,6 +18,7 @@
  */
 #pragma once
 
+#include <map>
 #include <optional>
 #include <string>
 #include <vector>
@@ -33,7 +34,7 @@ namespace mu::engraving::makam {
 //   Usuls
 //---------------------------------------------------------
 
-// One stroke: düm (lower line, stem down) or tek (upper line, stem up), length in 1/d of the usul
+// One stroke: düm (upper line, stem up) or tek (lower line, stem down), length in 1/d of the usul
 struct Darb {
     bool dum = true;
     int len = 1;
@@ -46,6 +47,7 @@ struct Usul {
     int d = 4;
     std::vector<Darb> darb;
     std::vector<int> beams;    // beam groups in 1/d; empty: MuseScore's default grouping
+    std::vector<int> breaks16; // more places (in 1/d from the start) where only the 16th and 32nd beams break
 };
 
 // Pitches and drum lines of the usul staff (instrument "usul" in instruments.xml)
@@ -63,25 +65,41 @@ inline const std::vector<Usul>& usuller()
     static const std::vector<Darb> aksakSemai { { true, 2 }, { true, 1 }, { false, 2 }, { true, 2 }, { false, 2 }, { false, 1 } };
     static const std::vector<int> aksakSemaiBeams { 2, 1, 2, 2, 2, 1 };
 
+    // Beams as the user writes them (2026-11-13), in eighths unless the usul counts in quarters
     static const std::vector<Usul> list {
         { 1,  "Nim Sofyan",   2,  4,  { { true, 1 }, { false, 1 } }, {} },
         { 2,  "Semai",        3,  4,  { { true, 1 }, { false, 1 }, { false, 1 } }, {} },
-        { 3,  "Sofyan",       4,  4,  { { true, 2 }, { true, 1 }, { false, 1 } }, {} },
-        { 4,  "Türk Aksağı",  5,  8,  { { true, 2 }, { false, 2 }, { false, 1 } }, {} },
+        // düüm te ke: the eighths in twos
+        { 3,  "Sofyan",       4,  4,  { { true, 2 }, { false, 1 }, { false, 1 } }, { 1, 1, 1, 1 } },
+        // düüm teek tek
+        { 4,  "Türk Aksağı",  5,  8,  { { true, 2 }, { false, 2 }, { false, 1 } }, { 2, 2, 1 } },
         { 5,  "Yürük Semai",  6,  8,  { { true, 1 }, { false, 1 }, { false, 1 }, { true, 1 }, { false, 2 } }, {} },
-        { 6,  "Devr-i Hindi", 7,  8,  { { true, 1 }, { false, 1 }, { false, 1 }, { true, 2 }, { false, 2 } }, {} },
-        { 7,  "Devr-i Turan", 7,  8,  { { true, 2 }, { false, 2 }, { false, 3 } }, {} },
-        { 8,  "Düyek",        8,  8,  { { true, 1 }, { false, 2 }, { false, 1 }, { true, 2 }, { false, 2 } }, {} },
-        { 9,  "Müsemmen",     8,  8,  { { true, 3 }, { false, 2 }, { false, 3 } }, {} },
-        { 10, "Aksak",        9,  8,  { { true, 2 }, { true, 1 }, { false, 1 }, { true, 2 }, { false, 2 }, { false, 1 } }, {} },
-        { 11, "Evfer",        9,  8,  { { true, 2 }, { true, 1 }, { false, 1 }, { true, 2 }, { false, 1 }, { false, 2 } }, {} },
-        { 12, "Raks Aksağı",  9,  8,  { { true, 2 }, { false, 3 }, { true, 2 }, { false, 2 } }, {} },
-        { 13, "Oynak",        9,  8,  { { true, 1 }, { false, 1 }, { false, 1 }, { true, 2 }, { false, 2 }, { false, 2 } }, {} },
+        // düm tek tek düüm teek
+        { 6,  "Devr-i Hindi", 7,  8,  { { true, 1 }, { false, 1 }, { false, 1 }, { true, 2 }, { false, 2 } }, { 3, 2, 2 } },
+        // düüm teek teeek
+        { 7,  "Devr-i Turan", 7,  8,  { { true, 2 }, { false, 2 }, { false, 3 } }, { 2, 2, 3 } },
+        // düm teek tek düüm teek: 1+2+1 in one beam, the 16ths in twos of eighths
+        { 8,  "Düyek",        8,  8,  { { true, 1 }, { false, 2 }, { false, 1 }, { true, 2 }, { false, 2 } }, { 4, 2, 2 }, { 2 } },
+        // düüüm teek teeek
+        { 9,  "Müsemmen",     8,  8,  { { true, 3 }, { false, 2 }, { false, 3 } }, { 3, 2, 3 } },
+        // düüm te ke düüm teek tek: the last three eighths in one beam, the 16ths 2+2+2+2+1
+        // (two 16ths on the last stroke stand apart)
+        { 10, "Aksak",        9,  8,  { { true, 2 }, { false, 1 }, { false, 1 }, { true, 2 }, { false, 2 }, { false, 1 } },
+          { 2, 2, 2, 3 }, { 8 } },
+        // düüm te ke düüm tek teek: the 7th eighth alone
+        { 11, "Evfer",        9,  8,  { { true, 2 }, { false, 1 }, { false, 1 }, { true, 2 }, { false, 1 }, { false, 2 } },
+          { 2, 2, 2, 1, 2 } },
+        // düüm teeek düüm teek
+        { 12, "Raks Aksağı",  9,  8,  { { true, 2 }, { false, 3 }, { true, 2 }, { false, 2 } }, { 2, 3, 2, 2 } },
+        // düm tek tek düüm teek teek
+        { 13, "Oynak",        9,  8,  { { true, 1 }, { false, 1 }, { false, 1 }, { true, 2 }, { false, 2 }, { false, 2 } },
+          { 3, 2, 2, 2 } },
         { 14, "Aksak Semai",  10, 8,  aksakSemai, aksakSemaiBeams },
         { 15, "Curcuna",      10, 16, aksakSemai, aksakSemaiBeams },
         { 16, "Curcuna",      10, 8,  aksakSemai, aksakSemaiBeams },
+        // düm tek düm tek düm tek tek düm tek tek
         { 17, "Cengi Harbi",  10, 8,  { { true, 1 }, { false, 1 }, { true, 1 }, { false, 1 }, { true, 1 }, { false, 1 },
-                                        { false, 1 }, { true, 1 }, { false, 1 }, { false, 1 } }, {} },
+                                        { false, 1 }, { true, 1 }, { false, 1 }, { false, 1 } }, { 2, 2, 3, 3 } },
     };
     return list;
 }
@@ -104,10 +122,17 @@ inline Groups usulGroups(const Usul& usul)
     if (usul.beams.empty()) {
         nodes = Groups::endings(Fraction(usul.n, usul.d)).nodes();
     } else {
+        std::map<int, int> actions;   // pos in 1/32 -> action
         int pos = 0;
         for (size_t i = 0; i + 1 < usul.beams.size(); ++i) {
             pos += usul.beams[i] * 32 / usul.d;
-            nodes.push_back(GroupNode { pos, 0x111 });   // break the 8th, 16th and 32nd beams
+            actions[pos] = 0x111;   // break the 8th, 16th and 32nd beams
+        }
+        for (int at : usul.breaks16) {
+            actions.emplace(at * 32 / usul.d, 0x110);   // the 16th and 32nd beams only
+        }
+        for (const auto& [p, action] : actions) {
+            nodes.push_back(GroupNode { p, action });
         }
     }
     nodes.push_back(GroupNode { USUL_MARKER_BASE + usul.code, 0 });

@@ -469,7 +469,7 @@
                   <trackName>Usul</trackName>
                   <longName>Usul</longName>
                   <shortName>Usul</shortName>
-                  <description>Usul dizeği: iki çizgi, düm alt çizgide, tek üst çizgide.</description>
+                  <description>Usul dizeği: iki çizgi, düm (güçlü) üst çizgide, tek (zayıf) alt çizgide.</description>
                   <musicXMLid>drum.group.set</musicXMLid>
                   <clef>PERC</clef>
                   <stafftype staffTypePreset="perc2Line">percussion</stafftype>
@@ -478,20 +478,20 @@
                   <singleNoteDynamics>0</singleNoteDynamics>
                   <Drum pitch="36">
                         <head>normal</head>
-                        <line>2</line>
+                        <line>0</line>
                         <voice>0</voice>
                         <name>Düm</name>
-                        <stem>2</stem>
+                        <stem>1</stem>
                         <shortcut>D</shortcut>
                         <panelRow>0</panelRow>
                         <panelColumn>0</panelColumn>
                   </Drum>
                   <Drum pitch="43">
                         <head>normal</head>
-                        <line>0</line>
+                        <line>2</line>
                         <voice>0</voice>
                         <name>Tek</name>
-                        <stem>1</stem>
+                        <stem>2</stem>
                         <shortcut>T</shortcut>
                         <panelRow>0</panelRow>
                         <panelColumn>1</panelColumn>

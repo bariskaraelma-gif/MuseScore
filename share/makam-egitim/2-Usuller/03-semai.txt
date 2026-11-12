@@ -1,7 +1,7 @@
 # title: Semâî Usulü
 # altbaslik: 3/4 · 3 zamanlı
 # source: TurkScore eğitim
-# notlar: Vuruşlar (dörtlük cinsinden): Düm (1) · Tek (1) · Tek (1). Usul dizeğinde alt çizgi düm, üst çizgi tek. Oynatırken usullü metronom da bu vuruşları çalar.
+# notlar: Vuruşlar (dörtlük cinsinden): Düm (1) · Tek (1) · Tek (1). Usul dizeğinde üst çizgi düm, alt çizgi tek. Oynatırken usullü metronom da bu vuruşları çalar.
 
 m1 [usul=Semâî, tempo=160] : Es:72
 m2 : Es:72
