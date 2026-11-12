@@ -69,8 +69,8 @@ inline const std::vector<Usul>& usuller()
     static const std::vector<Usul> list {
         { 1,  "Nim Sofyan",   2,  4,  { { true, 1 }, { false, 1 } }, {} },
         { 2,  "Semai",        3,  4,  { { true, 1 }, { false, 1 }, { false, 1 } }, {} },
-        // düüm te ke: the eighths in twos
-        { 3,  "Sofyan",       4,  4,  { { true, 2 }, { false, 1 }, { false, 1 } }, { 1, 1, 1, 1 } },
+        // düüm te ke ("te" is a düm, as the user hears it): the eighths in twos
+        { 3,  "Sofyan",       4,  4,  { { true, 2 }, { true, 1 }, { false, 1 } }, { 1, 1, 1, 1 } },
         // düüm teek tek
         { 4,  "Türk Aksağı",  5,  8,  { { true, 2 }, { false, 2 }, { false, 1 } }, { 2, 2, 1 } },
         { 5,  "Yürük Semai",  6,  8,  { { true, 1 }, { false, 1 }, { false, 1 }, { true, 1 }, { false, 2 } }, {} },
@@ -82,12 +82,12 @@ inline const std::vector<Usul>& usuller()
         { 8,  "Düyek",        8,  8,  { { true, 1 }, { false, 2 }, { false, 1 }, { true, 2 }, { false, 2 } }, { 4, 2, 2 }, { 2 } },
         // düüüm teek teeek
         { 9,  "Müsemmen",     8,  8,  { { true, 3 }, { false, 2 }, { false, 3 } }, { 3, 2, 3 } },
-        // düüm te ke düüm teek tek: the last three eighths in one beam, the 16ths 2+2+2+2+1
-        // (two 16ths on the last stroke stand apart)
-        { 10, "Aksak",        9,  8,  { { true, 2 }, { false, 1 }, { false, 1 }, { true, 2 }, { false, 2 }, { false, 1 } },
+        // düüm te ke düüm teek tek ("te" a düm): the last three eighths in one beam, the 16ths
+        // 2+2+2+2+1 (two 16ths on the last stroke stand apart)
+        { 10, "Aksak",        9,  8,  { { true, 2 }, { true, 1 }, { false, 1 }, { true, 2 }, { false, 2 }, { false, 1 } },
           { 2, 2, 2, 3 }, { 8 } },
-        // düüm te ke düüm tek teek: the 7th eighth alone
-        { 11, "Evfer",        9,  8,  { { true, 2 }, { false, 1 }, { false, 1 }, { true, 2 }, { false, 1 }, { false, 2 } },
+        // düüm te ke düüm tek teek ("te" a düm): the 7th eighth alone
+        { 11, "Evfer",        9,  8,  { { true, 2 }, { true, 1 }, { false, 1 }, { true, 2 }, { false, 1 }, { false, 2 } },
           { 2, 2, 2, 1, 2 } },
         // düüm teeek düüm teek
         { 12, "Raks Aksağı",  9,  8,  { { true, 2 }, { false, 3 }, { true, 2 }, { false, 2 } }, { 2, 3, 2, 2 } },
