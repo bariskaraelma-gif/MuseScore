@@ -3,7 +3,7 @@
 Bu depo, MuseScore Studio 4.7.6'dan çatallanmış bir Türk makam müziği nota programıdır (GPL-3.0).
 Çalışma adı "Makam Nota"; asıl ad sonra konacak. "MuseScore" adı ve logosu marka olduğu için kullanılamaz.
 
-- Çatal: github.com/bariskaraelma-gif/MuseScore
+- Çatal: github.com/bariskaraelma/MuseScore
 - Dal: `makam-4.7.6`
 - Eski `makam` dalı (4.7.5 tabanlı) kullanılmıyor.
 
@@ -28,10 +28,13 @@ Bu program o eklentilerin yaptığını yerleşik yapar.
   - Kullanılan sürümler: Qt 6.10.2 msvc2022_64 (`C:\Qt`), Visual Studio 2022 Build Tools.
 - **GitHub Actions** (yaklaşık 40 dk):
   ```
-  gh workflow run build_windows.yml -R bariskaraelma-gif/MuseScore --ref makam-4.7.6 -f platforms=windows_portable -f build_mode=devel
+  gh workflow run build_windows.yml -R bariskaraelma/MuseScore --ref makam-4.7.6 -f platforms=windows_portable -f build_mode=devel
   ```
   - Paket şöyle indirilir: `gh run download <id> -n <artifact> -D <klasör>`.
   - MSI paketi gizli GUID istediği için yalnız taşınabilir paket üretilir.
+  - GitHub 2026-11-12'de bu çatalda Actions'ı "kullanım çok büyük" diye durdurdu; kullanıcı yeniden açtı. `build_macos.yml` iş akışı ayrıca açıldı (`gh api -X PUT .../actions/workflows/<id>/enable`). Mac derlemesi (evrensel, imzasız .dmg) yaklaşık 55 dk; başlatma: `gh workflow run build_macos.yml -R bariskaraelma/MuseScore --ref makam-4.7.6 -f build_mode=devel`.
+- **Yayın (GitHub Releases, hesapsız indirilir):** `turkscore-0.1` (yalnız Windows) ve `turkscore-0.2` (Windows + Mac, 81f08aae). Windows paketi yerel derlemeden: `build.install` içinden `App`, `Other`, `help.html`, boş `Data` ve `OKUBENI.txt` bir `TurkScore` klasörüne konur, `tar -a -cf` ile zip'lenir. Kişisel ayarlar (`Data\settings`) pakete girmez. Mac paketi Actions'tan (`gh run download`), Mac'te henüz denenmedi. 0.2 etiketi 22a503ad'de kaldı (zorla taşımaya izin yoktu).
+- Kullanıcı adı 2026-11-12'de `bariskaraelma-gif` → `bariskaraelma` oldu (remote ve notlar güncellendi).
 - **Unity build açık** (`MUSE_COMPILE_USE_UNITY=ON`). Yeni bir `.cpp` dosyası unity gruplarını kaydırır, upstream dosyalarında "ambiguous symbol" hataları çıkar. Bu yüzden her yeni `.cpp` dosyası unity'den çıkarılır:
   - `src/engraving/CMakeLists.txt`: `set_source_files_properties(... SKIP_UNITY_BUILD_INCLUSION ON)` listesine eklenir (`editahenk.cpp`, `makamtuner.cpp`, `editstaffspacing.cpp` gibi).
   - Çok yerde kullanılan başlıklara (`actionicon.h`, `system.h` gibi) dokunmak derlemeyi çok uzatır; mümkünse kaçınılır.
