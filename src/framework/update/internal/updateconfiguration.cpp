@@ -61,7 +61,8 @@ void UpdateConfiguration::init()
 
 bool UpdateConfiguration::isAppUpdatable() const
 {
-    return true;
+    // Makam: TurkScore comes from its own GitHub releases; MuseScore's updates would replace it
+    return false;
 }
 
 bool UpdateConfiguration::allowUpdateOnPreRelease() const

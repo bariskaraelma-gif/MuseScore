@@ -71,7 +71,8 @@ static const std::string SESSION_RESOURCE_NAME("SESSION");
 
 void AppShellConfiguration::init()
 {
-    settings()->setDefaultValue(HAS_COMPLETED_FIRST_LAUNCH_SETUP, Val(false));
+    // Makam: no first launch setup (MuseScore's English theme / tutorials / Muse Sounds pages)
+    settings()->setDefaultValue(HAS_COMPLETED_FIRST_LAUNCH_SETUP, Val(true));
 
     settings()->setDefaultValue(WELCOME_DIALOG_SHOW_ON_STARTUP_KEY, Val(true));
     settings()->valueChanged(WELCOME_DIALOG_SHOW_ON_STARTUP_KEY).onReceive(this, [this](const Val&) {

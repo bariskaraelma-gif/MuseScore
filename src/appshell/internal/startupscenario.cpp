@@ -306,7 +306,9 @@ void StartupScenario::showStartupDialogsIfNeed(StartupModeType modeType)
 
 bool StartupScenario::shouldShowWelcomeDialog(StartupModeType modeType) const
 {
-    if (!configuration()->welcomeDialogShowOnStartup()) {
+    // Makam: no MuseScore welcome dialog (its pages advertise Muse Sounds and musescore.com)
+    static constexpr bool MAKAM_SHOW_WELCOME_DIALOG = false;
+    if (!MAKAM_SHOW_WELCOME_DIALOG || !configuration()->welcomeDialogShowOnStartup()) {
         return false;
     }
 

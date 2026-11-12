@@ -57,7 +57,8 @@ static QString osCode()
 
 void MuseSoundsConfiguration::init()
 {
-    settings()->setDefaultValue(CHECK_FOR_MUSESOUNDS_UPDATE_KEY, Val(true));
+    // Makam: no MuseSounds update check at start (its answer brings MuseScore's promotion dialogs)
+    settings()->setDefaultValue(CHECK_FOR_MUSESOUNDS_UPDATE_KEY, Val(false));
     settings()->setCanBeManuallyEdited(CHECK_FOR_MUSESOUNDS_UPDATE_KEY, true);
     settings()->setDescription(CHECK_FOR_MUSESOUNDS_UPDATE_KEY, muse::trc("musesounds", "Show occasional MuseHub promotions"));
     settings()->setDefaultValue(GET_SOUNDS_TEST_MODE_KEY, Val(false));
