@@ -495,7 +495,10 @@ void AbstractNotationPaintView::updateShadowNoteVisibility()
         return;
     }
 
-    if (isNoteEnterMode()) {
+    if (makamspeedy::active(interaction)) {
+        // Makam: in speedy entry the shadow note is the keyboard cursor, not under the mouse
+        makamspeedy::showCursor(interaction);
+    } else if (isNoteEnterMode()) {
         //! NOTE: The following may actually hide the shadow note
         //! if cursorPos is no longer valid...
         const QPointF cursorPos = mapFromGlobal(QCursor::pos());
