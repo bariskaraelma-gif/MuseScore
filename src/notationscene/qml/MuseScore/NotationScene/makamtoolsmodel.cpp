@@ -37,14 +37,14 @@ using namespace mu::notation;
 
 namespace {
 const muse::Settings::Key INTERFACE_KEY("makam", "makam/interface");   // "musescore" or "finale"
-const char* FINALE_INTERFACE = "finale";
+const char* MUSESCORE_INTERFACE = "musescore";
 
 const char* SELECTION_TOOL = "selection";
 const char* NOTE_INPUT_TOOL = "noteinput";
 
 bool isFinaleInterface(const muse::Val& value)
 {
-    return value.toString() == FINALE_INTERFACE;
+    return value.toString() != MUSESCORE_INTERFACE;   // unset: Finale, the default
 }
 
 //! the AEU accidentals as in the Accidentals palette (palettecreator.cpp); the glyphs are those

@@ -395,7 +395,7 @@ static const Settings::Key MAKAM_INTERFACE_KEY("makam", "makam/interface");
 
 bool AppearancePreferencesModel::makamFinaleInterface() const
 {
-    return settings()->value(MAKAM_INTERFACE_KEY).toString() == "finale";
+    return settings()->value(MAKAM_INTERFACE_KEY).toString() != "musescore";   // unset: Finale, the default
 }
 
 void AppearancePreferencesModel::setMakamFinaleInterface(bool value)

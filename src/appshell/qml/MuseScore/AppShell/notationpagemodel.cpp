@@ -40,7 +40,7 @@ static const muse::Settings::Key MAKAM_INTERFACE_KEY("makam", "makam/interface")
 
 static bool isMakamFinaleInterface(const muse::Val& value)
 {
-    return value.toString() == "finale";
+    return value.toString() != "musescore";   // unset: Finale, the default
 }
 
 NotationPageModel::NotationPageModel(QObject* parent)
