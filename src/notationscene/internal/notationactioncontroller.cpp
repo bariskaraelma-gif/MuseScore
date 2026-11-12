@@ -2268,18 +2268,58 @@ void NotationActionController::playSelectedElement(bool playChord)
     currentNotationScore()->setPlayNote(false);
 }
 
+//! Makam: why note input (N, A-G) is refused, written to the log when the reason changes, to find
+//! the cases where N stops working until Esc or a click on the score (2026-11-13)
+static void makamLogNoteInputReason(const std::string& reason)
+{
+    static std::string last = "allowed";
+    if (reason != last) {
+        LOGI() << "Makam: note input " << (reason == "allowed" ? std::string("allowed again") : "refused: " + reason);
+        last = reason;
+    }
+}
+
 bool NotationActionController::startNoteInputAllowed() const
 {
     if (isEditingElement() || QGuiApplication::applicationState() != Qt::ApplicationActive) {
+        // Makam: which of the three
+        std::string reason;
+        if (QGuiApplication::applicationState() != Qt::ApplicationActive) {
+            reason = "window not active";
+        } else if (auto interaction = currentNotationInteraction()) {
+            if (interaction->isTextEditingStarted()) {
+                reason = "editing a text";
+            } else if (interaction->isEditingElement()) {
+                const mu::engraving::EngravingItem* e = selectedElement();
+                reason = std::string("editing an element (selected: ") + (e ? e->typeName() : "none") + ")";
+            } else if (interaction->isDragStarted()) {
+                reason = "a drag or a selection rectangle is still running";
+            }
+        }
+        // a window that is not active is normal (another program in front): not logged
+        if (reason != "window not active") {
+            makamLogNoteInputReason(reason);
+        }
         return false;
     }
 
     const UiContext& ctx = uiContextResolver()->currentUiContext();
     const INavigationControl* ctrl = navigationController()->activeControl();
 
-    return ctx == ui::UiCtxProjectFocused
-           || ctx == ui::UiCtxBrailleFocused
-           || (ctrl && ctrl->name().startsWith("note-input")); // Toolbar buttons.
+    const bool allowed = ctx == ui::UiCtxProjectFocused
+                         || ctx == ui::UiCtxBrailleFocused
+                         || (ctrl && ctrl->name().startsWith("note-input")); // Toolbar buttons.
+
+    // Makam: the score is not the focused panel
+    if (allowed) {
+        makamLogNoteInputReason("allowed");
+    } else {
+        const INavigationPanel* panel = navigationController()->activePanel();
+        makamLogNoteInputReason("the score is not focused (focus: "
+                                + (panel ? panel->name().toStdString() : std::string("none"))
+                                + (ctrl ? " / " + ctrl->name().toStdString() : std::string()) + ")");
+    }
+    return allowed;
 }
 
 void NotationActionController::startNoteInput()

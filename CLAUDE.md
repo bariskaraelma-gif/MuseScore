@@ -152,6 +152,8 @@ Bizim eklediğimiz her şey `Makam:` yorumuyla işaretlidir. Aramak için: `git 
   - Deneme: MTG/SymbTr'den 17 eser (13 makam), txt ile nota nota karşılaştırma: 8.831 notadan 8.823'ü doğru perdeden okunuyor. Kalan 8: dönüştürücünün düşürdüğü ama aslında naturel olan süsleme notaları.
   - Lenovo'nun makale raporu (2.200 eser): 59 makamda donanım boş, ötekilerde makama göre sabit (ör. Hicaz'da Fa diyez); tekrar/dolap işaretleri hiç yok. Bunlar veride yok; perdeler yine doğru çıkar (boş donanımda her notada arıza).
 
+- **Açık hata: N / A-G bir süre çalışmıyor** (2026-11-13; kullanıcı çok sayıda usulü 2-3 ölçü arayla yerleştirdikten sonra). Günlükte eylem "no one can handle the action: note-input-by-note-name" diye reddediliyor; Esc + nota sayfasına tıklama düzeltiyor. `NotationActionController::startNoteInputAllowed` (düzenleme/sürükleme sürüyor, pencere etkin değil ya da odak notada değil) false dönüyor. Nedeni bulmak için reddetme nedeni değiştikçe günlüğe "Makam: note input refused: …" / "allowed again" yazılır (`build.install\Data\settings\logs`). Bir dahaki takılmada bu satıra bakılıp düzeltilecek.
+
 ## Sıradaki işler
 
 1. **Sesle nota girişi**:
