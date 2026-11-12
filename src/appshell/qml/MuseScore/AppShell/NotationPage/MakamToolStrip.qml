@@ -46,6 +46,7 @@ Item {
     readonly property string sharp3Comma: ""    // THM ♯3 (Bravura)
     readonly property string timeSig5: ""
     readonly property string timeSig8: ""
+    readonly property string eighthNote: ""   // note8thUp (Hızlı giriş)
 
     // icon: an IconCode; drawn: "makam", "thm" or "usul" (music font glyphs) or "label" (the title);
     // action: a button that does something at once instead of choosing a tool
@@ -54,7 +55,9 @@ Item {
             { id: "selection", title: "Seçim", icon: IconCode.PAN_SCORE,
               description: "Nota girişini kapatır; tıklayarak seçersiniz" },
             { id: "noteinput", title: "Nota girişi", icon: IconCode.NOTE_PLUS,
-              description: "Nota girişini açar; yanında makam arızaları" }
+              description: "Nota girişini açar; yanında makam arızaları" },
+            { id: "speedy", title: "Hızlı giriş (S)", drawn: "speedy", action: true,
+              description: "İmleç gölge notadır: ↑/↓ çizgi ve aralıklarda gezer (Ctrl ile oktav), rakam nota değerini seçer, Enter notayı yazar, * yükseltir, - alçaltır. Esc ya da S kapatır" }
         ],
         [
             { id: "makam", title: "Makam", drawn: "makam",
@@ -110,6 +113,8 @@ Item {
     function onToolClicked(toolId) {
         if (toolId === "allpalettes") {
             toolsModel.showAllPalettes()
+        } else if (toolId === "speedy") {
+            toolsModel.toggleSpeedy()
         } else if (toolId === "properties") {
             toolsModel.toggleProperties()
         } else {
@@ -171,7 +176,8 @@ Item {
                             toolTipTitle: tool.title
                             toolTipDescription: tool.description
 
-                            accentButton: !tool.action && toolsModel.activeTool === tool.id
+                            accentButton: tool.id === "speedy" ? toolsModel.speedy
+                                                               : !tool.action && toolsModel.activeTool === tool.id
                             transparent: !accentButton
 
                             onClicked: {
@@ -249,6 +255,36 @@ Item {
                                     color: ui.theme.fontPrimaryColor
                                     font.family: ui.theme.musicalFont.family
                                     font.pixelSize: 28
+                                }
+                            }
+
+                            // Hızlı giriş: an eighth note with speed lines on its left
+                            Item {
+                                anchors.fill: parent
+                                visible: toolButton.tool.drawn === "speedy"
+
+                                Repeater {
+                                    model: [ { y: 12, w: 9 }, { y: 17, w: 12 }, { y: 22, w: 9 } ]
+
+                                    delegate: Rectangle {
+                                        required property var modelData
+                                        x: 15 - modelData.w
+                                        y: modelData.y
+                                        width: modelData.w
+                                        height: 1.5
+                                        radius: 0.75
+                                        color: ui.theme.fontPrimaryColor
+                                        opacity: 0.7
+                                    }
+                                }
+
+                                Text {
+                                    x: 16
+                                    y: 29 - baselineOffset
+                                    text: root.eighthNote
+                                    color: ui.theme.fontPrimaryColor
+                                    font.family: ui.theme.musicalFont.family
+                                    font.pixelSize: 26
                                 }
                             }
 

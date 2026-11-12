@@ -20,6 +20,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 #include "notationuiactions.h"
+#include "makamspeedy.h"   // Makam
 
 #include <unordered_map>
 
@@ -2147,6 +2148,15 @@ const UiActionList NotationUiActions::s_actions = {
              IconCode::Code::EDIT,
              Checkable::Yes
              ),
+    // Makam: speedy entry, as in Finale (makamspeedy.h)
+    UiAction(makamspeedy::ACTION_CODE,
+             mu::context::UiCtxProjectOpened,
+             mu::context::CTX_NOTATION_OPENED,
+             TranslatableString("action", "Hızlı giriş"),
+             TranslatableString("action", "Hızlı giriş: ↑/↓ çizgi ve aralıklarda gezinir, rakam nota değerini seçer, Enter notayı yazar, * yükseltir, - alçaltır"),
+             IconCode::Code::NOTE_PLUS,
+             Checkable::Yes
+             ),
     UiAction("toggle-insert-mode",
              mu::context::UiCtxProjectOpened,
              mu::context::CTX_NOTATION_OPENED,
@@ -2803,6 +2813,11 @@ void NotationUiActions::init()
         m_actionCheckedChanged.send({ NOTE_INPUT_ACTION_CODE });
     });
 
+    // Makam: the speedy entry button follows its state
+    makamspeedy::state().changed.onNotify(this, [this]() {
+        m_actionCheckedChanged.send({ makamspeedy::ACTION_CODE });
+    });
+
     m_controller->currentNotationChanged().onNotify(this, [this]() {
         ActionCodeList actions;
         actions.reserve(s_scoreConfigActions.size());
@@ -2947,6 +2962,10 @@ bool NotationUiActions::isScoreConfigChecked(const ActionCode& code, const Score
 
 bool NotationUiActions::actionChecked(const UiAction& act) const
 {
+    if (act.code == makamspeedy::ACTION_CODE) {   // Makam
+        return makamspeedy::state().on;
+    }
+
     if (act.code == NOTE_INPUT_ACTION_CODE) {
         auto noteInput = m_controller->currentNotationNoteInput();
         if (noteInput) {

@@ -85,6 +85,8 @@ private:
 
     void toggleNoteInput();
     void toggleNoteInputMethod(NoteInputMethod method);
+    void toggleMakamSpeedy();          // Makam: speedy entry (makamspeedy.h)
+    bool makamSpeedyAllowed() const;
     void toggleNoteInputInsert();
     void handleNoteAction(NoteName note, NoteAddingMode addingMode);
     void handleNoteAction(const muse::actions::ActionData& args);

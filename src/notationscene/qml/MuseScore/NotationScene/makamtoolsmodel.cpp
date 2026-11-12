@@ -33,6 +33,8 @@
 #include "notation/inotationselection.h"
 #include "notation/inotationelements.h"
 
+#include "internal/makamspeedy.h"
+
 using namespace mu::notation;
 
 namespace {
@@ -128,8 +130,22 @@ QString MakamToolsModel::thmFontFamily() const
     return font ? QString::fromStdString(font->family()) : QString("Bravura");
 }
 
+bool MakamToolsModel::speedy() const
+{
+    return makamspeedy::state().on;
+}
+
+void MakamToolsModel::toggleSpeedy()
+{
+    dispatcher()->dispatch(makamspeedy::ACTION_CODE);
+}
+
 void MakamToolsModel::load()
 {
+    makamspeedy::state().changed.onNotify(this, [this]() {
+        emit speedyChanged();
+    });
+
     m_finaleMode = isFinaleInterface(muse::settings()->value(INTERFACE_KEY));
     emit finaleModeChanged();
 

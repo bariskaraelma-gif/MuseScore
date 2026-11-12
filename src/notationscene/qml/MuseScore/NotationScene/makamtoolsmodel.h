@@ -46,6 +46,8 @@ class MakamToolsModel : public QObject, public muse::Contextable, public muse::a
     //! the font of the THM (Turkish folk music) accidentals: Bravura, the fallback music font,
     //! loaded for the UI (Leland lacks them)
     Q_PROPERTY(QString thmFontFamily READ thmFontFamily CONSTANT)
+    //! speedy entry is on (makamspeedy.h; the "Hızlı giriş" button, S)
+    Q_PROPERTY(bool speedy READ speedy NOTIFY speedyChanged)
 
     muse::GlobalInject<INotationConfiguration> notationConfiguration;
     muse::GlobalInject<engraving::IEngravingFontsProvider> engravingFonts;
@@ -64,18 +66,21 @@ public:
     QVariantList accidentals() const;
     bool thm() const;
     QString thmFontFamily() const;
+    bool speedy() const;
 
     Q_INVOKABLE void load();
     Q_INVOKABLE void selectTool(const QString& tool);   // a click on a tool button
     Q_INVOKABLE void applyAccidental(const QString& id);
     Q_INVOKABLE void showAllPalettes();                  // "Bütün paletler": the Palettes panel
     Q_INVOKABLE void toggleProperties();                 // the floating Properties window
+    Q_INVOKABLE void toggleSpeedy();                     // "Hızlı giriş" (as S)
 
 signals:
     void finaleModeChanged();
     void activeToolChanged();
     void hasNotationChanged();
     void accidentalsChanged();
+    void speedyChanged();
 
 private:
     void onNotationChanged();

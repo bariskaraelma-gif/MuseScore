@@ -39,6 +39,8 @@
 #include "engraving/dom/fret.h"
 #include "engraving/dom/shadownote.h"
 
+#include "internal/makamspeedy.h"   // Makam
+
 using namespace mu;
 using namespace mu::notation;
 using namespace mu::engraving;
@@ -1492,6 +1494,11 @@ void NotationViewInputController::hoverMoveEvent(QHoverEvent* event)
         return;
     }
 
+    // Makam: in speedy entry the shadow note is the keyboard cursor; the mouse does not move it
+    if (makamspeedy::active(viewInteraction())) {
+        return;
+    }
+
     viewInteraction()->showShadowNoteForPosition(pos);
 
     if (event->modifiers() == Qt::ShiftModifier) {
@@ -1501,7 +1508,61 @@ void NotationViewInputController::hoverMoveEvent(QHoverEvent* event)
 
 void NotationViewInputController::hoverLeaveEvent(QHoverEvent*)
 {
+    if (makamspeedy::active(viewInteraction())) {   // Makam: the cursor stays
+        return;
+    }
     viewInteraction()->hideShadowNote();
+}
+
+//! Makam: the keys of speedy entry (makamspeedy.h): ↑/↓ (Ctrl: an octave) move the cursor,
+//! Enter writes the note, * or + raise and - lower the last note (Turkish accidental ladder)
+bool NotationViewInputController::isMakamSpeedyKey(const QKeyEvent* event) const
+{
+    if (!makamspeedy::active(viewInteraction())) {
+        return false;
+    }
+    const Qt::KeyboardModifiers mods = event->modifiers() & ~Qt::KeypadModifier;
+    switch (event->key()) {
+    case Qt::Key_Up:
+    case Qt::Key_Down:
+        return mods == Qt::NoModifier || mods == Qt::ControlModifier;
+    case Qt::Key_Return:
+    case Qt::Key_Enter:
+        return mods == Qt::NoModifier;
+    case Qt::Key_Asterisk:
+    case Qt::Key_Plus:
+    case Qt::Key_Minus:
+        return mods == Qt::NoModifier || mods == Qt::ShiftModifier;   // * and + may need Shift
+    default:
+        return false;
+    }
+}
+
+void NotationViewInputController::handleMakamSpeedyKey(const QKeyEvent* event)
+{
+    const INotationInteractionPtr interaction = viewInteraction();
+    const bool ctrl = event->modifiers() & Qt::ControlModifier;
+    switch (event->key()) {
+    case Qt::Key_Up:
+        makamspeedy::moveCursor(interaction, ctrl ? -7 : -1);
+        break;
+    case Qt::Key_Down:
+        makamspeedy::moveCursor(interaction, ctrl ? 7 : 1);
+        break;
+    case Qt::Key_Return:
+    case Qt::Key_Enter:
+        makamspeedy::writeNote(interaction);
+        break;
+    case Qt::Key_Asterisk:
+    case Qt::Key_Plus:
+        dispatcher()->dispatch("pitch-up");     // the last note, a step up the Turkish ladder
+        break;
+    case Qt::Key_Minus:
+        dispatcher()->dispatch("pitch-down");
+        break;
+    default:
+        break;
+    }
 }
 
 bool NotationViewInputController::isAnchorEditingEvent(QKeyEvent* event) const
@@ -1513,6 +1574,10 @@ bool NotationViewInputController::isAnchorEditingEvent(QKeyEvent* event) const
 
 bool NotationViewInputController::shortcutOverrideEvent(QKeyEvent* event)
 {
+    if (isMakamSpeedyKey(event)) {   // Makam: speedy entry keys before the shortcuts
+        return true;
+    }
+
     auto key = event->key();
 
     const bool editTextKeysFound = key == Qt::Key_Return || key == Qt::Key_Enter;
@@ -1537,6 +1602,12 @@ bool NotationViewInputController::shortcutOverrideEvent(QKeyEvent* event)
 
 void NotationViewInputController::keyPressEvent(QKeyEvent* event)
 {
+    if (isMakamSpeedyKey(event)) {   // Makam
+        handleMakamSpeedyKey(event);
+        event->accept();
+        return;
+    }
+
     auto key = event->key();
 
     if (startTextEditingAllowed() && (event->key() == Qt::Key_Return || event->key() == Qt::Key_Enter)) {

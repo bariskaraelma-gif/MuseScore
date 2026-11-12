@@ -21,6 +21,8 @@
  */
 #include "abstractnotationpaintview.h"
 
+#include "internal/makamspeedy.h"   // Makam
+
 #include <QCursor>
 #include <QPainter>
 #include <QMimeData>
@@ -277,6 +279,13 @@ void AbstractNotationPaintView::onLoadNotation(INotationPtr)
             emit activeFocusRequested();
         }
     });
+
+    // Makam: speedy entry turned on (often by the tool bar button): the keys go to the score
+    makamspeedy::state().changed.onNotify(this, [this]() {
+        if (makamspeedy::state().on) {
+            emit activeFocusRequested();
+        }
+    }, muse::async::Asyncable::Mode::SetReplace);
 
     interaction->selectionChanged().onNotify(this, [this]() {
         scheduleRedraw();

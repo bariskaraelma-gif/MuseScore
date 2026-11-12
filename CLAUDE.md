@@ -123,6 +123,13 @@ Bizim eklediğimiz her şey `Makam:` yorumuyla işaretlidir. Aramak için: `git 
   - Paneller (`NotationPageModel`, `src/appshell/qml/MuseScore/AppShell/notationpagemodel.cpp`): `applyMakamInterface` Finale kipinde açılışta ve kip seçilince (Tercihler kapandıktan sonra, zamanlayıcıyla) Paletler, Yerleşim, Özellikler'i kapatır; MuseScore seçilince açar ve Özellikler'i yerine takar. `makam-properties` komutu (`onMakamProperties`) Özellikler'i yüzen küçük pencere olarak açar: yalnız Özellikler düğmesi açar/kapatır. Metin ve Söz açmaz (kullanıcı istedi).
   - Model: `makamtoolsmodel.*` (`src/notationscene/qml/MuseScore/NotationScene/`). Notadaki etkileşime (NotationInteraction) dokunulmadı.
   - Durum: derlendi ve kuruldu; kullanıcı deniyor.
+- **Hızlı giriş** (Finale'deki Speedy Entry; kullanıcı istedi, 2026-11-13):
+  - Durum ve işlemler tek başlıkta: `src/notationscene/internal/makamspeedy.h` (yeni .cpp yok). Komut `makam-speedy` (`NotationActionController::toggleMakamSpeedy`, `NotationUiActions`, işaretli düğme), kısayol S. Kapalıyken açınca adla nota girişini başlatır; nota girişi bitince (Esc) kendisi de kapanır.
+  - İmleç gölge notadır: girişin bulunduğu yerde, imleç çizgisinde, seçili nota değerinde (`showShadowNoteForMidiPitch`; çizgiden beyaz tuş perdesi çıkarılır). Fare gölge notayı taşımaz.
+  - Tuşlar `NotationViewInputController::isMakamSpeedyKey/handleMakamSpeedyKey` (kısayollardan önce, `shortcutOverrideEvent`): ↑/↓ bir basamak, Ctrl+↑/↓ oktav; Enter notayı `addNote(step)` ile yazar (donanım arızaları ve akort kendiliğinden); * ya da + `pitch-up`, - `pitch-down` (son nota, Türk arıza merdiveni). Rakamlar MuseScore'un kendi nota değeri kısayolları; 0 es. Usul (vurmalı) ve tab dizeğinde çalışmaz.
+  - Finale araç çubuğunda "Hızlı giriş (S)" düğmesi (sekizlik + hız çizgileri; `MakamToolsModel::speedy`). Açılınca nota görünümü odağı alır (`AbstractNotationPaintView`).
+  - S önceden bağdı (slur). Varsayılan kısayollarda bağ kısayolsuz; kullanıcının eski `shortcuts.xml` dosyasında bağdaki S, dosyada `makam-speedy` yoksa yüklenirken düşürülür (`ShortcutsRegister::reload`).
+  - Durum: derlendi, kuruldu; kullanıcı henüz denemedi.
 - **THM donanımları** (TRT halk müziği; kullanıcının "trt thm donanimlari.docx" listesinden, 2026-11-11):
   - Finale araç çubuğunda Makam'ın yanında THM düğmesi (simge: sol altta Si ♭2, sağ üstte Fa ♯3; Bravura, `MakamToolsModel::thmFontFamily` yazı tipini yükler); yan sütunda "THM donanımları" paleti (Daha fazla / Oluştur yok). Sıra kullanıcının isteğiyle: 6. hücre "Si ♭, Do ♯".
   - Glifler SMuFL "Turkish folk music accidentals" (Bravura E450–E457: ♯1 ♯2 ♯3 ♯5, ♭1 ♭2 ♭3 ♭4). ♭ yalnız = 5 koma, ♯ yalnız = 4 koma (♯4 ayrı glif değil). Leland'da yoklar; MuseScore Bravura'dan çizer.

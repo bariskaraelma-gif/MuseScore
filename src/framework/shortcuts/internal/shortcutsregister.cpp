@@ -21,6 +21,8 @@
  */
 #include "shortcutsregister.h"
 
+#include <algorithm>
+
 #include <QKeySequence>
 
 #include "actions/actiontypes.h"
@@ -117,6 +119,19 @@ void ShortcutsRegister::reload(bool onlyDef)
         if (!ok) {
             m_shortcuts = m_defaultShortcuts;
         } else {
+            // Makam: S is speedy entry now (2026-11-13). A user file saved before has S on the slur,
+            // which would keep it from the default: the slur gives it up while the file has no
+            // speedy entry shortcut of its own
+            const bool hasSpeedy = std::any_of(m_shortcuts.begin(), m_shortcuts.end(), [](const Shortcut& sc) {
+                return sc.action == "makam-speedy";
+            });
+            if (!hasSpeedy) {
+                for (Shortcut& sc : m_shortcuts) {
+                    if (sc.action == "add-slur") {
+                        muse::remove_if(sc.sequences, [](const std::string& seq) { return seq == "S"; });
+                    }
+                }
+            }
             mergeShortcuts(m_shortcuts, m_defaultShortcuts);
             mergeAdditionalShortcuts(m_shortcuts);
         }

@@ -20,6 +20,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 #include "notationactioncontroller.h"
+#include "makamspeedy.h"   // Makam
 
 #include "io/file.h"
 
@@ -94,6 +95,8 @@ void NotationActionController::init()
     registerAction("action://notation/cancel", &Controller::resetState, &Controller::isNotationPage);
 
     registerAction("note-input", &Controller::toggleNoteInput, &Controller::startNoteInputAllowed);
+    // Makam: speedy entry (makamspeedy.h), on in note input by note name; off again with S or Esc
+    registerAction(makamspeedy::ACTION_CODE, &Controller::toggleMakamSpeedy, &Controller::makamSpeedyAllowed);
     registerNoteInputAction("note-input-by-note-name", NoteInputMethod::BY_NOTE_NAME);
     registerNoteInputAction("note-input-by-duration", NoteInputMethod::BY_DURATION);
     registerNoteInputAction("note-input-rhythm", NoteInputMethod::RHYTHM);
@@ -575,6 +578,7 @@ void NotationActionController::init()
         auto notation = globalContext()->currentNotation();
         if (notation) {
             notation->interaction()->noteInput()->stateChanged().onNotify(this, [this]() {
+                makamspeedy::onNoteInputChanged(currentNotationInteraction());   // Makam: the cursor follows
                 m_currentNotationNoteInputChanged.notify();
             }, Asyncable::Mode::SetReplace);
         }
@@ -774,6 +778,30 @@ void NotationActionController::toggleNoteInput()
 
     // If the Braille panel or Note Input toolbar has focus, stay there.
     noteInput->startNoteInput(configuration()->defaultNoteInputMethod(), /*focusNotation*/ false);
+}
+
+//! Makam: speedy entry on (note input by note name starts if it is off) or off (note input stays)
+void NotationActionController::toggleMakamSpeedy()
+{
+    INotationNoteInputPtr noteInput = currentNotationNoteInput();
+    if (!noteInput) {
+        return;
+    }
+    if (makamspeedy::state().on) {
+        makamspeedy::setOn(currentNotationInteraction(), false);
+        return;
+    }
+    if (!noteInput->isNoteInputMode()) {
+        noteInput->startNoteInput(NoteInputMethod::BY_NOTE_NAME);
+    } else if (!noteInput->usingNoteInputMethod(NoteInputMethod::BY_NOTE_NAME)) {
+        noteInput->setNoteInputMethod(NoteInputMethod::BY_NOTE_NAME);
+    }
+    makamspeedy::setOn(currentNotationInteraction(), true);
+}
+
+bool NotationActionController::makamSpeedyAllowed() const
+{
+    return makamspeedy::state().on || startNoteInputAllowed() || isNoteInputMode();
 }
 
 void NotationActionController::toggleNoteInputMethod(NoteInputMethod method)

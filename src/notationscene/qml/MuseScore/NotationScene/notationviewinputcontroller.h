@@ -208,6 +208,8 @@ private:
     bool isAnchorEditingEvent(QKeyEvent* event) const;
 
     bool tryPercussionShortcut(QKeyEvent* event);
+    bool isMakamSpeedyKey(const QKeyEvent* event) const;   // Makam: speedy entry (makamspeedy.h)
+    void handleMakamSpeedyKey(const QKeyEvent* event);
 
     IControlledView* m_view = nullptr;
 
