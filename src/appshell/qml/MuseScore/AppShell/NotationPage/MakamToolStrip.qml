@@ -48,6 +48,10 @@ Item {
     readonly property string timeSig8: ""
     readonly property string eighthNote: ""   // note8thUp (Hızlı giriş)
     readonly property string finalBarline: "" // barlineFinal (Ölçü çizgisi; the user chose it)
+    readonly property string repeatLeft: ""   // repeatLeft ||: (Tekrar)
+    // the barline glyphs are one staff (an em) high and stand on the baseline: the same size and
+    // baseline for both, so they look alike (the user asked for equal heights)
+    readonly property int barlineGlyphSize: 20
 
     // icon: an IconCode; drawn: "makam", "thm" or "usul" (music font glyphs) or "label" (the title);
     // action: a button that does something at once instead of choosing a tool
@@ -69,7 +73,7 @@ Item {
               description: "Halk müziği (TRT) donanımları yanda açılır: rakam koma sayısıdır (♭2 = 2 koma bemol). Ölçüyü seçip donanıma tıklayın" },
             { id: "barline", title: "Ölçü çizgisi", drawn: "barline",
               description: "Ölçü çizgileri" },
-            { id: "repeat", title: "Tekrar", icon: IconCode.REPEAT_START,
+            { id: "repeat", title: "Tekrar", drawn: "repeat",
               description: "Tekrarlar ve atlamalar" }
         ],
         [
@@ -289,15 +293,16 @@ Item {
                                 }
                             }
 
-                            // Ölçü çizgisi: the final barline of the music font
+                            // Ölçü çizgisi: the final barline, Tekrar: the start repeat, both of the
+                            // music font, centred in the button
                             Text {
                                 anchors.horizontalCenter: parent.horizontalCenter
-                                y: 28 - baselineOffset
-                                visible: toolButton.tool.drawn === "barline"
-                                text: root.finalBarline
+                                y: (root.buttonSize + root.barlineGlyphSize) / 2 - baselineOffset
+                                visible: toolButton.tool.drawn === "barline" || toolButton.tool.drawn === "repeat"
+                                text: toolButton.tool.drawn === "repeat" ? root.repeatLeft : root.finalBarline
                                 color: ui.theme.fontPrimaryColor
                                 font.family: ui.theme.musicalFont.family
-                                font.pixelSize: 22
+                                font.pixelSize: root.barlineGlyphSize
                             }
 
                             // the title as the icon (Metin)
