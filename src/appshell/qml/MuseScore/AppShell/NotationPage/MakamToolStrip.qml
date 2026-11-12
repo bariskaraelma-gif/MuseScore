@@ -47,6 +47,7 @@ Item {
     readonly property string timeSig5: ""
     readonly property string timeSig8: ""
     readonly property string eighthNote: ""   // note8thUp (Hızlı giriş)
+    readonly property string finalBarline: "" // barlineFinal (Ölçü çizgisi; the user chose it)
 
     // icon: an IconCode; drawn: "makam", "thm" or "usul" (music font glyphs) or "label" (the title);
     // action: a button that does something at once instead of choosing a tool
@@ -57,19 +58,19 @@ Item {
             { id: "noteinput", title: "Nota girişi", icon: IconCode.NOTE_PLUS,
               description: "Nota girişini açar; yanında makam arızaları" },
             { id: "speedy", title: "Hızlı giriş (S)", drawn: "speedy", action: true,
-              description: "İmleç gölge notadır: ↑/↓ çizgi ve aralıklarda gezer (Ctrl ile oktav), rakam nota değerini seçer, Enter notayı yazar, * yükseltir, - alçaltır. Esc ya da S kapatır" }
+              description: "İmleç gölge notadır: ↑/↓ çizgi ve aralıklarda gezer (Ctrl ile oktav), rakam nota değerini seçer, Enter notayı yazar, * yükseltir, - alçaltır. Esc ya da S kapatır" },
+            { id: "usul", title: "Usul", drawn: "usul",
+              description: "Usuller yanda açılır. Ölçüyü seçip usule tıklayın; Oluştur ile yenisini yapın" }
         ],
         [
             { id: "makam", title: "Makam", drawn: "makam",
               description: "Makam donanımları yanda açılır. Ölçüyü seçip donanıma tıklayın; Oluştur ile yenisini yapın" },
             { id: "thm", title: "THM", drawn: "thm",
               description: "Halk müziği (TRT) donanımları yanda açılır: rakam koma sayısıdır (♭2 = 2 koma bemol). Ölçüyü seçip donanıma tıklayın" },
-            { id: "usul", title: "Usul", drawn: "usul",
-              description: "Usuller yanda açılır. Ölçüyü seçip usule tıklayın; Oluştur ile yenisini yapın" },
-            { id: "barline", title: "Ölçü çizgisi", icon: IconCode.DOUBLE_BAR_LINE,
+            { id: "barline", title: "Ölçü çizgisi", drawn: "barline",
               description: "Ölçü çizgileri" },
-            { id: "layout", title: "Yerleşim", icon: IconCode.LINE_BREAK,
-              description: "Satır sonu, sayfa sonu, boşluklar" }
+            { id: "repeat", title: "Tekrar", icon: IconCode.REPEAT_START,
+              description: "Tekrarlar ve atlamalar" }
         ],
         [
             { id: "articulation", title: "Artikülasyon", icon: IconCode.ARTICULATION,
@@ -79,11 +80,11 @@ Item {
             { id: "text", title: "Metin", drawn: "label",
               description: "Metinler (Hane, Teslim, Saz…)" },
             { id: "lyrics", title: "Söz", icon: IconCode.LYRICS, action: true,
-              description: "Seçili notanın altına söz yazmaya başlar" },
-            { id: "repeat", title: "Tekrar", icon: IconCode.REPEAT_START,
-              description: "Tekrarlar ve atlamalar" }
+              description: "Seçili notanın altına söz yazmaya başlar" }
         ],
         [
+            { id: "layout", title: "Yerleşim", icon: IconCode.LINE_BREAK,
+              description: "Satır sonu, sayfa sonu, boşluklar" },
             { id: "properties", title: "Özellikler", icon: IconCode.CONFIGURE, action: true,
               description: "Seçili öğenin özelliklerini küçük bir pencerede açar ya da kapatır" },
             { id: "allpalettes", title: "Bütün paletler", icon: IconCode.GRID, action: true,
@@ -286,6 +287,17 @@ Item {
                                     font.family: ui.theme.musicalFont.family
                                     font.pixelSize: 26
                                 }
+                            }
+
+                            // Ölçü çizgisi: the final barline of the music font
+                            Text {
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                y: 28 - baselineOffset
+                                visible: toolButton.tool.drawn === "barline"
+                                text: root.finalBarline
+                                color: ui.theme.fontPrimaryColor
+                                font.family: ui.theme.musicalFont.family
+                                font.pixelSize: 22
                             }
 
                             // the title as the icon (Metin)
