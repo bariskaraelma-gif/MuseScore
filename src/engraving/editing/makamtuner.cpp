@@ -1503,4 +1503,52 @@ bool turkishStep(Score* score, int direction)
     score->setSelectionChanged(true);
     return true;
 }
+//---------------------------------------------------------
+//   Turkish reading of the written notes (SymbTr import)
+//---------------------------------------------------------
+
+bool accidentalKomaShift(AccidentalType type, int& koma)
+{
+    return accidentalKoma(type, koma);
+}
+
+AccidentalType accidentalOfKoma(int koma)
+{
+    switch (koma) {
+    case 0: return AccidentalType::NATURAL;
+    case 1: return AccidentalType::SHARP_SLASH;      // koma diyez
+    case 4: return AccidentalType::SHARP;            // bakiye diyez
+    case 5: return AccidentalType::SHARP_SLASH3;     // küçük mücennep diyez
+    case 8: return AccidentalType::SHARP_SLASH2;     // büyük mücennep diyez
+    case -1: return AccidentalType::MIRRORED_FLAT;   // koma bemol
+    case -4: return AccidentalType::FLAT_SLASH;      // bakiye bemol
+    case -5: return AccidentalType::FLAT;            // küçük mücennep bemol
+    case -8: return AccidentalType::FLAT_SLASH2;     // büyük mücennep bemol
+    default: break;
+    }
+    return AccidentalType::NONE;
+}
+
+std::vector<int> keySigKomas(const KeySigEvent& ke)
+{
+    return keyKomas(ke);
+}
+
+std::map<const Note*, int> readKomas(MasterScore* score)
+{
+    std::map<const Note*, int> result;
+    if (!score) {
+        return result;
+    }
+    for (const auto& [track, events] : readVoices(score)) {
+        for (const Event& ev : events) {
+            const std::vector<Note*>& notes = ev.chord->notes();
+            for (size_t i = 0; i < notes.size() && i < ev.infos.size(); ++i) {
+                const std::string& perde = ev.infos[i].perde;   // letter + koma, e.g. "B-4"
+                result[notes[i]] = perde.size() > 1 ? std::stoi(perde.substr(1)) : 0;
+            }
+        }
+    }
+    return result;
+}
 }

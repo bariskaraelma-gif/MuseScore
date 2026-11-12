@@ -141,6 +141,14 @@ Bizim eklediğimiz her şey `Makam:` yorumuyla işaretlidir. Aramak için: `git 
   - İlk içerik: 4 makam dizisi, 16 usul, Örnek Eserler'de Hicaz Saz Semâîsi. Sırada: kullanıcının kendi besteleri (çoğu kendi bestesi) ve SymbTr örnekleri (lisansı CC BY-NC-SA 4.0: kaynak gösterilir, ticari olmayan kullanım).
   - Durum: derlendi; dersler kart olarak görünüyor, tıklanınca açılıp çalıyor (2026-11-08).
 
+- **SymbTr MusicXML açma** (2026-11-12; `src/engraving/editing/makamsymbtr.{h,cpp}`, çağrı `NotationProject::doImport` içinde, içe aktarmadan hemen sonra, undo geçmişi dışında):
+  - Tanıma: ilk ölçüdeki "Makam: X, Form: Y, Usul: Z" yazısı (SymbTr'nin dönüştürücüsü burakuyar/MusicXMLConverter bunu metronomla aynı metne koyar). Yazı alt başlığa "X · Y · Z" olarak taşınır (ayarlayıcı makamı oradan bulur); "?" yazılı güftekâr/besteci silinir.
+  - Usul: adı ve n/d'si TurkScore usullerinden biriyle tutan ölçü göstergelerine usul işareti konur (Aksak, Aksak Semâî, Düyek…). Ağır Aksak, Fahte, Devr-i Kebîr gibi listede olmayanlar düz kalır.
+  - Arızalar: SymbTr her notaya kendi perdesini verir (işaret yoksa ve `<alter>` yoksa naturel; bakiye bemol, küçük mücennep diyez gibi işaretlerde `<alter>` hiç yazılmaz, perde işaretten okunur). Süsleme notalarında dönüştürücü işareti de düşürür: orada ölçüdeki önceki aynı nota, yoksa donanım. Yazılı arızalar silinir, sonra Türk okumasına (donanım + ölçü içi taşıma, `noteInfo` ile aynı) göre gereken yere arıza/naturel konur; sonda `readKomas` ile denetlenir, `tuneScore` çalışır. Ayarlayıcıdan açılan yardımcılar: `accidentalKomaShift`, `accidentalOfKoma`, `keySigKomas`, `readKomas` (`makamtuner.h`).
+  - Görünüm: SymbTr'nin kirişleri silinir (BeamMode AUTO); usulü tanınan göstergeler usul gruplamasını, x/4 göstergeleri (Ağır Aksak 9/4, Ağır Aksak Semâî 10/4, Fahte 20/4…) her çeyrekte kiriş kesen gruplamayı alır. Not: MuseScore'un `Groups::endings` işlevi tablosunda olmayan bir gösterge için boş gruplama döndürüyor (boş kopyayı listeye ekleyip düğümleri yerel kopyaya yazıyor), bu yüzden bütün ölçü tek kiriş oluyordu; ortak koda dokunulmadı. "Music" adlı bölüm `turk-muzigi` çalgısına çevrilir (ad, kısa ad T.M., gitar sesi).
+  - Deneme: MTG/SymbTr'den 17 eser (13 makam), txt ile nota nota karşılaştırma: 8.831 notadan 8.823'ü doğru perdeden okunuyor. Kalan 8: dönüştürücünün düşürdüğü ama aslında naturel olan süsleme notaları.
+  - Lenovo'nun makale raporu (2.200 eser): 59 makamda donanım boş, ötekilerde makama göre sabit (ör. Hicaz'da Fa diyez); tekrar/dolap işaretleri hiç yok. Bunlar veride yok; perdeler yine doğru çıkar (boş donanımda her notada arıza).
+
 ## Sıradaki işler
 
 1. **Sesle nota girişi**:

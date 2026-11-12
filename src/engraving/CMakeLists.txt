@@ -123,6 +123,8 @@ target_sources(engraving PRIVATE
     editing/makamtuner.h
     editing/makamdizi.cpp
     editing/makamdizi.h
+    editing/makamsymbtr.cpp
+    editing/makamsymbtr.h
     editing/editstaffspacing.cpp
     editing/editstaffspacing.h
     editing/editdata.cpp
@@ -370,6 +372,7 @@ set_source_files_properties(
     editing/editahenk.cpp
     editing/makamtuner.cpp
     editing/makamdizi.cpp
+    editing/makamsymbtr.cpp
     editing/editstaffspacing.cpp
     style/style.cpp
     #${CMAKE_CURRENT_LIST_DIR}/api/vi/style.cpp

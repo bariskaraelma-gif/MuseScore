@@ -38,6 +38,7 @@
 #include "engraving/dom/measurebase.h"
 #include "engraving/dom/repeatlist.h"
 #include "engraving/editing/editscoreproperties.h"
+#include "engraving/editing/makamsymbtr.h"
 #include "engraving/engravingerrors.h"
 #include "engraving/engravingproject.h"
 #include "engraving/infrastructure/mscio.h"
@@ -320,6 +321,12 @@ Ret NotationProject::doImport(const muse::io::path_t& path, const OpenParams& op
     ret = m_engravingProject->setupMasterScore(openParams.forceMode);
     if (!ret) {
         return ret;
+    }
+
+    // Makam: a SymbTr MusicXML file opens as a Turkish makam score (makam, usul, accidentals for
+    // the Turkish reading, tuning); before the undo history starts
+    if (mu::engraving::makam::isSymbTrScore(score)) {
+        mu::engraving::makam::fixSymbTrScore(score);
     }
 
     if (openParams.unrollRepeats && score->repeatList().size() > 1) {

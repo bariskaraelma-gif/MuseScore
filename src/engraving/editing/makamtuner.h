@@ -19,13 +19,17 @@
  */
 #pragma once
 
+#include <map>
 #include <string>
 #include <vector>
 
 #include <QString>
 
 namespace mu::engraving {
+enum class AccidentalType : unsigned char;
+class KeySigEvent;
 class MasterScore;
+class Note;
 class Score;
 }
 
@@ -88,4 +92,17 @@ std::vector<ScoreMakam> scoreMakams(MasterScore* score);
 // Türk arıza ↑/↓: moves the selected notes one step in the AEU accidental ladder (inside a
 // command). Returns false when no pitched note is selected (MuseScore's own pitch-up/down then).
 bool turkishStep(Score* score, int direction);
+//---------------------------------------------------------
+//   Turkish reading of the written notes (used by the SymbTr import, makamsymbtr.h)
+//---------------------------------------------------------
+
+// Koma shift of an accidental in AEU (or THM) terms; false for an accidental with no Turkish reading
+bool accidentalKomaShift(AccidentalType type, int& koma);
+// The AEU accidental of a koma shift (0 natural, ±1 koma, 4 bakiye ♯, -4 bakiye ♭, ±5, ±8); NONE for others
+AccidentalType accidentalOfKoma(int koma);
+// Koma shift per letter (index "CDEFGAB") of a key signature
+std::vector<int> keySigKomas(const KeySigEvent& ke);
+// The koma shift the tuner reads for every pitched note: its accidental, a tie, an accidental
+// earlier in the measure and voice, the ♯/♭ of its pitch, the donanım
+std::map<const Note*, int> readKomas(MasterScore* score);
 }
