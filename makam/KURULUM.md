@@ -21,7 +21,7 @@ winget install --id Git.Git -e
 Kurulum bitince PowerShell'i kapatıp yeniden aç, sonra:
 
 ```powershell
-git clone --branch makam-4.7.6 --single-branch --depth 50 https://github.com/bariskaraelma/MuseScore.git C:\MakamNota\src
+git clone --branch makam-4.7.6 --single-branch --depth 50 https://github.com/bariskaraelma/TurkScore.git C:\MakamNota\src
 ```
 
 Yol kısa tutulmalı (`C:\MakamNota\src`). Uzun klasör yollarında derleyici dosya adı sınırına takılabiliyor.
@@ -101,7 +101,7 @@ Döngü:
 Yerel derleme gerekmiyorsa ya da paket (.paf.exe) isteniyorsa derleme eskisi gibi GitHub Actions'ta yapılır (yaklaşık 40 dakika):
 
 ```powershell
-gh workflow run build_windows.yml -R bariskaraelma/MuseScore --ref makam-4.7.6 -f platforms=windows_portable -f build_mode=devel
+gh workflow run build_windows.yml -R bariskaraelma/TurkScore --ref makam-4.7.6 -f platforms=windows_portable -f build_mode=devel
 ```
 
 ## 6. İki bilgisayar arasında çalışma
